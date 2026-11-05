@@ -13,9 +13,9 @@ State on 2026-11-05. #100 is merged into `main` (merge commit `cd5cb86`). Every 
 
 Our check finds no Japanese word without English on `main` at `d0ef578`.
 
-## Done on our branch, not offered yet: texts that code puts together
+## Done on our side, not on GitHub yet: texts that code puts together
 
-There are 13 commits on `pr/l10n-2` after the head of #100. None of them is in a pull request yet.
+This part is done on our side but is not on GitHub yet: no branch of this fork has it (`pr/l10n-2` ends where #100 ended), and no pull request.
 
 - **Record ids are type-checked.** A misspelt record id in an English text file now fails `tsc`.
 - **Texts that code puts together** are now in `src/i18n/` as well:
@@ -35,7 +35,7 @@ There are 13 commits on `pr/l10n-2` after the head of #100. None of them is in a
 On `d0ef578`, our leftover check finds these places (132 in 16 files), the 8 left out on purpose (see the end), and
 nothing else.
 
-Before a pull request, the branch needs `main` merged in. A trial merge conflicts in two files, both from the Europa race (#101, #104):
+Before a pull request, this work needs `main` merged in. Merged with today's `main`, it conflicts in two files, both from the Europa race (#101, #104):
 - `data/rallyTracks.ts`: the new `conamara` track, with 4 text pairs;
 - `data/surfaces.ts`: the `conamara` site's name and note, a wider `SITES` type, and `siteDef` now spreading the site's `look`.
 
@@ -49,14 +49,14 @@ After the merge with `main` we run:
 - a browser check of the visible text on every screen.
 
 The browser check has three sets:
-- 23 UI screens, which passed on the branch before the merge;
-- 11 EVA scenarios and 7 Apollo 17 scenarios, which have not been run on these commits yet.
+- 23 UI screens, which passed on this work before the merge;
+- 11 EVA scenarios and 7 Apollo 17 scenarios, which have not been run on this work yet.
 
 The Europa race screens are new, so they get checked too.
 
 ## How changes to `main` come in now
 
-`main` is merged into the branch as usual. A conflict appears only where `main` changes a place that these commits also change; today that is the two files above. Texts he adds in the new form need nothing from us. If a new table holding both languages or a new inline `t()` appears, our checks on `main` show it.
+`main` is merged into this work as usual. A conflict appears only where `main` changes a place that this work also changes; today that is the two files above. Texts added to `main` in the new form need nothing from us. If a new table holding both languages or a new inline `t()` appears, our checks on `main` show it.
 
 ## Open
 

@@ -1,0 +1,27 @@
+{
+  "about": "Stage B of the localization: the log-book tables already split by language move into src/i18n/ unchanged (.memory/tools/i18n/l10n-move.mjs). Order matters: the SF tables first (FACTS / FACTS_EN spread them), the sfSides helpers before SIDE_FACTS (it calls them while the module loads).",
+  "moves": [
+    { "from": "src/data/sfSpace.ts", "to": "src/i18n/sfFacts.ja.ts", "names": ["SPACE_FACTS"],
+      "header": "// SF モードの天体の、航海日誌に出す解説とクイズ（日本語）。facts.ja.ts の FACTS に入る" },
+    { "from": "src/data/sfJapan.ts", "to": "src/i18n/sfFacts.ja.ts", "names": ["JAPAN_FACTS"] },
+    { "from": "src/data/sfHourglass.ts", "to": "src/i18n/sfFacts.ja.ts", "names": ["HOURGLASS_FACTS"] },
+    { "from": "src/data/sfSides.ts", "to": "src/i18n/sfFacts.ja.ts", "names": ["POINT_JA", "stableQuiz", "unstableQuiz", "relayQuiz", "facts", "SIDE_FACTS"], "withComment": true },
+    { "from": "src/data/sfEngine.ts", "to": "src/i18n/sfFacts.ja.ts", "names": ["ENGINE_FACTS"] },
+
+    { "from": "src/data/sfSpace.ts", "to": "src/i18n/sfFacts.en.ts", "names": ["SPACE_FACTS_EN"],
+      "header": "// The log-book texts and quizzes of the SF objects (English). Same keys as sfFacts.ja.ts; they go into FACTS_EN (facts.en.ts)" },
+    { "from": "src/data/sfJapan.ts", "to": "src/i18n/sfFacts.en.ts", "names": ["JAPAN_FACTS_EN"] },
+    { "from": "src/data/sfHourglass.ts", "to": "src/i18n/sfFacts.en.ts", "names": ["HOURGLASS_FACTS_EN"] },
+    { "from": "src/data/sfSides.ts", "to": "src/i18n/sfFacts.en.ts", "names": ["POINT_EN", "stableQuizEn", "unstableQuizEn", "relayQuizEn", "factsEn", "SIDE_FACTS_EN"] },
+    { "from": "src/data/sfEngine.ts", "to": "src/i18n/sfFacts.en.ts", "names": ["ENGINE_FACTS_EN"] },
+
+    { "from": "src/data/facts.ts", "to": "src/i18n/facts.ja.ts", "names": [], "header": "",
+      "comments": ["// 航海日誌に出す解説とクイズ。数値は NASA の公開データの概数。\n// 衛星の数は発見が続いているので「以上」と書く。"] },
+    { "from": "src/data/facts.ts", "to": "src/i18n/facts.ja.ts", "names": ["FACTS"] },
+    { "from": "src/data/facts.en.ts", "to": "src/i18n/facts.en.ts", "names": ["FACTS_EN"], "header": "", "withComment": true,
+      "edits": [{ "from": "キーと並びは facts.ts と同じ", "to": "キーと並びは facts.ja.ts と同じ" }] }
+  ],
+  "fileEdits": [
+    { "file": "src/data/facts.ts", "from": "（英語は facts.en.ts）", "to": "（日本語は i18n/facts.ja.ts、英語は i18n/facts.en.ts）" }
+  ]
+}

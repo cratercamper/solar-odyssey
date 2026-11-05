@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# l10n-check [--all] [--strict] [--lang <code>] [<tree>] — every Japanese string in a Solar Odyssey source tree that has no English twin.
+# Default tree: $L10N_TREE, else the checkout this .memory/ folder sits in. Gap lines: KIND<TAB>file:line<TAB>context<TAB>text
+# (KIND = NO-EN | FOREIGN | PARITY | FALLBACK | NO-EN-SYM | FOREIGN-SYM; --lang: only that language), then a summary. --all also prints every explained literal (OK lines).
+# Exit 0 = no word gaps, 1 = word gaps (--strict: also punctuation/symbol-only gaps, KIND …-SYM), 2 = tool error. Static analysis with the tree's own @babel/parser + @babel/traverse;
+# nothing from the tree is executed. Needs Node >= 23.6 on PATH. How it decides: README.md.
+# An optional l10n-check.env beside this script is read first (one machine's PATH and L10N_TREE; not part of the tools).
+set -euo pipefail
+here=$(dirname "$(readlink -f "$0")")
+err() { echo "[$(date -Is)] l10n-check: ERROR $*" >&2; exit 2; }
+[ ! -f "$here/l10n-check.env" ] || . "$here/l10n-check.env"
+command -v node >/dev/null || err "node not found on PATH (needs Node >= 23.6)"
+opts=()
+tree=""
+want_lang=0
+for a in "$@"; do
+  if [ $want_lang = 1 ]; then opts+=(--lang "$a"); want_lang=0; continue; fi
+  case "$a" in
+    --lang) want_lang=1 ;;
+    --all) opts+=(--all) ;;
+    --strict) opts+=(--strict) ;;
+    -h|--help) sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*) err "unknown option $a (usage: l10n-check [--all] [--strict] [--lang <code>] [<tree>])" ;;
+    *) [ -z "$tree" ] || err "one tree only (got '$tree' and '$a')"; tree=$a ;;
+  esac
+done
+[ $want_lang = 0 ] || err "--lang needs a language code"
+exec node "$here/l10n-check.mjs" "${opts[@]}" "${tree:-${L10N_TREE:-$(dirname "$(dirname "$(dirname "$here")")")}}"

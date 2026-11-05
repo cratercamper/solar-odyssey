@@ -1,0 +1,71 @@
+[
+ {
+  "name": "31-eva-fly",
+  "js": "__sv.eva.start(); return 'started'",
+  "wait": "__sv.eva.state.getState().phase === 'fly' && __sv.eva.jobsState.getState().ui.jobs.length === 3",
+  "timeout": 400,
+  "sleep": 3
+ },
+ {
+  "name": "32-eva-job-done",
+  "js": "__sv.eva.jobs.advance(0, 99); return 'ok'",
+  "sleep": 3
+ },
+ {
+  "name": "33-eva-card",
+  "js": "__sv.eva.jobsState.setState({ card: 0 }); return 'ok'",
+  "sleep": 2
+ },
+ {
+  "name": "34-eva-recall",
+  "js": "__sv.eva.jobsState.setState({ card: null }); __sv.eva.recall(); return __sv.eva.site.id",
+  "wait": "__sv.eva.state.getState().phase === 'none'",
+  "timeout": 400,
+  "sleep": 1
+ },
+ {
+  "name": "40-mars-descent",
+  "js": "__sv.landing.start('mars'); return 'ok'",
+  "wait": "__sv.landing.state.getState().phase === 'descent'",
+  "timeout": 400,
+  "sleep": 1
+ },
+ {
+  "name": "41-mars-surface",
+  "js": "__sv.landing.skip(); return 'ok'",
+  "wait": "__sv.landing.state.getState().phase === 'surface'",
+  "timeout": 400,
+  "sleep": 4
+ },
+ {
+  "name": "42-mars-rover",
+  "js": "__sv.rover.launch(true); return 'ok'",
+  "wait": "__sv.rover.state.getState().phase === 'drive'",
+  "timeout": 400,
+  "sleep": 4
+ },
+ {
+  "name": "43-mars-rover-menu",
+  "js": "__sv.rover.state.setState({ menu: true }); return 'ok'",
+  "sleep": 2
+ },
+ {
+  "name": "44-mars-sample",
+  "js": "__sv.rover.state.setState({ menu: false, result: 'mudstone' }); return 'ok'",
+  "sleep": 2
+ },
+ {
+  "name": "45-mars-site",
+  "js": "__sv.rover.state.setState({ result: null }); __sv.rover.recall(); return 'ok'",
+  "wait": "__sv.rover.state.getState().phase === 'none'",
+  "timeout": 400,
+  "sleep": 1
+ },
+ {
+  "name": "46-coprates",
+  "js": "__sv.landing.site('coprates'); return 'ok'",
+  "wait": "__sv.landing.state.getState().phase === 'surface' && __sv.landing.state.getState().site === 'coprates'",
+  "timeout": 400,
+  "sleep": 5
+ }
+]

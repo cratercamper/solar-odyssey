@@ -1,0 +1,4303 @@
+{
+ "about": "l10n-convert keys: topic + Japanese + English source text (parameters by their automatic names) → key, and optional params { automatic name: chosen name }. Edit a key or a name here and re-run to rename it.",
+ "entries": [
+  {
+   "topic": "approach",
+   "key": "diveStart",
+   "ja": "`${name}の雲の中へ。ガス惑星には固い地面がなく、下るほど圧力と温度が上がっていきます。`",
+   "en": "`Into the clouds of ${name}. Gas giants have no solid ground, and the pressure and temperature rise the deeper you go.`"
+  },
+  {
+   "topic": "approach",
+   "key": "gasLimit",
+   "ja": "`${name}の雲の下、約${LIMIT_BAR}気圧。これ以上は圧力が強すぎて進めません。1995年、探査機ガリレオのプローブは木星のこのくらいの深さで、熱と圧力のために通信が途絶えました。`",
+   "en": "`Under the clouds of ${name}, about ${LIMIT_BAR} times Earth’s air pressure. The pressure is too strong to go deeper. In 1995 the Galileo probe’s descent capsule lost contact at about this depth in Jupiter because of the heat and pressure.`"
+  },
+  {
+   "topic": "approach",
+   "key": "rockLimit",
+   "ja": "`これより下は${name}の地表です。ここは低い軌道。探査機もこの高さから観察します。`",
+   "en": "`Below here is the surface of ${name}. This is a low orbit, the height probes observe from too.`"
+  },
+  {
+   "topic": "approach",
+   "key": "starLimit",
+   "ja": "'太陽の熱と光が強すぎて、これ以上は近づけません。表面は約6000℃もあります。'",
+   "en": "'The Sun’s heat and light are too strong to go any closer. Its surface is about 6,000 °C.'"
+  },
+  {
+   "topic": "beamGauge",
+   "key": "charge",
+   "ja": "'チャージ'",
+   "en": "'Charge'"
+  },
+  {
+   "topic": "beamGauge",
+   "key": "cooldown",
+   "ja": "'クールダウン'",
+   "en": "'Cooldown'"
+  },
+  {
+   "topic": "beamGauge",
+   "key": "firing",
+   "ja": "'発射中'",
+   "en": "'Firing'"
+  },
+  {
+   "topic": "blackHole",
+   "key": "gateHome",
+   "ja": "'帰りのゲート'",
+   "en": "'Gate home'"
+  },
+  {
+   "topic": "bridge",
+   "key": "aftRail",
+   "ja": "'後ろの手すり'",
+   "en": "'Aft rail'"
+  },
+  {
+   "topic": "bridge",
+   "key": "atWindow",
+   "ja": "'窓のそば'",
+   "en": "'At the window'"
+  },
+  {
+   "topic": "bridge",
+   "key": "captainsChair",
+   "ja": "'艦長席'",
+   "en": "'Captain’s chair'"
+  },
+  {
+   "topic": "bridge",
+   "key": "fromAbove",
+   "ja": "'天井から'",
+   "en": "'From above'"
+  },
+  {
+   "topic": "bridge",
+   "key": "helm",
+   "ja": "'操舵席'",
+   "en": "'Helm'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "backToFlying",
+   "ja": "'操縦にもどる'",
+   "en": "'Back to flying'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "backToWindow",
+   "ja": "'窓にもどす'",
+   "en": "'Back to the window'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "coastingHint",
+   "ja": "'船は止まります。なぞって見回せます（艦長席にもどると操縦できます）'",
+   "en": "'The ship coasts to a stop. Drag to look around (go back to the captain’s chair to fly)'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "hideLabels",
+   "ja": "'説明をしまう'",
+   "en": "'Hide labels'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "leaveBridge",
+   "ja": "'◀ ブリッジから出る'",
+   "en": "'◀ Leave the bridge'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "lookAround",
+   "ja": "'見回す'",
+   "en": "'Look around'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "lookMouseHint",
+   "ja": "'右ボタンを押しながらマウスで見回す'",
+   "en": "'Hold the right button and move the mouse to look around'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "lookTouchHint",
+   "ja": "'「見回す」を押すと、なぞって首を振れます'",
+   "en": "'Tap “Look around” and drag to turn your head'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "showLabels",
+   "ja": "'見どころの説明'",
+   "en": "'Show labels'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "zoomAhead",
+   "ja": "'前を拡大画面に'",
+   "en": "'Zoom ahead'"
+  },
+  {
+   "topic": "bridgePanel",
+   "key": "zoomOnTarget",
+   "ja": "'目標を拡大画面に'",
+   "en": "'Zoom on target'"
+  },
+  {
+   "topic": "bridge",
+   "key": "scienceStation",
+   "ja": "'科学ステーション'",
+   "en": "'Science station'"
+  },
+  {
+   "topic": "chargeBeam",
+   "key": "rocksAndJunkDestroyed",
+   "ja": "`チャージビームで小惑星を${rocks}個、宇宙ごみを${junk}個こわしました。`",
+   "en": "`Charge beam: ${rocks} asteroids and ${junk} pieces of space junk destroyed.`"
+  },
+  {
+   "topic": "chargeBeam",
+   "key": "rocksDestroyed",
+   "ja": "`チャージビームで小惑星を${rocks}個こわしました。`",
+   "en": "`Charge beam: ${rocks} asteroids destroyed.`"
+  },
+  {
+   "topic": "compareModels",
+   "key": "storyLength",
+   "ja": "`${registry} ${lengthM}m（設定）`",
+   "en": "`${registry} ${lengthM} m (story)`"
+  },
+  {
+   "topic": "consoles",
+   "key": "alerts",
+   "ja": "'異常'",
+   "en": "'Alerts'"
+  },
+  {
+   "topic": "consoles",
+   "key": "atWarp",
+   "ja": "'ワープ中'",
+   "en": "'At warp'"
+  },
+  {
+   "topic": "consoles",
+   "key": "autopilot",
+   "ja": "'自動航行'",
+   "en": "'Autopilot'"
+  },
+  {
+   "topic": "consoles",
+   "key": "bodiesVisited",
+   "ja": "'訪れた天体'",
+   "en": "'Bodies visited'"
+  },
+  {
+   "topic": "consoles",
+   "key": "cabinTemp",
+   "ja": "'室温'",
+   "en": "'Cabin'"
+  },
+  {
+   "topic": "consoles",
+   "key": "co2",
+   "ja": "'二酸化炭素'",
+   "en": "'CO₂'"
+  },
+  {
+   "topic": "consoles",
+   "key": "crew",
+   "ja": "'乗組員'",
+   "en": "'Crew'"
+  },
+  {
+   "topic": "consoles",
+   "key": "cruise",
+   "ja": "'通常航行'",
+   "en": "'Cruise'"
+  },
+  {
+   "topic": "consoles",
+   "key": "date",
+   "ja": "'日時'",
+   "en": "'Date'"
+  },
+  {
+   "topic": "consoles",
+   "key": "dayLength",
+   "ja": "'1日の長さ'",
+   "en": "'Day length'"
+  },
+  {
+   "topic": "consoles",
+   "key": "daysUnit",
+   "ja": "'日'",
+   "en": "'d'"
+  },
+  {
+   "topic": "consoles",
+   "key": "defence",
+   "ja": "'防御'",
+   "en": "'DEFENCE'"
+  },
+  {
+   "topic": "consoles",
+   "key": "deflectorShield",
+   "ja": "'偏向シールド'",
+   "en": "'Deflector shield'"
+  },
+  {
+   "topic": "consoles",
+   "key": "diameter",
+   "ja": "'直径'",
+   "en": "'Diameter'"
+  },
+  {
+   "topic": "consoles",
+   "key": "distance",
+   "ja": "'距離'",
+   "en": "'Distance'"
+  },
+  {
+   "topic": "consoles",
+   "key": "engineering",
+   "ja": "'機関'",
+   "en": "'ENGINEERING'"
+  },
+  {
+   "topic": "consoles",
+   "key": "environment",
+   "ja": "'環境'",
+   "en": "'ENVIRONMENT'"
+  },
+  {
+   "topic": "consoles",
+   "key": "eta",
+   "ja": "'到着まで'",
+   "en": "'ETA'"
+  },
+  {
+   "topic": "consoles",
+   "key": "fromPlanet",
+   "ja": "'惑星からの距離'",
+   "en": "'From planet'"
+  },
+  {
+   "topic": "consoles",
+   "key": "fromSun",
+   "ja": "'太陽からの距離'",
+   "en": "'From Sun'"
+  },
+  {
+   "topic": "consoles",
+   "key": "gravity",
+   "ja": "'人工重力'",
+   "en": "'Gravity'"
+  },
+  {
+   "topic": "consoles",
+   "key": "helm",
+   "ja": "'操舵'",
+   "en": "'HELM'"
+  },
+  {
+   "topic": "consoles",
+   "key": "hullIntegrity",
+   "ja": "'船体の強さ'",
+   "en": "'Hull integrity'"
+  },
+  {
+   "topic": "consoles",
+   "key": "humidity",
+   "ja": "'湿度'",
+   "en": "'Humidity'"
+  },
+  {
+   "topic": "consoles",
+   "key": "impulse",
+   "ja": "'推進（インパルス）'",
+   "en": "'Impulse'"
+  },
+  {
+   "topic": "consoles",
+   "key": "leavingWarp",
+   "ja": "'ワープ終了'",
+   "en": "'Leaving warp'"
+  },
+  {
+   "topic": "consoles",
+   "key": "lifeSupport",
+   "ja": "'生命維持'",
+   "en": "'Life support'"
+  },
+  {
+   "topic": "consoles",
+   "key": "lift",
+   "ja": "'昇降機'",
+   "en": "'LIFT'"
+  },
+  {
+   "topic": "consoles",
+   "key": "moonsHere",
+   "ja": "'衛星（この中）'",
+   "en": "'Moons (here)'"
+  },
+  {
+   "topic": "consoles",
+   "key": "nearby",
+   "ja": "'近くの天体'",
+   "en": "'NEARBY'"
+  },
+  {
+   "topic": "consoles",
+   "key": "none",
+   "ja": "'なし'",
+   "en": "'None'"
+  },
+  {
+   "topic": "consoles",
+   "key": "noVisitsYet",
+   "ja": "'まだ記録はありません'",
+   "en": "'No visits recorded yet'"
+  },
+  {
+   "topic": "consoles",
+   "key": "onWatch",
+   "ja": "'当直中'",
+   "en": "'On watch'"
+  },
+  {
+   "topic": "consoles",
+   "key": "operations",
+   "ja": "'運用'",
+   "en": "'OPERATIONS'"
+  },
+  {
+   "topic": "consoles",
+   "key": "orbitPeriod",
+   "ja": "'公転'",
+   "en": "'Orbit'"
+  },
+  {
+   "topic": "consoles",
+   "key": "ownShip",
+   "ja": "'自艦'",
+   "en": "'Us'"
+  },
+  {
+   "topic": "consoles",
+   "key": "oxygen",
+   "ja": "'酸素'",
+   "en": "'Oxygen'"
+  },
+  {
+   "topic": "consoles",
+   "key": "pressure",
+   "ja": "'気圧'",
+   "en": "'Pressure'"
+  },
+  {
+   "topic": "consoles",
+   "key": "records",
+   "ja": "'記録'",
+   "en": "'RECORDS'"
+  },
+  {
+   "topic": "consoles",
+   "key": "registry",
+   "ja": "'船の登録'",
+   "en": "'Registry'"
+  },
+  {
+   "topic": "consoles",
+   "key": "science",
+   "ja": "'科学'",
+   "en": "'SCIENCE'"
+  },
+  {
+   "topic": "consoles",
+   "key": "sensors",
+   "ja": "'センサー'",
+   "en": "'SENSORS'"
+  },
+  {
+   "topic": "consoles",
+   "key": "shieldsAllClear",
+   "ja": "'シールド 98%・異常なし'",
+   "en": "'Shields 98% · all clear'"
+  },
+  {
+   "topic": "consoles",
+   "key": "solarSystem",
+   "ja": "'太陽系の地図'",
+   "en": "'SOLAR SYSTEM'"
+  },
+  {
+   "topic": "consoles",
+   "key": "speed",
+   "ja": "'速度'",
+   "en": "'Speed'"
+  },
+  {
+   "topic": "consoles",
+   "key": "status",
+   "ja": "'状態'",
+   "en": "'Status'"
+  },
+  {
+   "topic": "consoles",
+   "key": "target",
+   "ja": "'目標'",
+   "en": "'Target'"
+  },
+  {
+   "topic": "consoles",
+   "key": "time",
+   "ja": "'時刻'",
+   "en": "'Time'"
+  },
+  {
+   "topic": "consoles",
+   "key": "timeRate",
+   "ja": "'時間の速さ'",
+   "en": "'Time rate'"
+  },
+  {
+   "topic": "consoles",
+   "key": "timeStopped",
+   "ja": "'停止'",
+   "en": "'stopped'"
+  },
+  {
+   "topic": "consoles",
+   "key": "timeTitle",
+   "ja": "'時刻'",
+   "en": "'TIME'"
+  },
+  {
+   "topic": "consoles",
+   "key": "titles",
+   "ja": "'称号'",
+   "en": "'Titles'"
+  },
+  {
+   "topic": "consoles",
+   "key": "warpCharging",
+   "ja": "'ワープ準備'",
+   "en": "'Warp charging'"
+  },
+  {
+   "topic": "consoles",
+   "key": "warpCoreOutput",
+   "ja": "'ワープ機関の出力'",
+   "en": "'Warp core output'"
+  },
+  {
+   "topic": "consoles",
+   "key": "warpFactor",
+   "ja": "'ワープ係数'",
+   "en": "'Warp factor'"
+  },
+  {
+   "topic": "consoles",
+   "key": "warpField",
+   "ja": "'ワープ場'",
+   "en": "'Warp field'"
+  },
+  {
+   "topic": "consoles",
+   "key": "yearsUnit",
+   "ja": "'年'",
+   "en": "'yr'"
+  },
+  {
+   "topic": "contextLost",
+   "key": "drawingStopped",
+   "ja": "'3D の描画が止まりました（この端末で処理が重すぎたようです）。'",
+   "en": "'3D drawing stopped (this device ran out of graphics power).'"
+  },
+  {
+   "topic": "contextLost",
+   "key": "reload",
+   "ja": "'読みこみ直す'",
+   "en": "'Reload'"
+  },
+  {
+   "topic": "cube",
+   "key": "found",
+   "ja": "'巨大な立方体の船を発見！ゆっくり近づいて観察してみよう。\\n（I で航海日誌）'",
+   "en": "'You found a giant cube-shaped ship! Fly in slowly and take a closer look.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "cube",
+   "key": "mysteriousCubeShip",
+   "ja": "'謎の立方体船'",
+   "en": "'Mysterious Cube Ship'"
+  },
+  {
+   "topic": "deepSpace",
+   "key": "infrared",
+   "ja": "'赤外線'",
+   "en": "'infrared'"
+  },
+  {
+   "topic": "deepSpace",
+   "key": "infraredExplained",
+   "ja": "'赤外線（人の目には見えない、熱の光）'",
+   "en": "'infrared (heat light our eyes cannot see)'"
+  },
+  {
+   "topic": "deepSpace",
+   "key": "visible",
+   "ja": "'可視光'",
+   "en": "'visible'"
+  },
+  {
+   "topic": "deepSpace",
+   "key": "visibleExplained",
+   "ja": "'可視光（人の目に見える光）'",
+   "en": "'visible light (the light our eyes can see)'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "annularSolarEclipse",
+   "ja": "'金環日食'",
+   "en": "'Annular solar eclipse'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "date",
+   "ja": "`${d}年${d2}月${d3}日`",
+   "en": "`${v4} ${d3}, ${d}`",
+   "params": {
+    "v4": "month"
+   }
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "dateTime",
+   "ja": "`${ms} ${time}（日本時間）`",
+   "en": "`${ms} ${time} UTC`"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "eclipses",
+   "ja": "'日食・月食'",
+   "en": "'Eclipses'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "eclipsesFromSpace",
+   "ja": "'宇宙から見る日食・月食'",
+   "en": "'Eclipses from space'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "introNote",
+   "ja": "'本物の日時の、太陽・地球・月の並びを再生します。月の影が地球に落ちるところ（日食）や、月が地球の影に入って赤くなるところ（月食）を、宇宙から見てみよう。'",
+   "en": "'Replay the real line-up of the Sun, Earth and Moon. Watch from space as the Moon’s shadow falls on Earth (a solar eclipse), or as the Moon slides into Earth’s shadow and turns red (a lunar eclipse).'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lineUpNote",
+   "ja": "'日食は「太陽・月・地球」、月食は「太陽・地球・月」の順に一直線に並ぶと起きます。月の通り道は少し傾いているので、毎月は起きません。月の大きさと距離は見やすく変えてありますが、日時と影の当たる場所は計算した本物です。'",
+   "en": "'A solar eclipse happens when the Sun, Moon and Earth line up in that order, and a lunar eclipse when it is Sun, Earth, Moon. The Moon’s path is slightly tilted, so this does not happen every month. The Moon’s size and distance are changed for easy viewing, but the dates and where the shadows fall are calculated for real.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lunarAfterNote",
+   "ja": "'月は地球の影からぬけて、いつもの満月にもどりました。'",
+   "en": "'The Moon has left Earth’s shadow and is a normal full Moon again.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lunarBeforeNote",
+   "ja": "'満月が、地球の影のほうへ近づいていきます。'",
+   "en": "'The full Moon is moving toward Earth’s shadow.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lunarPartialNote",
+   "ja": "'月が地球の濃い影（本影）に入っていきます。地上から見ると、月が欠けていくように見えます。'",
+   "en": "'The Moon is entering Earth’s dark inner shadow (the umbra). From the ground it looks like a bite is being taken out of it.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lunarPenumbralNote",
+   "ja": "'月が地球のうすい影（半影）に入りました。少しだけ暗くなりますが、目ではほとんどわかりません。'",
+   "en": "'The Moon is in Earth’s faint outer shadow (the penumbra). It dims a little, but it is hard to notice by eye.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "lunarTotalNote",
+   "ja": "'皆既月食：月がまるごと地球の影の中にいます。地球の大気を通って曲がった赤い光だけがとどくので、月は赤銅色に見えます。'",
+   "en": "'Total lunar eclipse: the whole Moon is inside Earth’s shadow. Only red light bent through Earth’s air reaches it, so it glows a coppery red.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "otherEclipses",
+   "ja": "'ほかの日食・月食'",
+   "en": "'Other eclipses'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "partialLunarEclipse",
+   "ja": "'部分月食'",
+   "en": "'Partial lunar eclipse'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "partialSolarEclipse",
+   "ja": "'部分日食'",
+   "en": "'Partial solar eclipse'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "pastSuffix",
+   "ja": "'（過去）'",
+   "en": "' (past)'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "pause",
+   "ja": "'一時停止'",
+   "en": "'Pause'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "penumbralLunarEclipse",
+   "ja": "'半影月食'",
+   "en": "'Penumbral lunar eclipse'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "play",
+   "ja": "'再生'",
+   "en": "'Play'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "replay",
+   "ja": "'もう一度'",
+   "en": "'Replay'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "seenFrom",
+   "ja": "'見られる場所：'",
+   "en": "'Seen from: '"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "separator",
+   "ja": "'：'",
+   "en": "': '"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "solarAfterNote",
+   "ja": "'月の影は、地球からはなれていきました。'",
+   "en": "'The Moon’s shadow has moved off Earth.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "solarAnnularNote",
+   "ja": "'月が地球から遠いので、濃い影は地球までとどきません。影の真ん中にいる人には、太陽が輪のように光って見えます（金環日食）。'",
+   "en": "'The Moon is far from Earth, so its dark shadow falls short. People in the middle see a ring of sunlight around the Moon (an annular eclipse).'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "solarBeforeNote",
+   "ja": "'月が太陽と地球のあいだに入っていきます。月の影は、まだ地球にかかっていません。'",
+   "en": "'The Moon is moving between the Sun and Earth. Its shadow has not reached Earth yet.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "solarPartialNote",
+   "ja": "'月のうすい影（半影）が地球にかかっています。この影の中にいる人には、太陽が欠けて見えます。'",
+   "en": "'The Moon’s faint outer shadow (the penumbra) is on Earth. People inside it see part of the Sun covered.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "solarTotalNote",
+   "ja": "'月の濃い影（本影）が地球に落ちています。小さな黒い点の中では、昼なのに空が暗くなり、星が見えます（皆既日食）。影は東へ動いていきます。'",
+   "en": "'The Moon’s dark inner shadow (the umbra) is on Earth. Inside that small dark spot the daytime sky goes dark and stars come out: a total eclipse. The shadow races east.'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "time",
+   "ja": "'時刻'",
+   "en": "'Time'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "totalLunarEclipse",
+   "ja": "'皆既月食'",
+   "en": "'Total lunar eclipse'"
+  },
+  {
+   "topic": "eclipsePanel",
+   "key": "totalSolarEclipse",
+   "ja": "'皆既日食'",
+   "en": "'Total solar eclipse'"
+  },
+  {
+   "topic": "eva",
+   "key": "dockSiteNote",
+   "ja": "'天の湊のリングの下面で作業します。リングの外側を見上げると地球が見えます'",
+   "en": "'Working on the underside of the Amano-Minato ring. Look up past the outer edge to see Earth'"
+  },
+  {
+   "topic": "eva",
+   "key": "tsumugiAboard",
+   "ja": "'ツムギを回収しました'",
+   "en": "'Tsumugi is back aboard'"
+  },
+  {
+   "topic": "evaView",
+   "key": "allRepairsDone",
+   "ja": "'今日の修理はすべて終わりました。回収して船にもどりましょう'",
+   "en": "'All repairs done for today. Recall Tsumugi and head back in'"
+  },
+  {
+   "topic": "evaView",
+   "key": "alongRing",
+   "ja": "'リングの向き'",
+   "en": "'ALONG RING'"
+  },
+  {
+   "topic": "evaView",
+   "key": "altitude",
+   "ja": "'高さ'",
+   "en": "'ALT'"
+  },
+  {
+   "topic": "evaView",
+   "key": "autoBrake",
+   "ja": "'自動ブレーキ'",
+   "en": "'AUTO-BRAKE'"
+  },
+  {
+   "topic": "evaView",
+   "key": "autoBrakeOff",
+   "ja": "'自動ブレーキ OFF'",
+   "en": "'Auto-brake OFF'"
+  },
+  {
+   "topic": "evaView",
+   "key": "autoBrakeOn",
+   "ja": "'自動ブレーキ ON'",
+   "en": "'Auto-brake ON'"
+  },
+  {
+   "topic": "evaView",
+   "key": "battery",
+   "ja": "'電池'",
+   "en": "'BATT'"
+  },
+  {
+   "topic": "evaView",
+   "key": "bow",
+   "ja": "'船首'",
+   "en": "'BOW'"
+  },
+  {
+   "topic": "evaView",
+   "key": "cantSwapTools",
+   "ja": "'部品を運んでいるあいだは、ツールを付け替えられません'",
+   "en": "'You can’t swap tools while carrying a part'"
+  },
+  {
+   "topic": "evaView",
+   "key": "carryPart",
+   "ja": "'部品をオレンジの光の所へ運ぶ'",
+   "en": "'Carry the part to the orange light'"
+  },
+  {
+   "topic": "evaView",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "evaView",
+   "key": "down",
+   "ja": "'下'",
+   "en": "'Down'"
+  },
+  {
+   "topic": "evaView",
+   "key": "gas",
+   "ja": "'ガス'",
+   "en": "'GAS'"
+  },
+  {
+   "topic": "evaView",
+   "key": "goToRack",
+   "ja": "'青い光の部品棚へ'",
+   "en": "'Go to the parts rack (blue light)'"
+  },
+  {
+   "topic": "evaView",
+   "key": "goToWorkSite",
+   "ja": "'オレンジの光の柱へ'",
+   "en": "'Head for the orange light'"
+  },
+  {
+   "topic": "evaView",
+   "key": "holdEToWork",
+   "ja": "'E を長押しして作業（体が自動で寄ります）'",
+   "en": "'Hold E to work — Tsumugi lines up by itself'"
+  },
+  {
+   "topic": "evaView",
+   "key": "inertia",
+   "ja": "'慣性'",
+   "en": "'INERTIA'"
+  },
+  {
+   "topic": "evaView",
+   "key": "inRealSpace",
+   "ja": "'本当の宇宙では'",
+   "en": "'In real space'"
+  },
+  {
+   "topic": "evaView",
+   "key": "keysHint",
+   "ja": "'W A S D 移動・R/F 上下・ドラッグ／矢印 向き・Z/C 横回転・X ブレーキ・E 作業・1〜5 ツール・V 見方'",
+   "en": "'WASD move · R/F up/down · drag or arrows to turn · Z/C roll · X brake · E use tool · 1–5 tools · V view'"
+  },
+  {
+   "topic": "evaView",
+   "key": "kindsUnit",
+   "ja": "'種類'",
+   "en": "'kinds'"
+  },
+  {
+   "topic": "evaView",
+   "key": "minimap",
+   "ja": "'ミニマップ'",
+   "en": "'Minimap'"
+  },
+  {
+   "topic": "evaView",
+   "key": "openingAirlock",
+   "ja": "'エアロックを開けています…'",
+   "en": "'Opening the airlock…'"
+  },
+  {
+   "topic": "evaView",
+   "key": "outOfGas",
+   "ja": "'ガスが空です。ゆっくりしか動けません'",
+   "en": "'Out of gas — thrust is weak'"
+  },
+  {
+   "topic": "evaView",
+   "key": "recall",
+   "ja": "'回収して船にもどる'",
+   "en": "'Recall and go back aboard'"
+  },
+  {
+   "topic": "evaView",
+   "key": "reelingIn",
+   "ja": "'命綱を巻き取って、船内へもどります'",
+   "en": "'Reeling in the tether and heading back inside'"
+  },
+  {
+   "topic": "evaView",
+   "key": "repairComplete",
+   "ja": "'修理完了 ・ 作業記録'",
+   "en": "'REPAIR COMPLETE · WORK LOG'"
+  },
+  {
+   "topic": "evaView",
+   "key": "repairOrders",
+   "ja": "'修理の依頼'",
+   "en": "'REPAIR ORDERS'"
+  },
+  {
+   "topic": "evaView",
+   "key": "swappingTools",
+   "ja": "'ツールを付け替え中…'",
+   "en": "'Swapping tools…'"
+  },
+  {
+   "topic": "evaView",
+   "key": "switchToChaseCam",
+   "ja": "'◎ 後ろからの視点に切替'",
+   "en": "'◎ Switch to chase cam'"
+  },
+  {
+   "topic": "evaView",
+   "key": "switchToTool",
+   "ja": "`${v1}に付け替えてください（${key} キー）`",
+   "en": "`Switch to the ${v1} (key ${key})`",
+   "params": {
+    "v1": "tool"
+   }
+  },
+  {
+   "topic": "evaView",
+   "key": "switchToTsumugiCam",
+   "ja": "'◉ ツムギの目に切替'",
+   "en": "'◉ Switch to Tsumugi’s eyes'"
+  },
+  {
+   "topic": "evaView",
+   "key": "tether",
+   "ja": "'命綱'",
+   "en": "'TETHER'"
+  },
+  {
+   "topic": "evaView",
+   "key": "tetherFull",
+   "ja": "'命綱がいっぱいです'",
+   "en": "'The tether is at full length'"
+  },
+  {
+   "topic": "evaView",
+   "key": "tetherRange",
+   "ja": "`エアロックから ${TETHER_M} m までしか離れられません`",
+   "en": "`Tsumugi can go up to ${TETHER_M} m from the airlock`"
+  },
+  {
+   "topic": "evaView",
+   "key": "thisKind",
+   "ja": "'この種類'",
+   "en": "'this kind'"
+  },
+  {
+   "topic": "evaView",
+   "key": "tsumugiBooting",
+   "ja": "'ツムギ、展開して起動中…'",
+   "en": "'Tsumugi unfolding and booting up…'"
+  },
+  {
+   "topic": "evaView",
+   "key": "up",
+   "ja": "'上'",
+   "en": "'Up'"
+  },
+  {
+   "topic": "evaView",
+   "key": "use",
+   "ja": "'作業'",
+   "en": "'Use'"
+  },
+  {
+   "topic": "evaView",
+   "key": "useTool",
+   "ja": "`${toolName}を使う`",
+   "en": "`Use the ${toolName2}`"
+  },
+  {
+   "topic": "evaView",
+   "key": "workingWithTool",
+   "ja": "`${toolName}で作業中`",
+   "en": "`Working with the ${toolName2}`"
+  },
+  {
+   "topic": "evaView",
+   "key": "workLog",
+   "ja": "'作業記録'",
+   "en": "'Work log'"
+  },
+  {
+   "topic": "exoplanet",
+   "key": "gateHome",
+   "ja": "'帰りのゲート'",
+   "en": "'Gate home'"
+  },
+  {
+   "topic": "flight",
+   "key": "sun",
+   "ja": "'太陽'",
+   "en": "'Sun'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "autoTour",
+   "ja": "'おまかせ'",
+   "en": "'Auto tour'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "autoTourNote",
+   "ja": "'いくつかの角度から、ゆっくり順に見せます。ドラッグすると自分で動かせます。'",
+   "en": "'Shows the ship slowly from several angles. Drag to take over.'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "backToCockpit",
+   "ja": "'操縦席へもどる'",
+   "en": "'Back to the cockpit'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "comparedAtRealSize",
+   "ja": "'本物の大きさでくらべる'",
+   "en": "'Compared at real size'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "compareLength",
+   "ja": "`${name}：${meters}m`",
+   "en": "`${nameEn}: ${meters} m`"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "compareNote",
+   "ja": "`（${note}）`",
+   "en": "` (${noteEn})`"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "compareSizes",
+   "ja": "'大きさくらべ'",
+   "en": "'Compare sizes'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "enterBridge",
+   "ja": "'▶ 艦橋（ブリッジ）の中に入る'",
+   "en": "'▶ Go inside the bridge'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "fictionNote",
+   "ja": "'この船の形や設定は、このアプリのオリジナルの空想です。'",
+   "en": "'This ship’s design and story are original to this app and imaginary.'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "fromStory",
+   "ja": "'（この船の設定）'",
+   "en": "' (from this ship’s story)'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "labels",
+   "ja": "'名札'",
+   "en": "'Labels'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "mouseHint",
+   "ja": "'ドラッグで回転、ホイールで寄ったり引いたり。名札や下の一覧をクリックすると、その部分の説明が出ます。'",
+   "en": "'Drag to rotate and scroll to zoom. Click a label or the list below to read about that part.'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "shipLength",
+   "ja": "`${registry}：${len}m`",
+   "en": "`${registry}: ${len} m`"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "shipParts",
+   "ja": "'各部の名前'",
+   "en": "'Parts of the ship'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "shipSummary",
+   "ja": "`${registry} ${name}（${kind}・全長 約${len}m）`",
+   "en": "`${registry} ${nameEn} (${kindEn}, about ${len} m long)`"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "touchHint",
+   "ja": "'指でなぞって回転、2本指で寄ったり引いたり。名札や下の一覧をタップすると、その部分の説明が出ます。'",
+   "en": "'Drag to rotate and pinch to zoom. Tap a label or the list below to read about that part.'"
+  },
+  {
+   "topic": "galleryPanel",
+   "key": "viewingMode",
+   "ja": "'鑑賞モード'",
+   "en": "'Viewing mode'"
+  },
+  {
+   "topic": "historicBook",
+   "key": "back",
+   "ja": "'一覧へ'",
+   "en": "'Back'"
+  },
+  {
+   "topic": "historicBook",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "historicBook",
+   "key": "fromLandingSpot",
+   "ja": "`着陸地点から${v1}へ ${dist}`",
+   "en": "`${dist} ${v3} of the landing spot`",
+   "params": {
+    "v1": "dirJa",
+    "v3": "dirEn"
+   }
+  },
+  {
+   "topic": "historicBook",
+   "key": "intro",
+   "ja": "'1972年12月、アポロ17号のセルナン船長とシュミット飛行士は、この谷で3日間、月面車で探検しました。人が月を歩いたのは、今のところこれが最後です。2人が残した物や、立ち寄った観測点を、ローバーで訪ねてみよう。'",
+   "en": "'In December 1972, Apollo 17 astronauts Eugene Cernan and Harrison Schmitt explored this valley for three days in their lunar rover. It is still the last time people walked on the Moon. Drive the rover to what they left behind and to the stations where they stopped.'"
+  },
+  {
+   "topic": "historicBook",
+   "key": "notVisitedWhere",
+   "ja": "`月のタウルス・リットロウ谷（月の追いかけっこ場）で、${it}。光の柱をめざしてローバーで走ろう。`",
+   "en": "`In the Taurus-Littrow valley on the Moon (the Moon chase track), ${it}. Drive the rover to the light beam.`",
+   "params": {
+    "it": "where"
+   }
+  },
+  {
+   "topic": "historicBook",
+   "key": "notVisitedYet",
+   "ja": "'まだ訪ねていない場所です。'",
+   "en": "'Not visited yet. '"
+  },
+  {
+   "topic": "historicBook",
+   "key": "station",
+   "ja": "`観測点${no}`",
+   "en": "`Station ${no}`"
+  },
+  {
+   "topic": "historicBook",
+   "key": "title",
+   "ja": "'アポロ17号の史跡ずかん'",
+   "en": "'Apollo 17 site book'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "allVisited",
+   "ja": "'史跡をぜんぶ訪ねました！'",
+   "en": "'You visited every site!'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "apollo17",
+   "ja": "'アポロ17号'",
+   "en": "'Apollo 17'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "book",
+   "ja": "'ずかん'",
+   "en": "'Book'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "openBook",
+   "ja": "'アポロ17号の史跡ずかんを開く'",
+   "en": "'Open the Apollo 17 site book'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "siteFound",
+   "ja": "'アポロ17号の史跡を見つけた'",
+   "en": "'Apollo 17 site found'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "sitesVisited",
+   "ja": "'訪ねた史跡'",
+   "en": "'Sites visited'"
+  },
+  {
+   "topic": "historicPanel",
+   "key": "toNextSite",
+   "ja": "`「${v1}」まで ${d}`",
+   "en": "`${v3}: ${d}`",
+   "params": {
+    "v1": "site",
+    "d": "dist",
+    "v3": "siteEn"
+   }
+  },
+  {
+   "topic": "hud",
+   "key": "aboveClouds",
+   "ja": "'雲の上'",
+   "en": "'above the clouds of'"
+  },
+  {
+   "topic": "hud",
+   "key": "aboveGround",
+   "ja": "'地表から'",
+   "en": "'above the surface of'"
+  },
+  {
+   "topic": "hud",
+   "key": "aboveStarSurface",
+   "ja": "'表面から'",
+   "en": "'above the surface of'"
+  },
+  {
+   "topic": "hud",
+   "key": "actionKeysHint",
+   "ja": "'F またはクリックでビーム（長押しでチャージ）・I で航海日誌・C でカメラ切り替え'",
+   "en": "'F or click to fire the beam (hold to charge) · I for the ship’s log · C to switch camera'"
+  },
+  {
+   "topic": "hud",
+   "key": "altitude",
+   "ja": "`${name}の${where} 約${altitudeKm}km`",
+   "en": "`About ${altitudeKm} km ${where} ${name}`"
+  },
+  {
+   "topic": "hud",
+   "key": "backOffHint",
+   "ja": "'少し離れると並べた天体が見えます'",
+   "en": "'Back off a little to see them side by side'"
+  },
+  {
+   "topic": "hud",
+   "key": "clickToFly",
+   "ja": "'クリックで操縦開始（Escで解除）'",
+   "en": "'Click to start flying (Esc to release)'"
+  },
+  {
+   "topic": "hud",
+   "key": "closeUpNote",
+   "ja": "`接近ズーム：船を1/${zoom}に縮めて、${name}の大きさを本物に近づけています`",
+   "en": "`Close-up zoom: the ship is shown at 1/${zoom} so ${name} looks closer to its real size`"
+  },
+  {
+   "topic": "hud",
+   "key": "cockpit",
+   "ja": "'操縦席へ'",
+   "en": "'Cockpit'"
+  },
+  {
+   "topic": "hud",
+   "key": "compareSizes",
+   "ja": "'大きさくらべ'",
+   "en": "'Compare sizes'"
+  },
+  {
+   "topic": "hud",
+   "key": "destination",
+   "ja": "`${name}へ`",
+   "en": "`To ${name}`"
+  },
+  {
+   "topic": "hud",
+   "key": "diameterVsShip",
+   "ja": "`直径は${big ? `地球の約${timesEarth}倍、` : ''}この船の約${timesShip}倍`",
+   "en": "`Diameter: ${big ? `about ${timesEarth} × Earth, ` : ''}about ${timesShip} × this ship`"
+  },
+  {
+   "topic": "hud",
+   "key": "diveDepth",
+   "ja": "`${name}の雲の下 約${km}km・${bar}気圧・${celsius}℃`",
+   "en": "`About ${km} km under the clouds of ${name} · ${bar} bar · ${celsius} °C`"
+  },
+  {
+   "topic": "hud",
+   "key": "enterBridge",
+   "ja": "'ブリッジに入る'",
+   "en": "'Enter the bridge'"
+  },
+  {
+   "topic": "hud",
+   "key": "flyTouchHint",
+   "ja": "'左のスティックで移動・画面をなぞって向きを変える'",
+   "en": "'Left stick to move · drag the screen to turn'"
+  },
+  {
+   "topic": "hud",
+   "key": "galleryMouseHint",
+   "ja": "'鑑賞モード：ドラッグで回転・ホイールで拡大縮小・V でもどる'",
+   "en": "'Viewing mode: drag to rotate · scroll to zoom · V to go back'"
+  },
+  {
+   "topic": "hud",
+   "key": "galleryTouchHint",
+   "ja": "'指でなぞって回転・2本指で拡大縮小'",
+   "en": "'Drag to rotate · pinch to zoom'"
+  },
+  {
+   "topic": "hud",
+   "key": "hideSizeComparison",
+   "ja": "'大きさくらべをやめる'",
+   "en": "'Hide size comparison'"
+  },
+  {
+   "topic": "hud",
+   "key": "landOn",
+   "ja": "`${name}の地表に降りる`",
+   "en": "`Land on ${name}`"
+  },
+  {
+   "topic": "hud",
+   "key": "launchLander",
+   "ja": "'着陸船を発進'",
+   "en": "'Launch lander'"
+  },
+  {
+   "topic": "hud",
+   "key": "leaveBridge",
+   "ja": "'◀ 外にもどる'",
+   "en": "'◀ Leave the bridge'"
+  },
+  {
+   "topic": "hud",
+   "key": "lightTimeNote",
+   "ja": "`本物の光でも太陽から${name}まで約${minutes}分。実際の探査機なら約${cond ? `${months}か月` : `${years}年`}かかります。`",
+   "en": "`Even real light takes about ${minutes} minutes from the Sun to ${name}. A real probe would take about ${cond ? `${months} month${cond2 ? 's' : ''}` : `${years} year${cond3 ? 's' : ''}`}.`",
+   "params": {
+    "cond": "underAYear",
+    "cond2": "manyMonths",
+    "cond3": "manyYears"
+   }
+  },
+  {
+   "topic": "hud",
+   "key": "lookThrough",
+   "ja": "`${scopeNear}でのぞく`",
+   "en": "`Look through ${scopeNear}`"
+  },
+  {
+   "topic": "hud",
+   "key": "map",
+   "ja": "'全体マップ'",
+   "en": "'Map'"
+  },
+  {
+   "topic": "hud",
+   "key": "mapMouseHint",
+   "ja": "'ドラッグで回転・ホイールで拡大縮小・名前をクリックで目標設定'",
+   "en": "'Drag to rotate · scroll to zoom · click a name to target it'"
+  },
+  {
+   "topic": "hud",
+   "key": "mapTouchHint",
+   "ja": "'指でなぞって回転・2本指で拡大縮小・名前をタップで目標'",
+   "en": "'Drag to rotate · pinch to zoom · tap a name to target it'"
+  },
+  {
+   "topic": "hud",
+   "key": "moveKeysHint",
+   "ja": "'W/S 前後・A/D 左右・Space/Shift 上下・Q/E 回転・マウスで向き'",
+   "en": "'W/S forward/back · A/D left/right · Space/Shift up/down · Q/E roll · mouse to steer'"
+  },
+  {
+   "topic": "hud",
+   "key": "speed",
+   "ja": "'速度'",
+   "en": "'Speed'"
+  },
+  {
+   "topic": "hud",
+   "key": "thrustKeysHint",
+   "ja": "'ホイールで推進の段階（速さ）を切り替え・O で目標の周辺観察'",
+   "en": "'Mouse wheel to change thrust (speed) · O to observe the target up close'"
+  },
+  {
+   "topic": "hud",
+   "key": "viewShip",
+   "ja": "'船を眺める'",
+   "en": "'View the ship'"
+  },
+  {
+   "topic": "hud",
+   "key": "warpFactor",
+   "ja": "`ワープ${warpFactor}`",
+   "en": "`Warp ${warpFactor}`"
+  },
+  {
+   "topic": "hud",
+   "key": "warpFictionNote",
+   "ja": "'（ワープは空想の技術です）'",
+   "en": "' (Warp is imaginary technology.)'"
+  },
+  {
+   "topic": "landing",
+   "key": "backAboard",
+   "ja": "'母船にもどりました'",
+   "en": "'Back aboard the ship'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "correct",
+   "ja": "'正解！'",
+   "en": "'Correct!'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "dayLength",
+   "ja": "'1日の長さ'",
+   "en": "'Length of day'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "diameter",
+   "ja": "'直径'",
+   "en": "'Diameter'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "explored",
+   "ja": "'探査済み'",
+   "en": "'Explored'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "fictionBadge",
+   "ja": "'SF・フィクション'",
+   "en": "'SF · fiction'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "flyCloseToScope",
+   "ja": "'そばまで行くと、望遠鏡でのぞけます'",
+   "en": "'Fly close to look through the telescope'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "gravity",
+   "ja": "'重力'",
+   "en": "'Gravity'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "inRealScience",
+   "ja": "'現実の科学では'",
+   "en": "'In real science'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "keyHintEnd",
+   "ja": "' で開閉）'",
+   "en": "' to open/close)'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "keyHintStart",
+   "ja": "'（'",
+   "en": "' ('"
+  },
+  {
+   "topic": "logPanel",
+   "key": "lookThroughScope",
+   "ja": "'望遠鏡でのぞく'",
+   "en": "'Look through the telescope'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "moons",
+   "ja": "'衛星'",
+   "en": "'Moons'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "notQuite",
+   "ja": "'残念！'",
+   "en": "'Not quite!'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "shipsLog",
+   "ja": "'航海日誌'",
+   "en": "'Ship’s log'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "shipsLogPrefix",
+   "ja": "'航海日誌：'",
+   "en": "'Ship’s log: '"
+  },
+  {
+   "topic": "logPanel",
+   "key": "temperature",
+   "ja": "'温度'",
+   "en": "'Temperature'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "tryAgain",
+   "ja": "'もう一度'",
+   "en": "'Try again'"
+  },
+  {
+   "topic": "logPanel",
+   "key": "yearLength",
+   "ja": "'1年（公転）'",
+   "en": "'Year (orbit)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "auto",
+   "ja": "'自動'",
+   "en": "'Auto'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "autopilot",
+   "ja": "'自動航行'",
+   "en": "'Autopilot'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "backToNow",
+   "ja": "'今へ'",
+   "en": "'Now'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "bankNote",
+   "ja": "'宇宙には空気がないので、本当は傾けなくても曲がれます（飛行機が傾くのは、翼で空気を押して曲がるため）。'",
+   "en": "'There is no air in space, so a ship can really turn without tilting (airplanes tilt because their wings push on the air to turn).'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "bankWhenTurning",
+   "ja": "'旋回で船体を傾ける'",
+   "en": "'Bank the ship when turning'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "beamNote",
+   "ja": "'ビームを長押しで溜めて、離すと太いビーム。光の点滅や画面の揺れが苦手なら、フラッシュや揺れを切れます。'",
+   "en": "'Hold the beam to charge, release to fire a heavy beam. Turn off the flash or the shake if flashing light or screen shake bothers you.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "chargeBeam",
+   "ja": "'チャージビーム'",
+   "en": "'Charge beam'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "chargeBeamEffects",
+   "ja": "'チャージビームの演出'",
+   "en": "'Charge beam effects'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "chooseTarget",
+   "ja": "'目標を選んでください'",
+   "en": "'Choose a target'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "close",
+   "ja": "'▲ たたむ'",
+   "en": "'▲ Close'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "date",
+   "ja": "'日時'",
+   "en": "'Date'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "displaySettings",
+   "ja": "'表示の設定'",
+   "en": "'Display settings'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "distance",
+   "ja": "'距離'",
+   "en": "'Distance'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "dwarfPlanet",
+   "ja": "'準惑星'",
+   "en": "'Dwarf planet'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "eclipsesFromSpace",
+   "ja": "'宇宙から見る日食・月食'",
+   "en": "'Eclipses from space'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "effects",
+   "ja": "'後処理'",
+   "en": "'Effects'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "effectsNote",
+   "ja": "'光のにじみ：エンジンや窓の光がにじむ。陰影：部品のすき間が暗く締まる。フィルム調：薄い粒子と周辺減光。重いときは切ってください。'",
+   "en": "'Glow: engines and windows bleed light. Shading: gaps between parts darken. Film look: light grain and vignette. Turn them off if things feel slow.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "effectsOffNote",
+   "ja": "'画質が「軽量」のあいだは、後処理を使いません。'",
+   "en": "'Effects are off while the quality is Light.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "filmLook",
+   "ja": "'フィルム調'",
+   "en": "'Film look'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "flash",
+   "ja": "'フラッシュ'",
+   "en": "'Flash'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "gettingReady",
+   "ja": "'準備中…'",
+   "en": "'Getting ready…'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "glow",
+   "ja": "'光のにじみ'",
+   "en": "'Glow'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "high",
+   "ja": "'高'",
+   "en": "'High'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "illustrated",
+   "ja": "'図鑑'",
+   "en": "'Illustrated'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "illustratedNote",
+   "ja": "'見やすく強調した図鑑の絵。大気の光や星をはっきり見せます。'",
+   "en": "'An enhanced, easy-to-read picture-book view with bold air glow and stars.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "language",
+   "ja": "'言語'",
+   "en": "'Language'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "light",
+   "ja": "'軽量'",
+   "en": "'Light'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "lightMinutes",
+   "ja": "`太陽から光で約${lightMinutes}分`",
+   "en": "`About ${lightMinutes} light-minutes from the Sun`"
+  },
+  {
+   "topic": "navPanel",
+   "key": "medium",
+   "ja": "'標準'",
+   "en": "'Medium'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "moonOf",
+   "ja": "`（${parent}の衛星）`",
+   "en": "` (moon of ${parent})`"
+  },
+  {
+   "topic": "navPanel",
+   "key": "moonsOf",
+   "ja": "`${name}の衛星`",
+   "en": "`Moons of ${nameEn}`"
+  },
+  {
+   "topic": "navPanel",
+   "key": "more",
+   "ja": "'多い'",
+   "en": "'More'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "mute",
+   "ja": "'音を消す'",
+   "en": "'Mute'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "muted",
+   "ja": "'消音中'",
+   "en": "'muted'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "navComputer",
+   "ja": "'航法コンピュータ'",
+   "en": "'Nav computer'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "navigationComputer",
+   "ja": "'航法コンピュータ'",
+   "en": "'Navigation computer'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "normal",
+   "ja": "'普通'",
+   "en": "'Normal'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "observe",
+   "ja": "'周辺観察（目標のまわりを回る）'",
+   "en": "'Observe (orbit the target)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "off",
+   "ja": "'オフ'",
+   "en": "'Off'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "oneDay",
+   "ja": "'1日'",
+   "en": "'1 day'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "oneHour",
+   "ja": "'1時間'",
+   "en": "'1 hr'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "oneMinute",
+   "ja": "'1分'",
+   "en": "'1 min'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "oneSecond",
+   "ja": "'1秒'",
+   "en": "'1 s'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "open",
+   "ja": "'▼ ひらく'",
+   "en": "'▼ Open'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "openShipsLog",
+   "ja": "'航海日誌をひらく'",
+   "en": "'Open ship’s log'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "photographic",
+   "ja": "'写真'",
+   "en": "'Photographic'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "photographicNote",
+   "ja": "'探査機のカメラで撮ったような見え方。大気の光は薄く、明るい天体を見ると星は写りません。'",
+   "en": "'As a spacecraft camera would see it: thin air glow, and stars fade out next to bright worlds.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "planetLook",
+   "ja": "'天体の描き方'",
+   "en": "'Planet look'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "playMusic",
+   "ja": "'BGM を流す'",
+   "en": "'Play music'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "probeJourneys",
+   "ja": "'探査機の旅（ボイジャーなど）'",
+   "en": "'Probe journeys (Voyager and more)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "quality",
+   "ja": "'画質'",
+   "en": "'Quality'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "qualityNote",
+   "ja": "'— 惑星がちらついたり動きがカクカクするときは「軽量」に。自動では、描画が追いつかないと自動で下げます。'",
+   "en": "'— If planets flicker or motion stutters, pick Light. Auto lowers the quality when drawing falls behind.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "qualityNow",
+   "ja": "'いま'",
+   "en": "'Now'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "quizRun",
+   "ja": "`連続クイズ（${QUIZ_LENGTH}問）`",
+   "en": "`Quiz run (${QUIZ_LENGTH} questions)`"
+  },
+  {
+   "topic": "navPanel",
+   "key": "race",
+   "ja": "'レース：火星 → 木星 → 土星スイングバイ → 火星'",
+   "en": "'Race: Mars → Jupiter → Saturn swing-by → Mars'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "raceScaleNote",
+   "ja": "'レース中は見やすいスケールで走ります。'",
+   "en": "' During the race, the easy-to-see scale is used.'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "real",
+   "ja": "'現実'",
+   "en": "'Real'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "realWorldTip",
+   "ja": "'本物の太陽系だけ'",
+   "en": "'Only the real solar system'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "rockCollection",
+   "ja": "'岩石コレクション'",
+   "en": "'Rock collection'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "scale",
+   "ja": "'スケール'",
+   "en": "'Scale'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "scaleFacts",
+   "ja": "`月まで：地球の直径の約${moonGap}個分（本物は約30個分）。太陽：地球の約${sunSize}倍（本物は約109倍）。右にすると距離と大きさがいっしょに本物に近づきます（地球の大きさはそのまま、惑星どうしの距離は本物の約20〜50分の1まで）。小さな衛星は見失わないよう、ある大きさより小さくはしません。`",
+   "en": "`To the Moon: about ${moonGap} Earth diameters (really about 30). The Sun: about ${sunSize} times Earth (really about 109). Slide right and distances and sizes move toward real together (Earth keeps its size; planets spread out to about 1/20 to 1/50 of the real distances). Tiny moons never get too small to find.`"
+  },
+  {
+   "topic": "navPanel",
+   "key": "sfImaginary",
+   "ja": "'SF（架空）'",
+   "en": "'SF (imaginary)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "sfWorldTip",
+   "ja": "'架空の船や構造物も出す'",
+   "en": "'Show imaginary ships and structures too'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "shading",
+   "ja": "'陰影'",
+   "en": "'Shading'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "shake",
+   "ja": "'揺れ'",
+   "en": "'Shake'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "spaceTelescopes",
+   "ja": "'宇宙望遠鏡'",
+   "en": "'Space telescopes'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "spacewalk",
+   "ja": "'船外活動（ロボット「ツムギ」を出す）'",
+   "en": "'Spacewalk (send out the Tsumugi robot)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "stampBook",
+   "ja": "'訪問スタンプ帳'",
+   "en": "'Stamp book'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "stop",
+   "ja": "'停止'",
+   "en": "'Stop'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "stopObserving",
+   "ja": "'観察をやめる'",
+   "en": "'Stop observing'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "sun",
+   "ja": "'太陽'",
+   "en": "'Sun'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "switchLanguage",
+   "ja": "'Switch to English'",
+   "en": "'日本語にする'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "target",
+   "ja": "'目標：'",
+   "en": "'Target: '"
+  },
+  {
+   "topic": "navPanel",
+   "key": "thrusters",
+   "ja": "'噴射の演出'",
+   "en": "'Thrusters'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "timeSpeed",
+   "ja": "'時間の速さ（1秒に進む時間）'",
+   "en": "'Time speed (time passed per second)'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "volume",
+   "ja": "'音の大きさ'",
+   "en": "'Volume'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "warp",
+   "ja": "'ワープ'",
+   "en": "'Warp'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "warpSpeed",
+   "ja": "'ワープの速さ'",
+   "en": "'Warp speed'"
+  },
+  {
+   "topic": "navPanel",
+   "key": "world",
+   "ja": "'世界'",
+   "en": "'World'"
+  },
+  {
+   "topic": "observe",
+   "key": "atPortEntrance",
+   "ja": "'港の入口に着きました。前進（W）で中へ入れます'",
+   "en": "'At the port entrance. Thrust forward (W) to go inside'"
+  },
+  {
+   "topic": "observe",
+   "key": "insideStructure",
+   "ja": "'構造物の中では使えません'",
+   "en": "'Not available inside a structure'"
+  },
+  {
+   "topic": "observe",
+   "key": "noTarget",
+   "ja": "'目標を選んで、そばまで行くと使えます'",
+   "en": "'Choose a target and get close to it first'"
+  },
+  {
+   "topic": "observe",
+   "key": "observing",
+   "ja": "`${name}の周辺観察を開始`",
+   "en": "`Observing ${name}`"
+  },
+  {
+   "topic": "observePanel",
+   "key": "berth",
+   "ja": "'着艦（ドックへ）'",
+   "en": "'Berth (into the dock)'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "cancelBerth",
+   "ja": "'着艦をやめる'",
+   "en": "'Cancel'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "cancelDock",
+   "ja": "'入港をやめる'",
+   "en": "'Cancel'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "dock",
+   "ja": "'入港（港の入口へ）'",
+   "en": "'Dock (go to the port)'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "headingToBerth",
+   "ja": "'着艦の位置へ移動中…'",
+   "en": "'Heading to the berth…'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "headingToPort",
+   "ja": "'港の入口へ移動中…'",
+   "en": "'Heading to the port…'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "holdingStill",
+   "ja": "'止まって観察'",
+   "en": "'Holding still'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "keysHint",
+   "ja": "'W/S 距離・A/D 回る速さと向き・Space/Shift 面を傾ける・マウスで位置と角度'",
+   "en": "'W/S distance · A/D orbit speed/direction · Space/Shift tilt · mouse: position and angle'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "lapTime",
+   "ja": "`${cond ? '右' : '左'}回り・1周 ${lap}秒`",
+   "en": "`${cond ? 'Right' : 'Left'} · ${lap} s per lap`",
+   "params": {
+    "cond": "clockwise"
+   }
+  },
+  {
+   "topic": "observePanel",
+   "key": "observing",
+   "ja": "'周辺観察'",
+   "en": "'Observing'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "stopObserving",
+   "ja": "'観察をやめる'",
+   "en": "'Stop observing'"
+  },
+  {
+   "topic": "observePanel",
+   "key": "touchHint",
+   "ja": "'スティック上下で距離・左右で回る速さ／なぞって位置と角度／上昇・下降で面を傾ける'",
+   "en": "'Stick up/down: distance · left/right: orbit speed · drag: position and angle · up/down buttons: tilt'"
+  },
+  {
+   "topic": "observe",
+   "key": "tooFar",
+   "ja": "`${name}のそばで使えます（ワープか自動航行で近づいてから）`",
+   "en": "`Get closer to ${name} first (warp or autopilot)`"
+  },
+  {
+   "topic": "photoNote",
+   "key": "airlessWorlds",
+   "ja": "'月や水星のように大気のない天体は、光が散らされないので昼と夜の境目がくっきりし、満月は縁まで明るく見えます。境目の近くでは影が長くのび、クレーターが立体的に見えます。'",
+   "en": "'Worlds with no air, like the Moon and Mercury, have a sharp line between day and night, and a full Moon is bright right to its edge. Near that line, long shadows make craters stand out.'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "enhancedColor",
+   "ja": "'探査機の公開写真の多くは、模様を見やすくするために色を強めた「強調画像」です。図鑑モードは、それに近い見せ方をしています。'",
+   "en": "'Many published spacecraft pictures are “enhanced-color” images, with colors boosted so the details are easier to see. Illustrated mode is close to that style.'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "gasGiantEdge",
+   "ja": "'木星などのガス惑星の縁が暗いのは、球の縁では大気を斜めに見ることになり、上の層のもやにさえぎられて、深くの明るい雲が見えにくくなるから（周縁減光）。太陽の縁が暗いのも同じ理由です。'",
+   "en": "'The edge of a gas giant like Jupiter looks darker because at the edge we look through the air at a slant, so the upper haze hides the bright, deeper clouds (limb darkening). The Sun’s edge is darker for the same reason.'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "label",
+   "ja": "'写真モードについて'",
+   "en": "'About Photographic mode'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "neverAgain",
+   "ja": "'次回から表示しない'",
+   "en": "'Don’t show this again'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "noStars",
+   "ja": "'宇宙の写真に星がほとんど写らないのは、日の当たった惑星と星との明るさの差が大きすぎるから。カメラが惑星に明るさを合わせると、暗い星は写りません。この写真モードでも、明るい天体が画面に大きく映ると星が消えていきます。'",
+   "en": "'Space photos show almost no stars because a sunlit planet is far brighter than the stars. When the camera is set for the planet, the faint stars do not show up. In this mode, stars fade out when a bright world fills the screen.'"
+  },
+  {
+   "topic": "photoNote",
+   "key": "title",
+   "ja": "'写真モード：カメラで撮ったときの見え方'",
+   "en": "'Photographic mode: what a camera would see'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "distanceToday",
+   "ja": "`今日（${today}）は太陽から約${au}天文単位、約${au2}億km。電波が届くのに約${hours}時間かかります。`",
+   "en": "`Today (${today}) it is about ${au} AU from the Sun, about ${au3} billion km. Its radio signals take about ${hours} hours to reach us.`"
+  },
+  {
+   "topic": "probePanel",
+   "key": "introNote",
+   "ja": "'本物の探査機がたどった道を、打ち上げの日から再生します。惑星も、その日の本当の位置に動きます。'",
+   "en": "'Replay the paths real probes took, starting on launch day. The planets move to where they really were on each date.'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "otherProbes",
+   "ja": "'ほかの探査機'",
+   "en": "'Other probes'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "pathsNote",
+   "ja": "'道すじは、通った天体を太陽のまわりの弧でつないだ、おおよその形です。日付と、通った天体は本物です。'",
+   "en": "'The paths are rough shapes made by joining the bodies each probe passed with arcs around the Sun. The dates and the bodies visited are real.'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "pause",
+   "ja": "'一時停止'",
+   "en": "'Pause'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "play",
+   "ja": "'再生'",
+   "en": "'Play'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "probeJourneys",
+   "ja": "'探査機の旅'",
+   "en": "'Probe journeys'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "replay",
+   "ja": "'もう一度'",
+   "en": "'Replay'"
+  },
+  {
+   "topic": "probePanel",
+   "key": "separator",
+   "ja": "'：'",
+   "en": "': '"
+  },
+  {
+   "topic": "probePanel",
+   "key": "sunDistancePrefix",
+   "ja": "'太陽から約'",
+   "en": "'About '"
+  },
+  {
+   "topic": "probePanel",
+   "key": "sunDistanceSuffix",
+   "ja": "'天文単位'",
+   "en": "' AU from the Sun'"
+  },
+  {
+   "topic": "probeScene",
+   "key": "ryugu",
+   "ja": "'リュウグウ'",
+   "en": "'Ryugu'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "allCorrect",
+   "ja": "'全問正解です。すばらしい！'",
+   "en": "'All correct. Amazing!'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "arriveNote",
+   "ja": "'着いたら航海日誌に、くわしい解説とクイズがあります。'",
+   "en": "'When you arrive, the ship’s log has more facts and a quiz.'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "bestSoFar",
+   "ja": "'これまでの最高'",
+   "en": "'Best so far'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "bestSoFarCount",
+   "ja": "`${best}問`",
+   "en": "`${best}`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "correct",
+   "ja": "'正解！'",
+   "en": "'Correct!'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "correctCount",
+   "ja": "'正解'",
+   "en": "'Correct'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "correctStreak",
+   "ja": "`正解！ ${streak}問連続！`",
+   "en": "`Correct! ${streak} in a row!`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "earnedTitle",
+   "ja": "`称号「${score}」`",
+   "en": "`Title: ${score}`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "goSeeMissed",
+   "ja": "'まちがえた天体を見に行こう'",
+   "en": "'Go and see the ones you missed'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "longestStreak",
+   "ja": "'いちばん長い連続正解'",
+   "en": "'Longest streak'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "longestStreakCount",
+   "ja": "`${bestStreak}問`",
+   "en": "`${bestStreak}`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "newRecord",
+   "ja": "'新記録！'",
+   "en": "'New record!'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "nextQuestion",
+   "ja": "'次の問題'",
+   "en": "'Next question'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "notQuiteAnswer",
+   "ja": "`残念！ 正解は「${v1}」`",
+   "en": "`Not quite! The answer is “${v1}.”`",
+   "params": {
+    "v1": "answer"
+   }
+  },
+  {
+   "topic": "quizPanel",
+   "key": "questionNumber",
+   "ja": "`第${index}問 / ${QUIZ_LENGTH}`",
+   "en": "`Question ${index} / ${QUIZ_LENGTH}`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "quizResults",
+   "ja": "'連続クイズの結果'",
+   "en": "'Quiz results'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "quizRun",
+   "ja": "'連続クイズ'",
+   "en": "'Quiz run'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "resultScore",
+   "ja": "`結果：${score} / ${QUIZ_LENGTH}問 正解`",
+   "en": "`Result: ${score} / ${QUIZ_LENGTH} correct`"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "seeResults",
+   "ja": "'結果を見る'",
+   "en": "'See results'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "streak",
+   "ja": "'連続'",
+   "en": "'Streak'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "tryAgain",
+   "ja": "'もう一度挑戦'",
+   "en": "'Try again'"
+  },
+  {
+   "topic": "quizPanel",
+   "key": "warpTo",
+   "ja": "`${id}へワープ`",
+   "en": "`Warp to ${id}`"
+  },
+  {
+   "topic": "race",
+   "key": "finishNote",
+   "ja": "'本物の探査機ボイジャー2号は、スイングバイで木星・土星・天王星・海王星を次々にめぐり、打ち上げから12年で海王星に着きました。'",
+   "en": "'The real Voyager 2 probe used swing-bys to visit Jupiter, Saturn, Uranus and Neptune one after another, reaching Neptune 12 years after launch.'"
+  },
+  {
+   "topic": "race",
+   "key": "noWarp",
+   "ja": "'レース中はワープと自動航行は使えません。自分の手で操縦しよう！'",
+   "en": "'Warp and autopilot are off during the race. Fly it yourself!'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "best",
+   "ja": "'ベスト'",
+   "en": "'Best'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "done",
+   "ja": "'終わる'",
+   "en": "'Done'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "newRecord",
+   "ja": "'新記録'",
+   "en": "'New record'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "quit",
+   "ja": "'やめる'",
+   "en": "'Quit'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "raceAgain",
+   "ja": "'もう一度'",
+   "en": "'Race again'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "raceResults",
+   "ja": "'レースの結果'",
+   "en": "'Race results'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "rings",
+   "ja": "'輪'",
+   "en": "'Rings'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "rival",
+   "ja": "'ライバル'",
+   "en": "'Rival'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "rivalWon",
+   "ja": "'ゴール！ライバルの勝ち'",
+   "en": "'Finish! Your rival won'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "stillFlying",
+   "ja": "'まだ飛行中'",
+   "en": "'still flying'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "swingByBoost",
+   "ja": "'スイングバイ加速'",
+   "en": "'Swing-by boost'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "you",
+   "ja": "'あなた'",
+   "en": "'You'"
+  },
+  {
+   "topic": "racePanel",
+   "key": "youWon",
+   "ja": "'ゴール！ライバルに勝ちました'",
+   "en": "'Finish! You beat your rival'"
+  },
+  {
+   "topic": "race",
+   "key": "pastJupiter",
+   "ja": "'木星を通過！木星は太陽系でいちばん大きな惑星で、地球が1,300個以上入る大きさです。'",
+   "en": "'Past Jupiter! It is the biggest planet in the solar system, big enough to hold more than 1,300 Earths.'"
+  },
+  {
+   "topic": "race",
+   "key": "raceStart",
+   "ja": "'レース開始！光る輪を順番にくぐって、木星のそばを通り、土星でスイングバイして火星へ戻ろう。'",
+   "en": "'Race start! Fly through the glowing rings in order, pass close to Jupiter, swing by Saturn and head back to Mars.'"
+  },
+  {
+   "topic": "race",
+   "key": "swingByComplete",
+   "ja": "'スイングバイ成功！惑星の重力を借りると、燃料を使わずに加速と方向転換ができます。探査機ボイジャーも木星と土星でこの技を使いました。'",
+   "en": "'Swing-by complete! Borrowing a planet’s gravity lets you speed up and change direction without using fuel. The Voyager probes used this trick at Jupiter and Saturn.'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "back",
+   "ja": "'もどる'",
+   "en": "'Back'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "backToLastGate",
+   "ja": "'直前の門へもどる'",
+   "en": "'Back to the last gate'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "best",
+   "ja": "'自己ベスト'",
+   "en": "'Best'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "bestTime",
+   "ja": "`自己ベスト ${best}`",
+   "en": "`Best ${best}`"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "canyonTrial",
+   "ja": "'峡谷トライアル'",
+   "en": "'Canyon trial'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "caught",
+   "ja": "'つかまえた！'",
+   "en": "'Caught!'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "caughtAll",
+   "ja": "'3台ぜんぶつかまえた！🏆'",
+   "en": "'You caught all three! 🏆'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "caughtPrefix",
+   "ja": "'つかまえた '",
+   "en": "'Caught '"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "caughtRover",
+   "ja": "`${v1}をつかまえた！`",
+   "en": "`Caught ${v2}!`",
+   "params": {
+    "v1": "nameJa",
+    "v2": "nameEn"
+   }
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "caughtSome",
+   "ja": "`${v1}台つかまえた`",
+   "en": "`You caught ${v1} of 3`",
+   "params": {
+    "v1": "count"
+   }
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "finish",
+   "ja": "'ゴール'",
+   "en": "'Finish'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "finishedPlace",
+   "ja": "`${place}位でゴール`",
+   "en": "`Finished ${['1st', '2nd', '3rd', '4th'][place - 1]}`"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "finishSplit",
+   "ja": "'ゴール！'",
+   "en": "'Finish!'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "freeDrive",
+   "ja": "'自由に走る'",
+   "en": "'Free drive'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "gateOfGates",
+   "ja": "`門 ${gate}/${gates}`",
+   "en": "`Gate ${gate}/${gates}`"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "gateSplit",
+   "ja": "`門 ${gate}`",
+   "en": "`Gate ${gate}`"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "gotAway",
+   "ja": "'にげられた'",
+   "en": "'Got away'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "missedGate",
+   "ja": "'門を通っていません'",
+   "en": "'You missed a gate'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "missedGateHint",
+   "ja": "'矢印の門へもどるか、R（もどる）で直前の門へ'",
+   "en": "'Head back to the arrowed gate, or press R (Back) to return to the last gate'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "newPersonalBest",
+   "ja": "'自己ベスト更新！'",
+   "en": "'New personal best!'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "nextFinish",
+   "ja": "'次はゴール'",
+   "en": "'Next: finish'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "onYourMarks",
+   "ja": "'位置について'",
+   "en": "'On your marks'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "placeSuffix",
+   "ja": "'位'",
+   "en": "''"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "preparingRover",
+   "ja": "'ローバーを準備中…'",
+   "en": "'Getting the rover ready…'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "quitRace",
+   "ja": "'レースをやめる'",
+   "en": "'Quit race'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "raceAgain",
+   "ja": "'もう一度'",
+   "en": "'Race again'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "roverColour",
+   "ja": "'ローバーの色'",
+   "en": "'Rover colour'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "roversCaught",
+   "ja": "'つかまえたローバー'",
+   "en": "'Rovers caught'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "start",
+   "ja": "'スタート'",
+   "en": "'Start'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "trialNote",
+   "ja": "'4台のローバーで、峡谷の谷底を約1.2 km競走します。光の門を順にくぐってゴールへ。岩に乗ると車輪が浮いて遅くなり、曲がれません。ジャンプで飛び越えよう！'",
+   "en": "'Four rovers race about 1.2 km along the canyon floor. Pass the light gates in order to the finish. Driving onto rocks lifts the wheels: you slow down and can’t steer. Jump over them!'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "you",
+   "ja": "'あなた'",
+   "en": "'You'"
+  },
+  {
+   "topic": "rallyPanel",
+   "key": "youWon",
+   "ja": "'優勝！🏆'",
+   "en": "'You won! 🏆'"
+  },
+  {
+   "topic": "rockBook",
+   "key": "back",
+   "ja": "'一覧へ'",
+   "en": "'Back'"
+  },
+  {
+   "topic": "rockBook",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "rockBook",
+   "key": "foundOn",
+   "ja": "'見つけた場所：'",
+   "en": "'Found on: '"
+  },
+  {
+   "topic": "rockBook",
+   "key": "howToCollect",
+   "ja": "'惑星や衛星に着陸してローバーを出し、岩を採集すると、ここに標本が並びます。まだ見つけていない岩はシルエットだけ。タップすると説明が読めます。'",
+   "en": "'Land, send out the rover and collect rocks to fill this collection. Rocks you have not found yet show only as silhouettes. Tap one to read about it.'"
+  },
+  {
+   "topic": "rockBook",
+   "key": "landerHint",
+   "ja": "`${where}に着陸して、ローバーで光の柱の岩を探してみよう。`",
+   "en": "`Land on ${where} and look for the rocks marked by light beams with the rover.`"
+  },
+  {
+   "topic": "rockBook",
+   "key": "notFoundYet",
+   "ja": "'まだ見つけていない岩です。'",
+   "en": "'Not found yet. '"
+  },
+  {
+   "topic": "rockBook",
+   "key": "rockCollection",
+   "ja": "'岩石コレクション'",
+   "en": "'Rock collection'"
+  },
+  {
+   "topic": "rockBook",
+   "key": "spotsHint",
+   "ja": "`${where}の見どころ「${spots.join('」「')}」で見つかるかも。ミニマップの ◆ をめざして走ろう。`",
+   "en": "`Try the ${spots.join(', ')} on ${where}. Drive to the ◆ on the minimap.`"
+  },
+  {
+   "topic": "roverHud",
+   "key": "air",
+   "ja": "'空中'",
+   "en": "'AIR'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "all",
+   "ja": "'全体'",
+   "en": "'All'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "distance",
+   "ja": "'距離'",
+   "en": "'DIST'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "done",
+   "ja": "'完了'",
+   "en": "'done'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "heading",
+   "ja": "'方位'",
+   "en": "'HDG'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "hideMinimap",
+   "ja": "'ミニマップをたたむ'",
+   "en": "'Hide the minimap'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "map",
+   "ja": "'地図'",
+   "en": "'Map'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "minimap",
+   "ja": "'ミニマップ'",
+   "en": "'Minimap'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "near",
+   "ja": "'近く'",
+   "en": "'Near'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "rcs",
+   "ja": "'噴射'",
+   "en": "'RCS'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "rcsTip",
+   "ja": "'姿勢制御の噴射剤（空中で◀▶・▼）'",
+   "en": "'Thruster propellant (◀▶ and ▼ in the air)'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "rock",
+   "ja": "'岩'",
+   "en": "'ROCK'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "showMinimap",
+   "ja": "'ミニマップを出す'",
+   "en": "'Show the minimap'"
+  },
+  {
+   "topic": "roverHud",
+   "key": "tilt",
+   "ja": "'傾き'",
+   "en": "'TILT'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "easy",
+   "ja": "'見やすく'",
+   "en": "'Easy'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "easyNote",
+   "ja": "'惑星も衛星もぎゅっと近くに、小さな天体は大きめにして見やすく'",
+   "en": "'Everything packed close, small bodies enlarged so they are easy to find'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "mid",
+   "ja": "'ほどほど'",
+   "en": "'Mid'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "midNote",
+   "ja": "'見やすさと本物のあいだ'",
+   "en": "'Halfway between easy and real'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "moonGapFact",
+   "ja": "`月まで：地球の直径の約${moonGap}個分（本物は約30個分）`",
+   "en": "`To the Moon: about ${moonGap} Earth diameters (really about 30)`"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "nearReal",
+   "ja": "'本物寄り'",
+   "en": "'Near real'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "nearRealNote",
+   "ja": "'大きさは本物の比率、衛星は本物の距離。惑星どうしは本物の約20〜50分の1'",
+   "en": "'Real proportions and real moon distances; planets at about 1/20–1/50 of real spacing'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "raceScaleNote",
+   "ja": "'レース中は見やすい距離と大きさで走ります。'",
+   "en": "'During the race, the easy-to-see distance and size are used.'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "scale",
+   "ja": "'スケール'",
+   "en": "'Scale'"
+  },
+  {
+   "topic": "scaleToggle",
+   "key": "sunSizeFact",
+   "ja": "`太陽：地球の約${sunSize}倍（本物は約109倍）`",
+   "en": "`The Sun: about ${sunSize} times Earth (really about 109)`"
+  },
+  {
+   "topic": "sf",
+   "key": "amanoMinatoDock",
+   "ja": "'宇宙船ドック「天の湊」'",
+   "en": "'Amano-Minato Orbital Dock'"
+  },
+  {
+   "topic": "sf",
+   "key": "arkFound",
+   "ja": "'世代宇宙船に追いつきました。何世代もかけて、となりの恒星ケンタウルス座アルファ星をめざしています。\\n（I で航海日誌）'",
+   "en": "'You have caught up with the generation ship. It is heading for the nearest star, Alpha Centauri, on a trip that will take many generations.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfBadge",
+   "key": "fiction",
+   "ja": "'フィクション'",
+   "en": "'FICTION'"
+  },
+  {
+   "topic": "sfBadge",
+   "key": "real",
+   "ja": "'現実'",
+   "en": "'Real'"
+  },
+  {
+   "topic": "sfBadge",
+   "key": "realWorldTip",
+   "ja": "'本物の太陽系だけ'",
+   "en": "'Only the real solar system'"
+  },
+  {
+   "topic": "sfBadge",
+   "key": "sfWorldTip",
+   "ja": "'架空の船や構造物も出す'",
+   "en": "'Show imaginary ships and structures too'"
+  },
+  {
+   "topic": "sfBadge",
+   "key": "world",
+   "ja": "'世界'",
+   "en": "'World'"
+  },
+  {
+   "topic": "sf",
+   "key": "beaconFound",
+   "ja": "'エウロパの氷の上に、見たことのない物体が立っています。光の球がゆっくりふくらんでは消えています。\\n（I で航海日誌）'",
+   "en": "'Something no one has seen before stands on Europa’s ice. A ball of light slowly swells and fades.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "blackHole",
+   "ja": "'ブラックホール（太陽系の外）'",
+   "en": "'Black Hole (beyond the solar system)'"
+  },
+  {
+   "topic": "sf",
+   "key": "blackHoleArrived",
+   "ja": "'ブラックホールのそばに出ました。光が重力で曲がり、うしろにある円盤の向こう側まで、上と下に回りこんで見えています。\\n帰りは近くのゲートをくぐるか、太陽系の目標へワープ。'",
+   "en": "'You came out near a black hole. Its gravity bends light, so you can see the far side of the disk wrapped over the top and under the bottom.\\nTo go home, fly through the nearby gate or warp to any target in the solar system.'"
+  },
+  {
+   "topic": "sf",
+   "key": "blackHoleTooClose",
+   "ja": "'これ以上は近づけません。ここでは重力で時間の進み方がおそくなります。事象の地平面の近くでは、外の世界の何倍もの時間が流れます。'",
+   "en": "'You cannot go any closer. Gravity slows time down here: close to the event horizon, much more time passes in the outside world than for you.'"
+  },
+  {
+   "topic": "sf",
+   "key": "colonyFound",
+   "ja": "'第1コロニー群が見えてきた。1号基には、太陽と反対側の端にある港から入れます。\\n（I で航海日誌）'",
+   "en": "'Colony Group 1 comes into view. In Colony 1 you can fly inside through the port at the end facing away from the Sun.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "colonyGroup1",
+   "ja": "'第1コロニー群（L5）'",
+   "en": "'Colony Group 1 (L5)'"
+  },
+  {
+   "topic": "sf",
+   "key": "colonyInside",
+   "ja": "'コロニーの中に入りました。頭の上にも大地が広がっています。回転の遠心力が、内側の地面に重力の代わりの力を生んでいます。'",
+   "en": "'You are inside the colony. There is land above your head too. The spin pushes everything outward, and that push works like gravity on the inner ground.'"
+  },
+  {
+   "topic": "sf",
+   "key": "crossAsteroidPort",
+   "ja": "'十字の小惑星港'",
+   "en": "'Cross Asteroid Port'"
+  },
+  {
+   "topic": "sf",
+   "key": "crossFound",
+   "ja": "'金平糖のような形の小惑星の宇宙港です。運んできた小惑星をくりぬいて、港と住まいにしています。光っている四角は船の出入り口です。\\n（I で航海日誌）'",
+   "en": "'An asteroid port shaped like a spiky konpeito candy. Asteroids were brought here and hollowed out for docks and homes. The glowing squares are the ship entrances.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "debrisCollector",
+   "ja": "'宇宙ごみ回収船'",
+   "en": "'Debris Collector'"
+  },
+  {
+   "topic": "sf",
+   "key": "debrisFound",
+   "ja": "'宇宙ごみの回収船です。地球の低い軌道を回りながら、腕の先の網で、古いロケットや破片を1つずつつかまえています。\\n（I で航海日誌）'",
+   "en": "'This is the debris collector. Circling Earth in low orbit, it catches old rocket parts and fragments one by one with the net on its arm.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "desertArrived",
+   "ja": "'2つの太陽を回る砂の惑星に着きました。惑星のふちに、橙色と赤の太陽が並んでしずんでいきます。\\n帰りは近くのゲートをくぐるか、太陽系の目標へワープ。'",
+   "en": "'You have reached a desert planet that circles two suns. An orange sun and a red sun set side by side over its edge.\\nTo go home, fly through the nearby gate or warp to any target in the solar system.'"
+  },
+  {
+   "topic": "sf",
+   "key": "desertPlanet",
+   "ja": "'2つの太陽の砂の惑星（太陽系の外）'",
+   "en": "'Desert Planet of Two Suns (beyond the solar system)'"
+  },
+  {
+   "topic": "sf",
+   "key": "dockFound",
+   "ja": "'宇宙船ドック「天の湊（あまのみなと）」です。差し渡し約5kmの輪と十字の基地で、前の大きなドックには大型の船がまるごと入ります。後ろの船台では、新しい船を組み立てています。\\n（I で航海日誌）'",
+   "en": "'This is the Amano-Minato Orbital Dock, a ring-and-cross base about 5 km across. A large ship fits whole inside the big dock at the front, and a new ship is being built on the open slipway at the back.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "dysonFound",
+   "ja": "'ダイソン・スウォームです。太陽のまわりの輪に、何千もの集光衛星が並んで、太陽の光を受けとめています。\\n（I で航海日誌）'",
+   "en": "'This is the Dyson swarm. Thousands of collector satellites line rings around the Sun, catching its light.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "dysonSwarm",
+   "ja": "'ダイソン・スウォーム'",
+   "en": "'Dyson Swarm'"
+  },
+  {
+   "topic": "sf",
+   "key": "elevatorFound",
+   "ja": "'軌道エレベーターの駅です。赤道の海の基地からケーブルが伸びていて、昇降機がゆっくり上り下りしています。\\n（I で航海日誌）'",
+   "en": "'This is the space elevator station. A cable rises from a base on the ocean at the equator, and climbers slowly ride up and down.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfEngine",
+   "key": "engineAsteroid",
+   "ja": "'推進小惑星'",
+   "en": "'Engine Asteroid'"
+  },
+  {
+   "topic": "sfEngine",
+   "key": "found",
+   "ja": "'推進小惑星が見えてきた。採掘のために、小惑星帯から地球の近くへエンジンで運ばれている途中です。\\n（I で航海日誌）'",
+   "en": "'The Engine Asteroid comes into view. It is being pushed by its engines from the asteroid belt toward Earth, to be mined.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "europaBeacon",
+   "ja": "'エウロパのビーコン'",
+   "en": "'Europa Beacon'"
+  },
+  {
+   "topic": "sf",
+   "key": "fleetFound",
+   "ja": "'移民船団です。背中の透明な丸屋根の中に、森と街がまるごと載っています。先頭が旗艦、まわりの小さな船は補給船です。\\n（I で航海日誌）'",
+   "en": "'This is the migrant fleet. Under the clear domes on their backs, whole towns and forests ride along. The lead ship is the flagship; the small ones are supply ships.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "gateFound",
+   "ja": "'時空のゲートのそばに来ました。輪の中へまっすぐ飛びこむと、遠くのブラックホールへ出ます。'",
+   "en": "'You are near the space-time gate. Fly straight into the ring to come out by a faraway black hole.'"
+  },
+  {
+   "topic": "sf",
+   "key": "generationShip",
+   "ja": "'世代宇宙船'",
+   "en": "'Generation Ship'"
+  },
+  {
+   "topic": "sf",
+   "key": "group1Colony",
+   "ja": "`第1コロニー群 ${n}号基`",
+   "en": "`Group 1, Colony ${n}`"
+  },
+  {
+   "topic": "sfHourglass",
+   "key": "found",
+   "ja": "'砂時計型コロニー群が見えてきた。くびれの宇宙港から、お椀の内側に広がる畑と海と街へ降りていきます。\\n（I で航海日誌）'",
+   "en": "'The Hourglass Colonies come into view. From the spaceport at each narrow waist, people travel down into the fields, seas and towns that line the inside of the bowls.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfHourglass",
+   "key": "hourglassColonies",
+   "ja": "'砂時計型コロニー群'",
+   "en": "'Hourglass Colonies'"
+  },
+  {
+   "topic": "sf",
+   "key": "iceArrived",
+   "ja": "'氷の惑星に着きました。青白い氷が星じゅうをおおい、うすい雲が流れています。\\n帰りは近くのゲートをくぐるか、太陽系の目標へワープ。'",
+   "en": "'You have reached an ice planet. Blue-white ice covers the whole world, with thin clouds drifting over it.\\nTo go home, fly through the nearby gate or warp to any target in the solar system.'"
+  },
+  {
+   "topic": "sf",
+   "key": "icePlanet",
+   "ja": "'氷の惑星（太陽系の外）'",
+   "en": "'Ice Planet (beyond the solar system)'"
+  },
+  {
+   "topic": "sfJapan",
+   "key": "galacticRailway",
+   "ja": "'銀河鉄道'",
+   "en": "'Galactic Railway'"
+  },
+  {
+   "topic": "sfJapan",
+   "key": "moonCapital",
+   "ja": "'月の都'",
+   "en": "'Moon Capital'"
+  },
+  {
+   "topic": "sfJapan",
+   "key": "moonCityFound",
+   "ja": "'月の裏側のクレーターの底に、光る都が見えます。地球からは決して見えない場所です。\\n（I で航海日誌）'",
+   "en": "'A city of light glows on a crater floor on the far side of the Moon, a place that can never be seen from Earth.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfJapan",
+   "key": "railwayFound",
+   "ja": "'光のレールの上を、銀河鉄道が走ってきます。窓には明かりがともり、煙突から星くずの煙がたなびいています。\\n（I で航海日誌）'",
+   "en": "'The Galactic Railway comes running along its rails of light. Its windows are lit, and stardust smoke trails from the smokestack.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "lightSailLauncher",
+   "ja": "'光帆発射台'",
+   "en": "'Light-Sail Launcher'"
+  },
+  {
+   "topic": "sf",
+   "key": "lunarShipyard",
+   "ja": "'月軌道の造船所'",
+   "en": "'Lunar Shipyard'"
+  },
+  {
+   "topic": "sf",
+   "key": "migrantFleet",
+   "ja": "'移民船団'",
+   "en": "'Migrant Fleet'"
+  },
+  {
+   "topic": "sf",
+   "key": "passingGate",
+   "ja": "'ゲートを通ります…'",
+   "en": "'Passing through the gate…'"
+  },
+  {
+   "topic": "sf",
+   "key": "realModeOn",
+   "ja": "'現実モード：本物の太陽系だけを表示します。'",
+   "en": "'Real mode: only the real solar system is shown.'"
+  },
+  {
+   "topic": "sf",
+   "key": "sailLauncherFound",
+   "ja": "'光帆発射台が見えてきた。レーザーで、切手ほどの小さな探査機を星へ向けて送り出しています。\\n（I で航海日誌）'",
+   "en": "'The Light-Sail Launcher comes into view. It uses a laser to send stamp-sized probes off toward the stars.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "sfModeOn",
+   "ja": "'SFモード：架空の船や構造物も出します。本物の太陽系の上に重ねて表示しています。'",
+   "en": "'SF mode: imaginary ships and structures appear on top of the real solar system.'"
+  },
+  {
+   "topic": "sfSides",
+   "key": "buildingGroupFound",
+   "ja": "`第${n}コロニー群が見えてきた。2基が完成していて、3基めは骨組みを組み立てているところです。\\n（I で航海日誌）`",
+   "en": "`Colony Group ${n} comes into view. Two colonies are finished, and the frame of a third is being put together.\\n(I for the ship’s log)`"
+  },
+  {
+   "topic": "sfSides",
+   "key": "colonyGroup",
+   "ja": "`第${n}コロニー群（${point}）`",
+   "en": "`Colony Group ${n} (${point})`"
+  },
+  {
+   "topic": "sfSides",
+   "key": "colonyGroupFound",
+   "ja": "`第${n}コロニー群が見えてきた。${point}点に、円筒のコロニーが${count}基ならんでいます。\\n（I で航海日誌）`",
+   "en": "`Colony Group ${n} comes into view. ${count} cylinder colonies float together at ${point}.\\n(I for the ship’s log)`"
+  },
+  {
+   "topic": "sf",
+   "key": "silverSwarm",
+   "ja": "'銀色の群れ'",
+   "en": "'Silver Swarm'"
+  },
+  {
+   "topic": "sf",
+   "key": "solarMirrorStation",
+   "ja": "'太陽光ミラー発電所'",
+   "en": "'Solar Mirror Power Station'"
+  },
+  {
+   "topic": "sf",
+   "key": "solarPlantFound",
+   "ja": "'太陽光ミラー発電所が見えてきた。約3800枚の鏡が太陽の光を1点に集め、電気に変えて地球へ送っています。\\n（I で航海日誌）'",
+   "en": "'The Solar Mirror Power Station comes into view. About 3,800 mirrors gather sunlight onto one spot, turn it into electricity and beam it to Earth.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "carrierFound",
+   "ja": "'小惑星から掘った鉱石を運ぶ、くさび形の大きな輸送船です。両側に積んだコンテナと、船の下の開いた荷室が見えます。\\n（I で航海日誌）'",
+   "en": "'A huge wedge-shaped carrier hauling ore mined from asteroids. You can see containers stacked along its sides and the open cargo bay underneath.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "discFreighter",
+   "ja": "'円盤形の貨物船'",
+   "en": "'Disc Freighter'"
+  },
+  {
+   "topic": "sf",
+   "key": "spaceElevator",
+   "ja": "'軌道エレベーター'",
+   "en": "'Space Elevator'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "freighterFound",
+   "ja": "'円盤形の小さな貨物船です。月で作った資材を、L5のコロニーへ運んでいます。\\n（I で航海日誌）'",
+   "en": "'A small disc-shaped freighter carrying materials made on the Moon to the L5 colonies.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "radioMoonFound",
+   "ja": "'月のように大きな、人工の球体です。北極の大きなくぼみは、宇宙からの電波を集める電波望遠鏡のお皿です。\\n（I で航海日誌）'",
+   "en": "'A man-made sphere as big as a moon. The huge bowl at its north pole is the dish of a radio telescope that gathers radio waves from space.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "radioTelescopeMoon",
+   "ja": "'電波望遠鏡の人工月'",
+   "en": "'Radio Telescope Moon'"
+  },
+  {
+   "topic": "sf",
+   "key": "spaceTimeGate",
+   "ja": "'時空のゲート'",
+   "en": "'Space-Time Gate'"
+  },
+  {
+   "topic": "sfSpace",
+   "key": "wedgeOreCarrier",
+   "ja": "'くさび形の鉱石輸送船'",
+   "en": "'Wedge Ore Carrier'"
+  },
+  {
+   "topic": "sf",
+   "key": "swarmFound",
+   "ja": "'銀色の群れです。液体の金属のように形を変えながら、静かに漂っています。近づいても何もしてきません。'",
+   "en": "'A silver swarm. It drifts quietly, changing shape like liquid metal. It does nothing when you come close.'"
+  },
+  {
+   "topic": "sf",
+   "key": "tooLow",
+   "ja": "'これより低くは飛べません（大気の上で止まります）。'",
+   "en": "'You cannot fly any lower (you stop above the air).'"
+  },
+  {
+   "topic": "sf",
+   "key": "torusColony",
+   "ja": "'ドーナツ型コロニー'",
+   "en": "'Torus Colony'"
+  },
+  {
+   "topic": "sf",
+   "key": "torusFound",
+   "ja": "'ドーナツ型のコロニーです。直径約1.8kmの輪が1分に1回転して、輪の中に1万人が暮らす設計です。\\n（I で航海日誌）'",
+   "en": "'This is a torus colony. Its 1.8 km ring turns once a minute, and it is designed for 10,000 people to live inside the ring.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "umbrellaAsteroidBase",
+   "ja": "'傘の小惑星基地'",
+   "en": "'Umbrella Asteroid Base'"
+  },
+  {
+   "topic": "sf",
+   "key": "umbrellaFound",
+   "ja": "'キノコの形をした小惑星の基地です。厚い傘の裏と柄の先に、船の出入り口があります。\\n（I で航海日誌）'",
+   "en": "'A mushroom-shaped asteroid base. Ships come and go through entrances under the wide cap and at the tip of the stem.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "sf",
+   "key": "yardFound",
+   "ja": "'月軌道の造船所です。左のドックでは姉妹艦 SV-03 を建造中。右の空いたドックが、この船 SV-01 の母港の係留場所です。\\n（I で航海日誌）'",
+   "en": "'This is the lunar shipyard. In the left dock, the sister ship SV-03 is being built. The empty dock on the right is the home berth of this ship, SV-01.\\n(I for the ship’s log)'"
+  },
+  {
+   "topic": "shipPicker",
+   "key": "fictionNote",
+   "ja": "'どの船も、このアプリのオリジナルの空想の船です。V キーで船を眺めると、各部の説明が読めます。'",
+   "en": "'All of these ships are original and imaginary. Press V to view your ship and read about its parts.'"
+  },
+  {
+   "topic": "shipPicker",
+   "key": "kindAndLength",
+   "ja": "`${kind}・全長 ${lengthM}m`",
+   "en": "`${kindEn} · ${lengthM} m`"
+  },
+  {
+   "topic": "shipPicker",
+   "key": "shipName",
+   "ja": "`${registry} ${name}`",
+   "en": "`${registry} ${nameEn}`"
+  },
+  {
+   "topic": "shipPicker",
+   "key": "switchedTo",
+   "ja": "`${registry} ${name} に乗りかえました`",
+   "en": "`Switched to ${registry} ${nameEn}`"
+  },
+  {
+   "topic": "shipPicker",
+   "key": "yourShip",
+   "ja": "'乗る船'",
+   "en": "'Your ship'"
+  },
+  {
+   "topic": "sizeCompare",
+   "key": "trueSizeRatio",
+   "ja": "`${id}（本当の大きさの比）`",
+   "en": "`${id} (true size ratio)`"
+  },
+  {
+   "topic": "spaceDock",
+   "key": "arrived",
+   "ja": "'天の湊に到着。周辺観察に切り替えました。「着艦」でドックへ入れます'",
+   "en": "'Arrived at Amano-Minato. Observing now; press Berth to go into the dock'"
+  },
+  {
+   "topic": "spaceDock",
+   "key": "berthed",
+   "ja": "'メインドックに着艦しました。前進（W）で出航できます'",
+   "en": "'Berthed in the main dock. Thrust forward (W) to depart'"
+  },
+  {
+   "topic": "spaceDock",
+   "key": "entering",
+   "ja": "'メインドックに進入します。誘導灯に沿って、着艦の位置まで自動で進みます'",
+   "en": "'Entering the main dock. Following the guide lights to the berth'"
+  },
+  {
+   "topic": "spaceDock",
+   "key": "mooredOutside",
+   "ja": "'この船はメインドックに入らない大きさなので、係留塔の外に横づけしました。前進（W）で離れられます'",
+   "en": "'This ship is too big for the main dock, so it is moored alongside the outer tower. Thrust (W) to depart'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "currentTitle",
+   "ja": "'今の称号：'",
+   "en": "'Current title: '"
+  },
+  {
+   "topic": "stampBook",
+   "key": "done",
+   "ja": "'達成'",
+   "en": "'Done'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "howToCollect",
+   "ja": "'天体のそばまで飛んでいくとスタンプがもらえます。航海日誌のクイズに正解すると★がつきます。スタンプを押すと、その天体を目標にします。'",
+   "en": "'Fly close to a body to collect its stamp. Answer its ship’s log quiz to add a ★. Tap a stamp to set that body as your target.'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "noneYet",
+   "ja": "'まだありません'",
+   "en": "'None yet'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "quizAnswered",
+   "ja": "'クイズ正解'",
+   "en": "'Quiz answered'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "quizzes",
+   "ja": "'クイズ正解'",
+   "en": "'Quizzes'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "setTarget",
+   "ja": "`${name}を目標にする`",
+   "en": "`Set ${name} as the target`"
+  },
+  {
+   "topic": "stampBook",
+   "key": "stampBook",
+   "ja": "'訪問スタンプ帳'",
+   "en": "'Stamp book'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "stamps",
+   "ja": "'スタンプ'",
+   "en": "'Stamps'"
+  },
+  {
+   "topic": "stampBook",
+   "key": "titles",
+   "ja": "'称号'",
+   "en": "'Titles'"
+  },
+  {
+   "topic": "stamps",
+   "key": "newTitle",
+   "ja": "`称号「${name}」をもらいました！`",
+   "en": "`New title: ${nameEn}!`"
+  },
+  {
+   "topic": "stamps",
+   "key": "stampCollected",
+   "ja": "`スタンプ「${name}」をもらいました`",
+   "en": "`Stamp collected: ${name}`"
+  },
+  {
+   "topic": "stamps",
+   "key": "stampCollectedCount",
+   "ja": "`スタンプ「${name}」をもらいました（${count}/${length}）`",
+   "en": "`Stamp collected: ${name} (${count}/${length})`"
+  },
+  {
+   "topic": "stateLaunch",
+   "key": "landerAway",
+   "ja": "'着陸船、発進！'",
+   "en": "'Lander away!'"
+  },
+  {
+   "topic": "sun",
+   "key": "sun",
+   "ja": "'太陽'",
+   "en": "'Sun'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "allRocksCollected",
+   "ja": "'ここの岩はすべて採集しました'",
+   "en": "'All rocks here collected'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "armCollecting",
+   "ja": "'アームで採集中…'",
+   "en": "'Arm collecting…'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "backToShip",
+   "ja": "'母船に戻る'",
+   "en": "'Back to ship'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "book",
+   "ja": "'図鑑'",
+   "en": "'Book'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "cantGoFarther",
+   "ja": "'これ以上は遠くへ行けません'",
+   "en": "\"Can't go any farther\""
+  },
+  {
+   "topic": "surfaceView",
+   "key": "canyonRace",
+   "ja": "'峡谷レースへ'",
+   "en": "'Canyon race'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "canyonRaceTip",
+   "ja": "'マリネリス峡谷のレース場へ。着いたらすぐローバーで走れます'",
+   "en": "'To the Valles Marineris race track, rover ready to go'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "collect",
+   "ja": "'採集する'",
+   "en": "'Collect'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "deployRover",
+   "ja": "'ローバーを出す'",
+   "en": "'Deploy the rover'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "descendingTo",
+   "ja": "`${name}へ降下中…`",
+   "en": "`Descending to ${name}…`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "droppingRover",
+   "ja": "'ローバーを投下…'",
+   "en": "'Dropping the rover…'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "gravity",
+   "ja": "'重力'",
+   "en": "'Gravity'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "hideMenu",
+   "ja": "'▴ メニューをたたむ'",
+   "en": "'▴ Hide menu'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "jump",
+   "ja": "'ジャンプ'",
+   "en": "'Jump'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "keysHint",
+   "ja": "'W/↑ 前進・S/↓ 後退・A D/← → 曲がる・スペース ジャンプ・E 採集・V 見方'",
+   "en": "'W/↑ drive · S/↓ reverse · A D/← → steer · Space jump · E sample · V view'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "landedOn",
+   "ja": "`${name}に着陸`",
+   "en": "`Landed on ${name}`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "landerMenuTip",
+   "ja": "'説明・時刻・天気'",
+   "en": "'Notes, time and weather'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "liftOff",
+   "ja": "'離陸！母船へもどります'",
+   "en": "'Lift-off! Heading back to the ship'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "lookAroundHint",
+   "ja": "'ドラッグで見回す・ホイール／2本指でズーム'",
+   "en": "'Drag to look around · scroll or pinch to zoom'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "menu",
+   "ja": "'☰ メニュー'",
+   "en": "'☰ Menu'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "openRockCollection",
+   "ja": "'岩石コレクションを開く'",
+   "en": "'Open the rock collection'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "orbitViewHint",
+   "ja": "'ドラッグで回る・ホイール／2本指で近づく'",
+   "en": "'Drag to orbit · scroll or pinch to move closer'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "raceTrackTip",
+   "ja": "'レース場へ。着いたらすぐローバーで走れます'",
+   "en": "'To the race track, rover ready to go'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "recall",
+   "ja": "'回収'",
+   "en": "'Recall'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "rockAtBeam",
+   "ja": "`光の柱の岩まで ${dist} m・近くで止まると採集できます`",
+   "en": "`Rock at the light beam: ${dist} m · stop next to it to collect`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "rockAtPlace",
+   "ja": "`見どころ「${ja}」の岩まで ${dist} m・光の柱が目印`",
+   "en": "`Rock at ${en}: ${dist} m · follow the light beam`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "roverMenuTip",
+   "ja": "'時刻・天気・説明'",
+   "en": "'Time, weather and notes'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "roverRange",
+   "ja": "`探査できるのは着陸地点のまわり ${range} 四方です`",
+   "en": "`The rover can explore a ${range} square around the landing site`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "roverUnfolding",
+   "ja": "'ローバーを展開中…'",
+   "en": "'Rover unfolding…'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "sampleAnalysed",
+   "ja": "'試料を分析しました'",
+   "en": "'Sample analysed'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "samples",
+   "ja": "'試料'",
+   "en": "'Samples'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "samplesHere",
+   "ja": "'この天体の試料'",
+   "en": "'Samples here'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "siteSuffix",
+   "ja": "`・${v1}`",
+   "en": "` · ${v2}`",
+   "params": {
+    "v1": "siteJa",
+    "v2": "siteEn"
+   }
+  },
+  {
+   "topic": "surfaceView",
+   "key": "skip",
+   "ja": "'スキップ'",
+   "en": "'Skip'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "skyBodyNote",
+   "ja": "`空に${skyName}が見えています（見かけの大きさ ${angle}°。満月は約0.5°）`",
+   "en": "`${skyName} hangs in the sky (${angle}° across; the full Moon is about 0.5°)`"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "standAndLook",
+   "ja": "'地面に立って見回す'",
+   "en": "'Stand and look around'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "switchToChaseCam",
+   "ja": "'◎ 後ろからの視点に切替'",
+   "en": "'◎ Switch to chase cam'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "switchToRoverCam",
+   "ja": "'◉ ローバーのカメラに切替'",
+   "en": "'◉ Switch to rover cam'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "takeOff",
+   "ja": "'離陸する'",
+   "en": "'Take off'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "temperature",
+   "ja": "'気温'",
+   "en": "'Temp.'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "toCanyonRace",
+   "ja": "'峡谷レース場へ'",
+   "en": "'To the canyon race'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "toGaleCrater",
+   "ja": "'ゲール・クレーターへ'",
+   "en": "'To Gale crater'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "toRaceTrack",
+   "ja": "`${v1}場へ`",
+   "en": "`To the ${v2}`",
+   "params": {
+    "v1": "trackJa",
+    "v2": "trackEn"
+   }
+  },
+  {
+   "topic": "surfaceView",
+   "key": "viewLander",
+   "ja": "'着陸船を眺める'",
+   "en": "'View the lander'"
+  },
+  {
+   "topic": "surfaceView",
+   "key": "weightNote",
+   "ja": "`体重30kgの人は、ここでは${v1}kgの重さに`",
+   "en": "`Someone who weighs 30 kg on Earth would weigh ${v1} kg here`",
+   "params": {
+    "v1": "kg"
+   }
+  },
+  {
+   "topic": "telescopes",
+   "key": "found",
+   "ja": "`${name}のそばに来ました。\\nT キーで、望遠鏡の目で深宇宙をのぞいてみよう。（I で航海日誌）`",
+   "en": "`You are next to the ${name}.\\nPress T to look into deep space through its eyes. (I for the ship’s log)`"
+  },
+  {
+   "topic": "telescopes",
+   "key": "hubble",
+   "ja": "'ハッブル'",
+   "en": "'Hubble'"
+  },
+  {
+   "topic": "telescopes",
+   "key": "hubbleSpaceTelescope",
+   "ja": "'ハッブル宇宙望遠鏡'",
+   "en": "'Hubble Space Telescope'"
+  },
+  {
+   "topic": "telescopes",
+   "key": "tooFar",
+   "ja": "`${name}のそばまで行くと、望遠鏡の写真をのぞけます。`",
+   "en": "`Fly close to the ${name} to look through its pictures.`"
+  },
+  {
+   "topic": "telescopes",
+   "key": "webb",
+   "ja": "'ウェッブ'",
+   "en": "'Webb'"
+  },
+  {
+   "topic": "telescopes",
+   "key": "webbSpaceTelescope",
+   "ja": "'ウェッブ宇宙望遠鏡'",
+   "en": "'Webb Space Telescope'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "ccLicense",
+   "ja": "'（CC BY 4.0）'",
+   "en": "' (CC BY 4.0)'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "compareSamePlace",
+   "ja": "'同じ場所を見くらべる'",
+   "en": "'Compare the same place'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "distance",
+   "ja": "'距離'",
+   "en": "'Distance'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "fit",
+   "ja": "'全体'",
+   "en": "'Fit'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "hubbleNote",
+   "ja": "'ハッブル宇宙望遠鏡（地球のまわり）のそばでは、目に見える光の写真が見られます。'",
+   "en": "'Near the Hubble Space Telescope (around Earth) you can see pictures in visible light.'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "imageCredit",
+   "ja": "'画像：'",
+   "en": "'Image: '"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "lightSetOut",
+   "ja": "'この光が出発したのは'",
+   "en": "'This light set out'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "originalImage",
+   "ja": "'元の画像'",
+   "en": "'Original image'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "receiving",
+   "ja": "'望遠鏡から受信中…'",
+   "en": "'Receiving from the telescope…'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "scopeAndLight",
+   "ja": "`${scope}（${scope2}）`",
+   "en": "`${scope} (${scope2})`"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "scopePicture",
+   "ja": "`${scope}の写真`",
+   "en": "`${scope} picture`"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "seeing",
+   "ja": "'見ている光'",
+   "en": "'Seeing'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "separator",
+   "ja": "'：'",
+   "en": "': '"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "throughEyesOf",
+   "ja": "`${scope}の目`",
+   "en": "`Through the eyes of ${scope}`"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "webbNote",
+   "ja": "'ウェッブ宇宙望遠鏡（地球から見て太陽と反対側）のそばでは、赤外線の写真が見られます。'",
+   "en": "'Near the Webb Space Telescope (on the far side of Earth from the Sun) you can see infrared pictures.'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "zoomHint",
+   "ja": "'ホイールで拡大・ドラッグで移動'",
+   "en": "'Scroll to zoom · drag to move'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "zoomIn",
+   "ja": "'拡大'",
+   "en": "'Zoom in'"
+  },
+  {
+   "topic": "telescopeView",
+   "key": "zoomOut",
+   "ja": "'縮小'",
+   "en": "'Zoom out'"
+  },
+  {
+   "topic": "throttle",
+   "key": "cruise",
+   "ja": "'巡航'",
+   "en": "'Cruise'"
+  },
+  {
+   "topic": "throttle",
+   "key": "deadSlow",
+   "ja": "'微速'",
+   "en": "'Dead slow'"
+  },
+  {
+   "topic": "throttle",
+   "key": "fast",
+   "ja": "'高速'",
+   "en": "'Fast'"
+  },
+  {
+   "topic": "throttle",
+   "key": "faster",
+   "ja": "'速く'",
+   "en": "'Faster'"
+  },
+  {
+   "topic": "throttle",
+   "key": "full",
+   "ja": "'全速'",
+   "en": "'Full'"
+  },
+  {
+   "topic": "throttle",
+   "key": "half",
+   "ja": "'半速'",
+   "en": "'Half'"
+  },
+  {
+   "topic": "throttle",
+   "key": "slow",
+   "ja": "'低速'",
+   "en": "'Slow'"
+  },
+  {
+   "topic": "throttle",
+   "key": "slower",
+   "ja": "'遅く'",
+   "en": "'Slower'"
+  },
+  {
+   "topic": "throttle",
+   "key": "speed",
+   "ja": "'速度'",
+   "en": "'Speed'"
+  },
+  {
+   "topic": "throttle",
+   "key": "thrust",
+   "ja": "'推進'",
+   "en": "'Thrust'"
+  },
+  {
+   "topic": "throttle",
+   "key": "thrustLevel",
+   "ja": "'推進の段階'",
+   "en": "'Thrust level'"
+  },
+  {
+   "topic": "throttle",
+   "key": "wheelHint",
+   "ja": "'ホイールで切り替え'",
+   "en": "'Mouse wheel to change'"
+  },
+  {
+   "topic": "throttle",
+   "key": "wheelTip",
+   "ja": "'操縦中にマウスホイールで切り替え（奥で速く・手前で遅く）'",
+   "en": "'Scroll the mouse wheel while flying (up = faster, down = slower)'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "brightRoom",
+   "ja": "'明るい部屋'",
+   "en": "'a bright room'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "brightSummerSun",
+   "ja": "'真夏の日なた'",
+   "en": "'bright summer sun'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "dayInEarthDays",
+   "ja": "`1日 = 地球の約${h}日`",
+   "en": "`1 day ≈ ${h} Earth days`"
+  },
+  {
+   "topic": "timeBar",
+   "key": "dayInEarthHours",
+   "ja": "`1日 = 地球の${h}時間`",
+   "en": "`1 day = ${h} Earth hours`"
+  },
+  {
+   "topic": "timeBar",
+   "key": "dusk",
+   "ja": "'夕方の薄暗さ'",
+   "en": "'dusk'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "earthPhase",
+   "ja": "`空の地球は${cond ? '満ちて' : '欠けて'}見えます`",
+   "en": "`Earth in this sky looks ${cond ? 'full-ish' : 'thin'}`",
+   "params": {
+    "cond": "earthFull"
+   }
+  },
+  {
+   "topic": "timeBar",
+   "key": "firstQuarter",
+   "ja": "'上弦の月'",
+   "en": "'First quarter'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "fullMoon",
+   "ja": "'満月'",
+   "en": "'Full moon'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "fullMoonNight",
+   "ja": "'満月の夜'",
+   "en": "'a full-moon night'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "ground",
+   "ja": "'地表'",
+   "en": "'Ground'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "groundTemp",
+   "ja": "'地表の温度'",
+   "en": "'Ground temp'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "lastQuarter",
+   "ja": "'下弦の月'",
+   "en": "'Last quarter'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "light",
+   "ja": "'明るさ'",
+   "en": "'Light'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "localTime",
+   "ja": "'現地時刻'",
+   "en": "'Local time'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "luxLarge",
+   "ja": "`約${lx}万`",
+   "en": "`~${lx2}k`"
+  },
+  {
+   "topic": "timeBar",
+   "key": "luxLike",
+   "ja": "`いまは「${like}」くらい`",
+   "en": "`About like ${like}`"
+  },
+  {
+   "topic": "timeBar",
+   "key": "luxUnit",
+   "ja": "'ルクス'",
+   "en": "' lux'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "luxValue",
+   "ja": "`約${lx}`",
+   "en": "`~${lx}`"
+  },
+  {
+   "topic": "timeBar",
+   "key": "moonFromEarth",
+   "ja": "'いま地球から見た月'",
+   "en": "'The Moon from Earth now'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "newMoon",
+   "ja": "'新月'",
+   "en": "'New moon'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "night",
+   "ja": "'夜'",
+   "en": "'Night'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "overcastDay",
+   "ja": "'くもりの日の外'",
+   "en": "'an overcast day'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "starlightOnly",
+   "ja": "'星明かりだけ'",
+   "en": "'starlight only'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "waningCrescent",
+   "ja": "'明け方の細い月'",
+   "en": "'Waning crescent'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "waningGibbous",
+   "ja": "'欠けていく月'",
+   "en": "'Waning gibbous'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "waxingCrescent",
+   "ja": "'三日月のころ'",
+   "en": "'Waxing crescent'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "waxingGibbous",
+   "ja": "'満月に向かう月'",
+   "en": "'Waxing gibbous'"
+  },
+  {
+   "topic": "timeBar",
+   "key": "weather",
+   "ja": "'天気'",
+   "en": "'Weather'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "bridge",
+   "ja": "'ブリッジ'",
+   "en": "'Bridge'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "close",
+   "ja": "'閉じる'",
+   "en": "'Close'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "cockpit",
+   "ja": "'操縦席へ'",
+   "en": "'Cockpit'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "eva",
+   "ja": "'船外'",
+   "en": "'EVA'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "log",
+   "ja": "'日誌'",
+   "en": "'Log'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "map",
+   "ja": "'マップ'",
+   "en": "'Map'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "menu",
+   "ja": "'メニュー'",
+   "en": "'Menu'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "navigate",
+   "ja": "'航法'",
+   "en": "'Navigate'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "news",
+   "ja": "'お知らせ'",
+   "en": "'News'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "outside",
+   "ja": "'外へ'",
+   "en": "'Outside'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "real",
+   "ja": "'現実'",
+   "en": "'Real'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "scale",
+   "ja": "'スケール'",
+   "en": "'Scale'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "ship",
+   "ja": "'船を見る'",
+   "en": "'Ship'"
+  },
+  {
+   "topic": "touchBar",
+   "key": "switchRealSf",
+   "ja": "'現実とSFの切りかえ'",
+   "en": "'Switch Real / SF'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "auto",
+   "ja": "'自動'",
+   "en": "'Auto'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "beam",
+   "ja": "'ビーム'",
+   "en": "'Beam'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "beamTip",
+   "ja": "'ビーム（長押しでチャージ）'",
+   "en": "'Beam (hold to charge)'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "camera",
+   "ja": "'カメラ'",
+   "en": "'Camera'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "down",
+   "ja": "'下降'",
+   "en": "'Down'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "gettingReady",
+   "ja": "'準備中…'",
+   "en": "'Getting ready…'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "launch",
+   "ja": "'発進'",
+   "en": "'Launch'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "observe",
+   "ja": "'観察'",
+   "en": "'Observe'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "rollLeft",
+   "ja": "'左に回転'",
+   "en": "'Roll left'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "rollRight",
+   "ja": "'右に回転'",
+   "en": "'Roll right'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "up",
+   "ja": "'上昇'",
+   "en": "'Up'"
+  },
+  {
+   "topic": "touchControls",
+   "key": "warp",
+   "ja": "'ワープ'",
+   "en": "'Warp'"
+  }
+ ]
+}

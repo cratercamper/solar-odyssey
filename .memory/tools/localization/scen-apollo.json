@@ -1,0 +1,34 @@
+[
+ {
+  "name": "a1-moon",
+  "js": "__sv.store.getState().setTarget('moon'); __sv.landing.start('moon'); return __sv.landing.state.getState().phase",
+  "sleep": 4
+ },
+ {
+  "name": "a2-surface",
+  "js": "__sv.landing.skip(); return __sv.landing.state.getState().phase",
+  "sleep": 6
+ },
+ {
+  "name": "a3-taurus",
+  "js": "__sv.landing.site('taurus'); return 'ok'",
+  "sleep": 10
+ },
+ {
+  "name": "a4-drive",
+  "js": "(await import('/src/state/rover.ts')).launchRover(true); return __sv.landing.state.getState().site",
+  "sleep": 5
+ },
+ {
+  "name": "a6-book",
+  "js": "__sv.historic.setState({ card: null, found: ['lm', 'flag', 'st1'] }); (await import('/src/state/historic.ts')).openHistoricBook(); return 'ok'"
+ },
+ {
+  "name": "a7-site",
+  "js": "__sv.historic.setState({ sel: 'lm' }); return 'ok'"
+ },
+ {
+  "name": "a8-unvisited",
+  "js": "__sv.historic.setState({ sel: 'st6' }); return 'ok'"
+ }
+]

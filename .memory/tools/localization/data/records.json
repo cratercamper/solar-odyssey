@@ -1,0 +1,1105 @@
+{
+ "headers": {
+  "ja": "// {file} の文言（日本語）",
+  "en": "// The texts of {file} (English). Same keys as {topic}.ja.ts"
+ },
+ "tables": [
+  {
+   "file": "src/data/eclipses.ts",
+   "decl": "ECLIPSES",
+   "topic": "eclipses",
+   "kind": "sibling",
+   "fields": [
+    "where",
+    "note"
+   ],
+   "types": [
+    "Eclipse"
+   ]
+  },
+  {
+   "file": "src/data/bridgeParts.ts",
+   "decl": "BRIDGE_PARTS",
+   "topic": "bridgeParts",
+   "kind": "sibling",
+   "fields": [
+    "name",
+    "text"
+   ],
+   "types": [
+    "BridgePart"
+   ]
+  },
+  {
+   "file": "src/data/probes.ts",
+   "decl": "PROBES",
+   "topic": "probes",
+   "kind": "sibling",
+   "fields": [
+    "name",
+    "summary",
+    "last"
+   ],
+   "types": [
+    "Probe"
+   ],
+   "nested": [
+    {
+     "field": "events",
+     "how": "positional",
+     "fields": [
+      "text"
+     ]
+    }
+   ]
+  },
+  {
+   "file": "src/data/deepSpace.ts",
+   "decl": "DEEP_SPACE",
+   "topic": "deepSpaceImages",
+   "kind": "enSub",
+   "fields": [
+    "name",
+    "kind",
+    "distance",
+    "lookback",
+    "notes"
+   ],
+   "types": [
+    "DeepSpaceImage"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "MARS",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ],
+   "types": [
+    "RockSample"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "MOON",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "EARTH",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "VENUS",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "MERCURY",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "IO",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "ICY",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "TITAN",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rockSamples.ts",
+   "decl": "ROCKY",
+   "topic": "rockSamples",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/state/evaJobs.ts",
+   "decl": "JOBS",
+   "topic": "evaJobs",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ],
+   "types": [
+    "JobDef"
+   ],
+   "nested": [
+    {
+     "field": "steps",
+     "how": "positional",
+     "fields": [
+      "text"
+     ],
+     "types": [
+      "JobStep"
+     ]
+    }
+   ]
+  },
+  {
+   "file": "src/state/eva.ts",
+   "decl": "TOOL_NAME",
+   "topic": "evaTools",
+   "kind": "pairValue"
+  },
+  {
+   "file": "src/components/eva/hull.ts",
+   "decl": "SITE_NAME",
+   "topic": "evaSites",
+   "kind": "pairValue"
+  },
+  {
+   "file": "src/components/Phaser.tsx",
+   "decl": "ROCK_FACTS",
+   "topic": "phaserFacts",
+   "kind": "pairValue"
+  },
+  {
+   "file": "src/components/Phaser.tsx",
+   "decl": "SPARSE_FACT",
+   "topic": "phaserFacts",
+   "kind": "pairValue",
+   "id": {
+    "value": "sparse"
+   }
+  },
+  {
+   "file": "src/data/ships.ts",
+   "decl": "SHIPS",
+   "topic": "ships",
+   "kind": "sibling",
+   "fields": [
+    "name",
+    "kind",
+    "blurb"
+   ],
+   "types": [
+    "ShipSpec"
+   ],
+   "nested": [
+    {
+     "field": "parts",
+     "how": "keyed",
+     "fields": [
+      "name",
+      "text"
+     ],
+     "types": [
+      "ShipPart"
+     ]
+    }
+   ]
+  },
+  {
+   "file": "src/data/shipParts.ts",
+   "decl": "SHIP_PARTS",
+   "topic": "ships",
+   "under": [
+    "sv01",
+    "parts"
+   ],
+   "kind": "sibling",
+   "fields": [
+    "name",
+    "text"
+   ],
+   "types": [
+    "ShipPart"
+   ]
+  },
+  {
+   "file": "src/data/shipParts.ts",
+   "decl": "COMPARE",
+   "topic": "compareItems",
+   "kind": "sibling",
+   "fields": [
+    "name",
+    "note"
+   ],
+   "types": [
+    "CompareItem"
+   ]
+  },
+  {
+   "file": "src/data/bodies.ts",
+   "decl": "SUN",
+   "topic": "bodies",
+   "id": {
+    "value": "sun"
+   },
+   "kind": "sibling",
+   "fields": [
+    "name"
+   ]
+  },
+  {
+   "file": "src/data/bodies.ts",
+   "decl": "PLANETS",
+   "topic": "bodies",
+   "kind": "sibling",
+   "fields": [
+    "name"
+   ],
+   "types": [
+    "Planet"
+   ],
+   "nested": [
+    {
+     "field": "moons",
+     "how": "flat",
+     "fields": [
+      "name"
+     ],
+     "types": [
+      "Moon"
+     ]
+    }
+   ]
+  },
+  {
+   "file": "src/components/surface/pois.ts",
+   "decl": "POIS",
+   "topic": "pois",
+   "kind": "jaen",
+   "fields": [
+    "name"
+   ],
+   "types": [
+    "Poi"
+   ]
+  },
+  {
+   "file": "src/data/apollo17.ts",
+   "decl": "APOLLO17",
+   "topic": "apollo17",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "when",
+    "story"
+   ],
+   "types": [
+    "Historic"
+   ]
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "decl": "NOTES",
+   "topic": "surfaceNotes",
+   "kind": "pairValue"
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "decl": "SKY_NOTES",
+   "topic": "surfaceSkyNotes",
+   "kind": "pairValue"
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "decl": "SITES",
+   "topic": "surfaceSites",
+   "kind": "pair",
+   "fields": [
+    "name",
+    "note"
+   ]
+  },
+  {
+   "file": "src/data/rallyTracks.ts",
+   "decl": "TRACKS",
+   "topic": "rallyTracks",
+   "kind": "pair",
+   "fields": [
+    "title",
+    "intro",
+    "button",
+    "home"
+   ],
+   "types": [
+    "RallyTrack"
+   ]
+  }
+ ],
+ "edits": [
+  {
+   "file": "src/ui/EclipsePanel.tsx",
+   "from": "t(e.where, e.whereEn)",
+   "to": "ui().eclipses[e.id].where"
+  },
+  {
+   "file": "src/ui/EclipsePanel.tsx",
+   "from": "t(eclipse.where, eclipse.whereEn)",
+   "to": "ui().eclipses[eclipse.id].where"
+  },
+  {
+   "file": "src/ui/EclipsePanel.tsx",
+   "from": "t(eclipse.note, eclipse.noteEn)",
+   "to": "ui().eclipses[eclipse.id].note"
+  },
+  {
+   "file": "src/ui/BridgePanel.tsx",
+   "from": "named(part)",
+   "to": "ui().bridgeParts[part.id].name"
+  },
+  {
+   "file": "src/ui/BridgePanel.tsx",
+   "from": "t(part.text, part.textEn)",
+   "to": "ui().bridgeParts[part.id].text"
+  },
+  {
+   "file": "src/ui/BridgeLabels.tsx",
+   "from": "named(p)",
+   "to": "ui().bridgeParts[p.id].name"
+  },
+  {
+   "file": "src/ui/ProbePanel.tsx",
+   "from": "named(probe)",
+   "to": "ui().probes[probe.id].name"
+  },
+  {
+   "file": "src/ui/ProbePanel.tsx",
+   "from": "named(p)",
+   "to": "ui().probes[p.id].name"
+  },
+  {
+   "file": "src/ui/ProbePanel.tsx",
+   "from": "t(p.summary, p.summaryEn)",
+   "to": "ui().probes[p.id].summary"
+  },
+  {
+   "file": "src/ui/ProbePanel.tsx",
+   "from": "t(e.text, e.textEn)",
+   "to": "ui().probes[probe.id].events[i].text"
+  },
+  {
+   "file": "src/ui/ProbePanel.tsx",
+   "from": "t(probe.last, probe.lastEn)",
+   "to": "ui().probes[probe.id].last"
+  },
+  {
+   "file": "src/components/ProbeScene.tsx",
+   "from": "named(probe)",
+   "to": "ui().probes[probe.id].name"
+  },
+  {
+   "file": "src/data/deepSpace.ts",
+   "from": "type DeepSpaceText = { name: string; kind: string; distance: string; lookback: string; notes: string[] }\n\n",
+   "to": ""
+  },
+  {
+   "file": "src/data/deepSpace.ts",
+   "from": "export const deepSpaceText = (image: DeepSpaceImage): DeepSpaceText => (getLang() === 'en' ? image.en : image)",
+   "to": "export const deepSpaceText = (image: DeepSpaceImage): DeepSpaceImageText => ui().deepSpaceImages[image.id]"
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "lang === 'en' ? k.name[1] : k.name[0]",
+   "to": "ui().rockSamples[k.id].name"
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "lang === 'en' ? k.note[1] : k.note[0]",
+   "to": "ui().rockSamples[k.id].note"
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "pick(k.name)",
+   "to": "ui().rockSamples[k.id].name",
+   "count": 3
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "pick(k.note)",
+   "to": "ui().rockSamples[k.id].note"
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "const pick = (pair: [string, string]) => t(pair[0], pair[1])\n",
+   "to": ""
+  },
+  {
+   "file": "src/state/evaJobs.ts",
+   "from": "/** 手順の説明 [日本語, English] */",
+   "to": "/** 手順の説明 */"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "  const L = (p: [string, string]) => (lang === 'en' ? p[1] : p[0])\n",
+   "to": "",
+   "count": 2
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "L(JOBS[j.type].name)",
+   "to": "ui().evaJobs[j.type].name"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "<span className=\"ej-text\">{L(st.text)}</span>",
+   "to": "<span className=\"ej-text\">{ui().evaJobs[fj.type].steps[k].text}</span>"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "            {L(st.text)}\n",
+   "to": "            {ui().evaJobs[j.type].steps[k].text}\n"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "L(def.name)",
+   "to": "ui().evaJobs[j.type].name"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "L(def.note)",
+   "to": "ui().evaJobs[j.type].note"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "  TOOL_NAME,\n",
+   "to": ""
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "title={lang === 'en' ? TOOL_NAME[k][1] : TOOL_NAME[k][0]}",
+   "to": "title={ui().evaTools[k]}"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "const toolLabel = (k: keyof typeof TOOL_NAME, lang: string) => `${TOOL_ICON[k]} ${lang === 'en' ? TOOL_NAME[k][1] : TOOL_NAME[k][0]}`",
+   "to": "const toolLabel = (k: keyof typeof TOOL_ICON) => `${TOOL_ICON[k]} ${ui().evaTools[k]}`"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "toolLabel(jobUi.need, lang)",
+   "to": "toolLabel(jobUi.need)"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "const toolName = lang === 'en' ? TOOL_NAME[tool][1] : TOOL_NAME[tool][0]",
+   "to": "const toolName = ui().evaTools[tool]"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "import { ARC_W, HULL_R, SITE_NAME, arcTaper, evaSite } from './hull'",
+   "to": "import { ARC_W, HULL_R, arcTaper, evaSite } from './hull'"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "t(...SITE_NAME[evaSite.id])",
+   "to": "ui().evaSites[evaSite.id]"
+  },
+  {
+   "file": "src/components/Phaser.tsx",
+   "from": "t(...ROCK_FACTS[type])",
+   "to": "ui().phaserFacts[type]",
+   "count": 2
+  },
+  {
+   "file": "src/components/Phaser.tsx",
+   "from": "t(...SPARSE_FACT)",
+   "to": "ui().phaserFacts.sparse"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "function ToolBar() {\n  const lang = useLang()\n",
+   "to": "function ToolBar() {\n  useLang()\n"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "function JobCard() {\n  const lang = useLang()\n",
+   "to": "function JobCard() {\n  useLang()\n"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "function EvaPanel() {\n  const lang = useLang()\n",
+   "to": "function EvaPanel() {\n  useLang()\n"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "function JobHint({ ui: jobUi, carrying, lang }: { ui: ReturnType<typeof useEvaJobs.getState>['ui']; carrying: boolean; lang: string }) {",
+   "to": "function JobHint({ ui: jobUi, carrying }: { ui: ReturnType<typeof useEvaJobs.getState>['ui']; carrying: boolean }) {"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "<JobHint ui={jobUi} carrying={!!carrying} lang={lang} />",
+   "to": "<JobHint ui={jobUi} carrying={!!carrying} />"
+  },
+  {
+   "file": "src/components/eva/EvaView.tsx",
+   "from": "function JobPanel() {\n  const lang = useLang()\n",
+   "to": "function JobPanel() {\n  useLang()\n"
+  },
+  {
+   "file": "src/data/ships.ts",
+   "from": "type ShipPart, type View } from './shipParts'",
+   "to": "type ShipPart, type ShipPartText, type View } from './shipParts'"
+  },
+  {
+   "file": "src/data/ships.ts",
+   "from": "export const shipLabel = (spec: ShipSpec, ja: boolean) => (ja ? `${spec.registry} ${spec.name}` : `${spec.registry} ${spec.nameEn}`)",
+   "to": "export const shipLabel = (spec: ShipSpec) => `${spec.registry} ${ui().ships[spec.id].name}`"
+  },
+  {
+   "file": "src/ui/MissionPanel.tsx",
+   "from": "shipLabel(spec, ja)",
+   "to": "shipLabel(spec)"
+  },
+  {
+   "file": "src/ui/MissionPanel.tsx",
+   "from": "shipLabel(shipSpec(ship), ja)",
+   "to": "shipLabel(shipSpec(ship))",
+   "count": 2
+  },
+  {
+   "file": "src/ui/ShipPicker.tsx",
+   "from": "ui().shipPicker.switchedTo(shipSpec(id).registry, shipSpec(id).name, shipSpec(id).nameEn)",
+   "to": "ui().shipPicker.switchedTo(shipSpec(id).registry, ui().ships[shipSpec(id).id].name)"
+  },
+  {
+   "file": "src/ui/ShipPicker.tsx",
+   "from": "t(s.blurb, s.blurbEn)",
+   "to": "ui().ships[s.id].blurb",
+   "count": 2
+  },
+  {
+   "file": "src/ui/ShipPicker.tsx",
+   "from": "t(s.name, s.nameEn)",
+   "to": "ui().ships[s.id].name"
+  },
+  {
+   "file": "src/ui/ShipPicker.tsx",
+   "from": "ui().shipPicker.kindAndLength(s.kind, s.lengthM, s.kindEn)",
+   "to": "ui().shipPicker.kindAndLength(ui().ships[s.id].kind, s.lengthM)"
+  },
+  {
+   "file": "src/ui/ShipPicker.tsx",
+   "from": "ui().shipPicker.shipName(current.registry, current.name, current.nameEn)",
+   "to": "ui().shipPicker.shipName(current.registry, ui().ships[current.id].name)"
+  },
+  {
+   "file": "src/i18n/shipPicker.ja.ts",
+   "from": "switchedTo: (registry: string, name: string, _nameEn: string) =>",
+   "to": "switchedTo: (registry: string, name: string) =>"
+  },
+  {
+   "file": "src/i18n/shipPicker.ja.ts",
+   "from": "kindAndLength: (kind: string, lengthM: number, _kindEn: string) =>",
+   "to": "kindAndLength: (kind: string, lengthM: number) =>"
+  },
+  {
+   "file": "src/i18n/shipPicker.ja.ts",
+   "from": "shipName: (registry: string, name: string, _nameEn: string) =>",
+   "to": "shipName: (registry: string, name: string) =>"
+  },
+  {
+   "file": "src/i18n/shipPicker.en.ts",
+   "from": "switchedTo: (registry: string, _name: string, nameEn: string) => `Switched to ${registry} ${nameEn}`",
+   "to": "switchedTo: (registry: string, name: string) => `Switched to ${registry} ${name}`"
+  },
+  {
+   "file": "src/i18n/shipPicker.en.ts",
+   "from": "kindAndLength: (_kind: string, lengthM: number, kindEn: string) => `${kindEn} · ${lengthM} m`",
+   "to": "kindAndLength: (kind: string, lengthM: number) => `${kind} · ${lengthM} m`"
+  },
+  {
+   "file": "src/i18n/shipPicker.en.ts",
+   "from": "shipName: (registry: string, _name: string, nameEn: string) => `${registry} ${nameEn}`",
+   "to": "shipName: (registry: string, name: string) => `${registry} ${name}`"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "ui().galleryPanel.shipSummary(ship.registry, ship.name, ship.kind, len, ship.nameEn, ship.kindEn.toLowerCase())",
+   "to": "ui().galleryPanel.shipSummary(ship.registry, ui().ships[ship.id].name, ui().ships[ship.id].kind, len)"
+  },
+  {
+   "file": "src/i18n/galleryPanel.ja.ts",
+   "from": "shipSummary: (registry: string, name: string, kind: string, len: number, _nameEn: string, _kindEn: string) =>",
+   "to": "shipSummary: (registry: string, name: string, kind: string, len: number) =>"
+  },
+  {
+   "file": "src/i18n/galleryPanel.en.ts",
+   "from": "shipSummary: (registry: string, _name: string, _kind: string, len: number, nameEn: string, kindEn: string) => `${registry} ${nameEn} (${kindEn}, about ${len} m long)`",
+   "to": "shipSummary: (registry: string, name: string, kind: string, len: number) => `${registry} ${name} (${kind.toLowerCase()}, about ${len} m long)`"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "ui().galleryPanel.compareLength(c.name, c.meters, c.nameEn)",
+   "to": "ui().galleryPanel.compareLength(ui().compareItems[c.id].name, c.meters)"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "ui().galleryPanel.compareNote(c.note, c.noteEn)",
+   "to": "ui().galleryPanel.compareNote(ui().compareItems[c.id].note)"
+  },
+  {
+   "file": "src/i18n/galleryPanel.ja.ts",
+   "from": "compareLength: (name: string, meters: number, _nameEn: string) =>",
+   "to": "compareLength: (name: string, meters: number) =>"
+  },
+  {
+   "file": "src/i18n/galleryPanel.ja.ts",
+   "from": "compareNote: (note: string, _noteEn: string) =>",
+   "to": "compareNote: (note: string) =>"
+  },
+  {
+   "file": "src/i18n/galleryPanel.en.ts",
+   "from": "compareLength: (_name: string, meters: number, nameEn: string) => `${nameEn}: ${meters} m`",
+   "to": "compareLength: (name: string, meters: number) => `${name}: ${meters} m`"
+  },
+  {
+   "file": "src/i18n/galleryPanel.en.ts",
+   "from": "compareNote: (_note: string, noteEn: string) => ` (${noteEn})`",
+   "to": "compareNote: (note: string) => ` (${note})`"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "named(selected)",
+   "to": "ui().ships[ship.id].parts[selected.id].name"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "t(selected.text, selected.textEn)",
+   "to": "ui().ships[ship.id].parts[selected.id].text"
+  },
+  {
+   "file": "src/ui/GalleryPanel.tsx",
+   "from": "named(p)",
+   "to": "ui().ships[ship.id].parts[p.id].name"
+  },
+  {
+   "file": "src/ui/GalleryLabels.tsx",
+   "from": "named(p)",
+   "to": "ui().ships[ship.id].parts[p.id].name"
+  },
+  {
+   "file": "src/components/ship/CompareModels.tsx",
+   "from": "`${named(item)} ${item.meters}m`",
+   "to": "`${ui().compareItems[item.id].name} ${item.meters}m`"
+  },
+  {
+   "file": "src/i18n/index.ts",
+   "from": "/** ミッションの文章（data/missions.ts と同じ id） */",
+   "to": "/** 言語を決めて引く辞書：クイズのように両方の言語で作るもの、船体の船名のようにいつも英語で出すもの（英語の辞書にないものは日本語） */\nexport const uiJa = DICTS.ja.ui\nexport const uiEn = DICTS.en.ui\n\n/** ミッションの文章（data/missions.ts と同じ id） */"
+  },
+  {
+   "file": "src/components/eva/EvaWorld.tsx",
+   "from": "import type { ShipSpec } from '../../data/ships'\n",
+   "to": "import type { ShipSpec } from '../../data/ships'\nimport { uiEn } from '../../i18n'\n"
+  },
+  {
+   "file": "src/components/eva/EvaWorld.tsx",
+   "from": "spec.nameEn.toUpperCase()",
+   "to": "uiEn.ships[spec.id].name.toUpperCase()"
+  },
+  {
+   "file": "src/ui/MissionPanel.tsx",
+   "from": "  const ja = useLang() === 'ja'\n",
+   "to": "  useLang()\n",
+   "count": 2
+  },
+  {
+   "file": "src/components/PlanetBody.tsx",
+   "from": "named(moon)",
+   "to": "ui().bodies[moon.id].name",
+   "count": 2
+  },
+  {
+   "file": "src/components/PlanetBody.tsx",
+   "from": "named(planet)",
+   "to": "ui().bodies[planet.id].name",
+   "count": 2
+  },
+  {
+   "file": "src/components/SizeCompare.tsx",
+   "from": "return b ? named(b) : id",
+   "to": "return b ? ui().bodies[b.id].name : id"
+  },
+  {
+   "file": "src/components/bridge/consoles.ts",
+   "from": "g.fillText(named(p), x + 7 * s, y - 5 * s)",
+   "to": "g.fillText(ui().bodies[p.id].name, x + 7 * s, y - 5 * s)"
+  },
+  {
+   "file": "src/components/bridge/consoles.ts",
+   "from": "const name = body ? named(body) : bodies.get(id)?.name ?? '—'",
+   "to": "const name = body ? ui().bodies[body.id].name : bodies.get(id)?.name ?? '—'"
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "if (p.id === id) return named(p)",
+   "to": "if (p.id === id) return ui().bodies[p.id].name"
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "if (m) return named(m)",
+   "to": "if (m) return ui().bodies[m.id].name"
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "if (p.id === id) return named(p)",
+   "to": "if (p.id === id) return ui().bodies[p.id].name"
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "if (m) return named(m)",
+   "to": "if (m) return ui().bodies[m.id].name"
+  },
+  {
+   "file": "src/state/flight.ts",
+   "from": "return { name: named(p), au: p.distanceAu, parent: null }",
+   "to": "return { name: ui().bodies[p.id].name, au: p.distanceAu, parent: null }"
+  },
+  {
+   "file": "src/state/flight.ts",
+   "from": "if (moon) return { name: named(moon), au: p.distanceAu, parent: named(p) }",
+   "to": "if (moon) return { name: ui().bodies[moon.id].name, au: p.distanceAu, parent: ui().bodies[p.id].name }"
+  },
+  {
+   "file": "src/ui/NavPanel.tsx",
+   "from": "name={named(p)}",
+   "to": "name={ui().bodies[p.id].name}"
+  },
+  {
+   "file": "src/ui/NavPanel.tsx",
+   "from": "name={named(m)}",
+   "to": "name={ui().bodies[m.id].name}"
+  },
+  {
+   "file": "src/ui/NavPanel.tsx",
+   "from": "ui().navPanel.moonsOf(p.name, p.nameEn)",
+   "to": "ui().navPanel.moonsOf(ui().bodies[p.id].name)"
+  },
+  {
+   "file": "src/i18n/navPanel.ja.ts",
+   "from": "moonsOf: (name: string, _nameEn: string) =>",
+   "to": "moonsOf: (name: string) =>"
+  },
+  {
+   "file": "src/i18n/navPanel.en.ts",
+   "from": "moonsOf: (_name: string, nameEn: string) => `Moons of ${nameEn}`",
+   "to": "moonsOf: (name: string) => `Moons of ${name}`"
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "import { getLang } from '../i18n/lang'\n",
+   "to": "import { getLang } from '../i18n/lang'\nimport { uiEn, uiJa } from '../i18n'\n"
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "(p) => p.name)",
+   "to": "(p) => uiJa.bodies[p.id].name)",
+   "count": 5
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "(p) => p.nameEn)",
+   "to": "(p) => uiEn.bodies[p.id].name)",
+   "count": 5
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${top.name}",
+   "to": "${uiJa.bodies[top.id].name}",
+   "count": 4
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${top.nameEn}",
+   "to": "${uiEn.bodies[top.id].name}",
+   "count": 4
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${moon.name}",
+   "to": "${uiJa.bodies[moon.id].name}",
+   "count": 2
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${parent.name}",
+   "to": "${uiJa.bodies[parent.id].name}",
+   "count": 2
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${moon.nameEn}",
+   "to": "${uiEn.bodies[moon.id].name}",
+   "count": 2
+  },
+  {
+   "file": "src/state/quiz.ts",
+   "from": "${parent.nameEn}",
+   "to": "${uiEn.bodies[parent.id].name}"
+  },
+  {
+   "file": "src/data/stamps.ts",
+   "from": "import { HUBBLE_ID, WEBB_ID } from './telescopes'\n",
+   "to": "import { HUBBLE_ID, WEBB_ID } from './telescopes'\nimport { uiEn, uiJa } from '../i18n'\n"
+  },
+  {
+   "file": "src/data/stamps.ts",
+   "from": "name: `${p.name}の衛星`, nameEn: p.moons.length === 1 ? `${p.nameEn}’s moon` : `Moons of ${p.nameEn}`",
+   "to": "name: `${uiJa.bodies[p.id].name}の衛星`, nameEn: p.moons.length === 1 ? `${uiEn.bodies[p.id].name}’s moon` : `Moons of ${uiEn.bodies[p.id].name}`"
+  },
+  {
+   "file": "src/components/surface/RoverHud.tsx",
+   "from": "{t(p.name.ja, p.name.en)}",
+   "to": "{ui().pois[p.id].name}"
+  },
+  {
+   "file": "src/ui/RockBook.tsx",
+   "from": "spotsOf(b, k.id).map((p) => t(p.name.ja, p.name.en))",
+   "to": "spotsOf(b, k.id).map((p) => ui().pois[p.id].name)"
+  },
+  {
+   "file": "src/components/surface/Rover.tsx",
+   "from": "where: sites[next].poi?.name ?? null,",
+   "to": "where: sites[next].poi?.id ?? null,"
+  },
+  {
+   "file": "src/state/rover.ts",
+   "from": "/** いちばん近い、まだ採っていない岩（距離 m と、ローバーの正面から右回りの角度） */\n  next: { dist: number; rel: number; where?: { ja: string; en: string } | null } | null",
+   "to": "/** いちばん近い、まだ採っていない岩（距離 m と、ローバーの正面から右回りの角度、近くの見どころの id（pois.ts）） */\n  next: { dist: number; rel: number; where?: string | null } | null"
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "ui().surfaceView.rockAtPlace(next.where.ja, next.dist, next.where.en)",
+   "to": "ui().surfaceView.rockAtPlace(ui().pois[next.where].name, next.dist)"
+  },
+  {
+   "file": "src/i18n/surfaceView.ja.ts",
+   "from": "rockAtPlace: (ja: string, dist: number, _en: string) => `見どころ「${ja}」の岩まで ${dist} m・光の柱が目印`",
+   "to": "rockAtPlace: (place: string, dist: number) => `見どころ「${place}」の岩まで ${dist} m・光の柱が目印`"
+  },
+  {
+   "file": "src/i18n/surfaceView.en.ts",
+   "from": "rockAtPlace: (_ja: string, dist: number, en: string) => `Rock at ${en}: ${dist} m · follow the light beam`",
+   "to": "rockAtPlace: (place: string, dist: number) => `Rock at ${place}: ${dist} m · follow the light beam`"
+  },
+  {
+   "file": "src/components/surface/HistoricPanel.tsx",
+   "from": "ui().historicPanel.toNextSite(next.name[0], far(d), next.name[1])",
+   "to": "ui().historicPanel.toNextSite(ui().apollo17[next.id].name, far(d))"
+  },
+  {
+   "file": "src/i18n/historicPanel.ja.ts",
+   "from": "toNextSite: (site: string, dist: string, _siteEn: string) =>",
+   "to": "toNextSite: (site: string, dist: string) =>"
+  },
+  {
+   "file": "src/i18n/historicPanel.en.ts",
+   "from": "toNextSite: (_site: string, dist: string, siteEn: string) => `${siteEn}: ${dist}`",
+   "to": "toNextSite: (site: string, dist: string) => `${site}: ${dist}`"
+  },
+  {
+   "file": "src/components/surface/HistoricPanel.tsx",
+   "from": "pick(it.name)",
+   "to": "ui().apollo17[it.id].name"
+  },
+  {
+   "file": "src/components/surface/HistoricPanel.tsx",
+   "from": "pick(it.when)",
+   "to": "ui().apollo17[it.id].when"
+  },
+  {
+   "file": "src/components/surface/HistoricPanel.tsx",
+   "from": "pick(it.story)",
+   "to": "ui().apollo17[it.id].story"
+  },
+  {
+   "file": "src/components/surface/HistoricPanel.tsx",
+   "from": "const pick = (p: [string, string]) => t(p[0], p[1])\n",
+   "to": ""
+  },
+  {
+   "file": "src/ui/HistoricBook.tsx",
+   "from": "pick(it.name)",
+   "to": "ui().apollo17[it.id].name"
+  },
+  {
+   "file": "src/ui/HistoricBook.tsx",
+   "from": "pick(it.when)",
+   "to": "ui().apollo17[it.id].when"
+  },
+  {
+   "file": "src/ui/HistoricBook.tsx",
+   "from": "pick(it.story)",
+   "to": "ui().apollo17[it.id].story"
+  },
+  {
+   "file": "src/ui/HistoricBook.tsx",
+   "from": "pick(x.name)",
+   "to": "ui().apollo17[x.id].name"
+  },
+  {
+   "file": "src/ui/HistoricBook.tsx",
+   "from": "const pick = (p: [string, string]) => t(p[0], p[1])\n",
+   "to": ""
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "from": "  extras?: ('plumes' | 'volcano' | 'geysers' | 'clouds')[]\n  note: [string, string]\n  skyNote?: [string, string]\n",
+   "to": "  extras?: ('plumes' | 'volcano' | 'geysers' | 'clouds')[]\n",
+   "count": 1
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "from": "'skyBody' | 'note' | 'gravity'",
+   "to": "'skyBody' | 'gravity'",
+   "count": 1
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "from": "        skyBody: e.sky,\n        note: NOTES[e.id] ?? ['', ''],\n        skyNote: SKY_NOTES[e.id],\n",
+   "to": "        skyBody: e.sky,\n",
+   "count": 1
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "from": "{ body: string; dem: string; name: [string, string]; note: [string, string]; range?: number }",
+   "to": "{ body: string; dem: string; range?: number }",
+   "count": 1
+  },
+  {
+   "file": "src/data/surfaces.ts",
+   "from": "d = { ...base, site, note: SITES[site].note, haze: base.haze * 0.6 }",
+   "to": "d = { ...base, site, haze: base.haze * 0.6 }",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "import { SITES, demIdFor, siteDef, surfaceFor, type SurfaceDef } from '../../data/surfaces'",
+   "to": "import { demIdFor, siteDef, surfaceFor, type SurfaceDef } from '../../data/surfaces'",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "  const siteName = def.site ? SITES[def.site].name : null\n  const name = bodyName(def.id) + (siteName ? ui().surfaceView.siteSuffix(siteName[0], siteName[1]) : '')\n",
+   "to": "  const name = bodyName(def.id) + (def.site ? ui().surfaceView.siteSuffix(ui().surfaceSites[def.site].name) : '')\n",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "  const skyName = def.skyBody ? bodyName(def.skyBody.id) : null\n",
+   "to": "  const skyName = def.skyBody ? bodyName(def.skyBody.id) : null\n  // 説明：別の着陸地点ならその地点の、そうでなければ天体の。空の説明は天体のもの（無い天体もある）\n  const note = def.site ? ui().surfaceSites[def.site].note : ui().surfaceNotes[def.id]\n  const skyNote: string | undefined = ui().surfaceSkyNotes[def.id]\n",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "<p>{t(def.note[0], def.note[1])}</p>\n                {def.skyNote && <p className=\"muted\">{t(def.skyNote[0], def.skyNote[1])}</p>}\n                {skyName && !def.skyNote && (",
+   "to": "<p>{note}</p>\n                {skyNote && <p className=\"muted\">{skyNote}</p>}\n                {skyName && !skyNote && (",
+   "count": 1
+  },
+  {
+   "file": "src/i18n/surfaceView.ja.ts",
+   "from": "siteSuffix: (siteJa: string, _siteEn: string) => `・${siteJa}`",
+   "to": "siteSuffix: (site: string) => `・${site}`",
+   "count": 1
+  },
+  {
+   "file": "src/i18n/surfaceView.en.ts",
+   "from": "siteSuffix: (_siteJa: string, siteEn: string) => ` · ${siteEn}`",
+   "to": "siteSuffix: (site: string) => ` · ${site}`",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/RallyPanel.tsx",
+   "from": "  const tr = TRACKS[track]\n",
+   "to": "",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/RallyPanel.tsx",
+   "from": "🏁 {t(tr.title[0], tr.title[1])}",
+   "to": "🏁 {ui().rallyTracks[track].title}",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/RallyPanel.tsx",
+   "from": "{t(tr.intro[0], tr.intro[1])}",
+   "to": "{ui().rallyTracks[track].intro}",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "🏁 {t(`${TRACKS[trackForBody(bodyId)!].button[0]}へ`, TRACKS[trackForBody(bodyId)!].button[1])}",
+   "to": "🏁 {ui().surfaceView.raceButton(ui().rallyTracks[trackForBody(bodyId)!].button)}",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "🏁 {ui().surfaceView.toRaceTrack(TRACKS[trackForBody(def.id)!].button[0], TRACKS[trackForBody(def.id)!].button[1].toLowerCase())}",
+   "to": "🏁 {ui().surfaceView.toRaceTrack(ui().rallyTracks[trackForBody(def.id)!].button)}",
+   "count": 1
+  },
+  {
+   "file": "src/components/surface/SurfaceView.tsx",
+   "from": "{t(TRACKS[def.site].home[0], TRACKS[def.site].home[1])}",
+   "to": "{ui().rallyTracks[def.site].home}",
+   "count": 1
+  },
+  {
+   "file": "src/i18n/surfaceView.ja.ts",
+   "from": "  toRaceTrack: (trackJa: string, _trackEn: string) => `${trackJa}場へ`,\n",
+   "to": "  /** 運転中のボタン（track：レース場のボタンの名前） */\n  raceButton: (track: string) => `${track}へ`,\n  toRaceTrack: (track: string) => `${track}場へ`,\n",
+   "count": 1
+  },
+  {
+   "file": "src/i18n/surfaceView.en.ts",
+   "from": "  toRaceTrack: (_trackJa: string, trackEn: string) => `To the ${trackEn}`,\n",
+   "to": "  raceButton: (track: string) => track,\n  toRaceTrack: (track: string) => `To the ${track.toLowerCase()}`,\n",
+   "count": 1
+  }
+ ]
+}

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""chromium_lock.py — one headless Chromium at a time on this machine among the scripts that take this lock, in turn
-(first come, first served).
+"""chromium_lock.py — one holder at a time on this machine among the scripts that take this lock, in turn (first
+come, first served). The holder decides how many headless Chromiums it starts: one of our own test scripts starts two.
 
-A second software-rendered Chromium beside a long test run once cost that run its GPU context. Scripts that take this
-lock never run beside one another; a script that starts a Chromium without it is not held back. Before the queue,
-every waiter polled and the fastest grabber won, so one waiter could wait for ever.
+Why: on 2026-11-04 several software-rendered browsers at once used up the memory (1.6 to 1.8 GB available), and the
+system's out-of-memory guard (earlyoom) stopped a test's page processes. Scripts that take this lock never run beside
+one another; a script that starts a Chromium without it is not held back. Before the queue, every waiter polled and
+the fastest grabber won, so one waiter could wait for ever.
 
     import chromium_lock
     chromium_lock.acquire("my-test 5173")   # waits for its turn; prints its place in the queue while it waits
@@ -37,8 +38,8 @@ import time
 
 LOCK = "/tmp/headless-chromium.lock"
 QUEUE = "/tmp/headless-chromium.queue"
-# Transition: our own test scripts (not published) that predate this module take only OLD_LOCK, with no namespace mark
-# and in two steps (create, then write). Until all of them import this module, a holder takes both; then it goes.
+# Older scripts of ours (not published) take only OLD_LOCK, with no namespace mark and in two steps (create, then
+# write), and others still watch it; so a holder takes both.
 OLD_LOCK = "/tmp/ody-battery.lock"
 INIT_PIDNS = "pid:[4026531836]"  # the kernel's initial PID namespace (PROC_PID_INIT_INO): the machine's own
 HOLD_LIMIT = 3600  # s; the longest test run measured took 27 min (2026-11-06): an hour leaves room for twice that

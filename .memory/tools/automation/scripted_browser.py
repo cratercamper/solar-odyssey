@@ -19,8 +19,8 @@ The page's own uncaught exceptions and console errors are logged with the time t
 next talks to the browser, at the latest after the last step, or after the step that failed).
 Needs Python's `websockets` (15 or newer), `chromium` on PATH, and the dev server reachable at the url. Linux as
 written (the lock check reads /proc).
-Lock: the run waits for its turn in chromium_lock.py (beside this file: one headless Chromium at a time on the machine
-among the scripts that take it, first come, first served; it prints its place while it waits), so it never runs
+Lock: the run waits for its turn in chromium_lock.py (beside this file: one holder at a time on the machine among the
+scripts that take it, first come, first served; it prints its place while it waits), so it never runs
 beside the scripts that take the same lock, such as our own test scripts (not published). Scripts that do not take it
 are not held back by it.
 Exit: 0 = every step passed, the page answered once more after them (that call reads its last events), and Chromium's

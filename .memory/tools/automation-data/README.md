@@ -87,14 +87,15 @@ one folder per test.
   race. So the card shows the time the game simulated, the same on a fast machine and a slow one. 0.05 s is what the
   game does on any machine below 20 frames per second; `check.step` in track.json sets it.
 - **One drawing level.** On its default setting, `'auto'`, the game changes its quality level with the frame rate it
-  counts (`src/components/QualityGovernor.tsx`), and a change of level during a race builds the rivals again, at the
-  scene's origin and at a standstill (`src/components/surface/Rally.tsx`). With the fixed time step the game counts 20
-  frames per second on any machine, below its threshold of 30, so on `'auto'` the level steps down about 4 s into the
-  race wherever the race starts above low ('auto' begins at high on a graphics card, and at medium on a built-in or
-  software renderer or a touch screen: `looksIntegrated` in `src/state/quality.ts`, `QualityGovernor.tsx`); on a
-  graphics card it did. The test therefore sets the quality to low before the warp (`QUALITY` in make_route.py; low is
-  the cheapest level, and the same on every machine), and check.js fails the run if the level changes before the finish.
-  The game saves the setting in the browser's storage; the scripted browser starts each run with a new profile.
+  counts (`src/components/QualityGovernor.tsx`), and a change of level during a race rebuilds the rivals
+  (`src/components/surface/Rally.tsx`; before Junzzy827/solar-odyssey#106 at the scene's origin, since then they keep
+  their state). With the fixed time step the game counts 20 frames per second on any machine, below its threshold of 30,
+  so on `'auto'` the level steps down about 4 s into the race wherever the race starts above low ('auto' begins at high
+  on a graphics card, and at medium on a built-in or software renderer or a touch screen: `looksIntegrated` in
+  `src/state/quality.ts`, `QualityGovernor.tsx`); on a graphics card it did. The test therefore sets the quality to low
+  before the warp (`QUALITY` in make_route.py; low is the cheapest level, and the same on every machine), and check.js
+  fails the run if the level changes before the finish. The game saves the setting in the browser's storage; the
+  scripted browser starts each run with a new profile.
 - **The record must match the track.** The game shows a built-in record only if its `course` matches the track's line
   and the game's driving version (`courseOf` in `src/state/rallyHiscore.ts`); otherwise it warns in the console and
   leaves it out, and the check fails. A new line or a new driving version needs a new record run.

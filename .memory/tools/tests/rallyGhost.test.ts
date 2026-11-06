@@ -1,10 +1,12 @@
 // Unit tests for the race ghost in src/state/rallyGhost.ts. The ghost replays an earlier run as a translucent rover
 // that races along with the player; that file records the run, replays it, and stores it in the browser.
-// Tested here: samples at exact times from uneven frames, replay between samples, heading across ±π, a teleport
-// (snap, no glide), time going back (an error), the stored format (round trip, another course refused, a broken
-// record throws), the size of a 3-minute run, and the storage key.
-// The tests import only that file and Node's own node:test and node:assert/strict. At commit d0ef578 that file
-// imports nothing, so no `npm install` is needed; all 8 tests pass there.
+// Tested here: samples at exact times from uneven frames, a finish exactly on a sample time (not stored twice),
+// replay between samples, heading across ±π, a teleport (snap, no glide), time going back (an error), the stored
+// format (round trip, another course refused, a broken record throws), the date of a stored result (absent when the
+// run has none), the storage key's form (one per track), and the size of a 3-minute run.
+// The tests import only that file and Node's own node:test and node:assert/strict. At commits d0ef578 and a41f635 that
+// file imports nothing, so no `npm install` is needed; all 8 tests pass there (checked: src/state/rallyGhost.ts is the
+// same at both commits, `git diff --quiet d0ef578 a41f635 -- src/state/rallyGhost.ts` exits 0; tests run on a41f635).
 //
 // Run from the repository root:
 //   node --test .memory/tools/tests/rallyGhost.test.ts

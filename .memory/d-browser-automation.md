@@ -186,11 +186,15 @@ What our other scripts do over the same DevTools channel, worth copying into a t
   `'auto'` the tiny race test stepped down from high during its race, 3.95 s in, on a GPU (2026-11-06, before it pinned
   `'low'`); our stepped-frame tests, at 1/60 s, count 60 and stepped up 4.4 to 5.2 s into a race. A change of level
   makes the race code build its rivals again (the rivals' `useMemo` depends on `level` in
-  `src/components/surface/Rally.tsx`): at the scene's origin (x = 0, z = 0), at a standstill and with no finish time. On
-  the next frame the race counts each rival at the course's point nearest it, within about 300 m of the start grid,
-  where a new rival's count begins (`progressOf`); a rival finishes once its count is past the last gate. On the tiny
-  track the point nearest the origin is already past it, so all three rivals finished at once: the result card showed
-  them all at 0:04.0, the player 4th.
+  `src/components/surface/Rally.tsx`). Before Junzzy827/solar-odyssey#106 (merged as a41f635; its parent is d0ef578) a
+  rebuilt rival restarted at the scene's origin (x = 0, z = 0), at a standstill and with no finish time; on the next
+  frame the race counted it at the course's point nearest it within about 300 m of the start grid (`progressOf`), and on
+  the tiny track that point is already past the last gate. So all three rivals finished at once: the result card showed
+  them all at 0:04.0, the player 4th (seen at d0ef578). Since #106 a rebuilt rival keeps its race state and its pose:
+  the tiny race test without its quality pin (so on the game's default, `'auto'`; its check then fails on the level
+  change) gave the rivals 0:04.4, 0:06.7 and 0:08.4 (2026-11-06, on a GPU), within the spread of its 11 runs on `'low'`
+  (0:04.4 to 0:04.5, 0:06.5 to 0:06.7 and 0:08.3 to 0:08.5). The test still pins `'low'`, so that its run draws the same
+  scene on every machine.
 - **Exact numbers.** Take a large result as one string, `JSON.stringify(value)` in the page, parsed by the tool: every
   float keeps JavaScript's own digits. A websocket client may need a larger message limit for it: the scripted browser
   allows 64 MiB, the text scanners 128 MiB, and our own test scripts 256 MiB.
@@ -419,7 +423,7 @@ How it fails:
   that the GPU process failed.
 - **A seed must be set in the same evaluate as the scenario's code.** While the app still loads, three.js draws
   `Math.random` (for `generateUUID`) between two separate evaluates, and the run drew different EVA jobs. The published
-  `checks/visible_text.py` does not do this yet: it reseeds in a call of its own, before the scene's code.
+  `checks/visible_text.py` does this.
 - **A track added at run time must fit the race code's fixed measures:** gates 18 m wide (`GATE_HALF`), the start
   grid 45 m down the line, a point every 10 m (`Rally.tsx`). A site added at run time starts from its body's settings:
   `siteDef` (`src/data/surfaces.ts`) lays its `SITES` entry's `look` and `note` over them and takes the body's haze
@@ -439,19 +443,20 @@ All software-rendered (SwiftShader) unless it says GPU; a 16-core Linux machine 
   stopped their page processes, which Chromium marks to be stopped first. The page stops answering; nothing else says
   why. That is why the scripts take the lock (Decisions, above).
 
-**First measurements, software-rendered (2026-11-06, two runs of each; the CPU figure from another session)**, with
+**First measurements, software-rendered (2026-11-06, two runs of each; the CPU figure from separate runs)**, with
 13 to 19 GB of memory available:
 - Frames: 1.07 per second in the tiny race alone, 0.62 beside a text scan.
 - The tiny race test takes 213 s alone and 345 s beside a text scan of 23 scenes; the scan takes 263 to 269 s alone
   and 370 to 375 s beside the race. Side by side (two browsers in one hold of the lock), neither broke in 2 of 2
   tries, and the results were those of lone runs; only the wall time grew.
-- CPU: 2,644 to 2,696 s of CPU time in a tiny race test of 223 to 226 s (two runs in the GPU measurements' session
-  below, not the 213 s ones), about 12 cores.
+- CPU: 2,644 to 2,696 s of CPU time in a tiny race test of 223 to 226 s (two runs among the GPU measurements below, not
+  the 213 s ones), about 12 cores.
 - Memory at peak, all of a browser's processes together (proportional set size): 2.1 to 2.2 GB (race), 2.9 GB (scan).
 
-**First measurements on a GPU (2026-11-06, one session of 16 runs):** headless Chromium with `--headless=new
---use-angle=gl-egl` and no display draws on the graphics card (here an NVIDIA GTX 1660: "Hardware accelerated");
-Vulkan gave only "reduced performance", and `--use-gl=egl` or `--use-gl=angle --use-angle=gl` turned WebGL off.
+**First measurements on a GPU (2026-11-06, 16 runs: 13 on the GPU, 4 of them the race test, and 3 software-rendered, two
+of them the CPU figure above):** headless Chromium with `--headless=new --use-angle=gl-egl` and no display draws on the
+graphics card (here an NVIDIA GTX 1660: "Hardware accelerated"); Vulkan gave only "reduced performance", and
+`--use-gl=egl` or `--use-gl=angle --use-angle=gl` turned WebGL off.
 - The tiny race test takes 56 s (about 31 frames per second; 6.95 s in all four GPU runs), the text scan 55 s; the app
   is ready in 6.5 s. Two GPU browsers side by side run as fast as one.
 - CPU 29 s per race. Memory 1.9 to 2.1 GB (race) and 2.3 to 2.5 GB (scan); the card's memory in use reached 2.0 to

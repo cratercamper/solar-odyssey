@@ -1,6 +1,6 @@
 ---
 name: d-todo-localization
-description: "what is left of the localization work after PR #100 was merged (2026-11-05) — the texts that code puts together, punctuation and lists (on the fork's branch pr/l10n-3; a pull request after more testing), the checks run on it, open questions and ideas."
+description: "what is left of the localization work after PR #100 was merged (2026-11-05) — the texts that code puts together, punctuation and lists (on the fork's branch pr/l10n-3, offered as pull request #107), the checks run on it, open questions and ideas."
 type: design
 ---
 
@@ -16,8 +16,8 @@ Our missing-English check (`l10n-check`, in `.memory/tools/localization/` on thi
 ## On this fork's `pr/l10n-3`: texts that code puts together, punctuation, lists
 
 The branch `pr/l10n-3` of this fork has 33 commits that `main` at `d0ef578` does not have: 13 on #100's last commit
-(`1ad4f0b`), a merge of `d0ef578`, and 19 after it; the 32 that are not the merge do the work below. None of it is in
-a pull request yet; we plan one after more testing.
+(`1ad4f0b`), a merge of `d0ef578`, and 19 after it; the 32 that are not the merge do the work below. It is offered as
+pull request #107 (opened 2026-11-06).
 
 - **Ids are type-checked, in both directions.** A misspelt id in an English text file now fails `tsc`: a record id, a
   mission or chapter id in `missions.en.ts`, one of the photo-framing words in `en.ts`, or a key in `news.en.ts`. A rally track, landing site,

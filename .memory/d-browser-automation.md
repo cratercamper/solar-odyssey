@@ -44,25 +44,39 @@ take.
   where it kept Chromium's log (`kept …/chrome.log`) and the error with its traceback.
 - The address defaults to `http://localhost:5173/?lang=en#debug`: the dev server, in English, with the debug hooks
   (below).
-- Exit status: **0** every step passed, the page answered once more after them (Steps, below), and the browser is gone;
-  **1** a step, that last question or the browser failed (the run's temporary directory with the browser's log is kept
-  and named), or the run could not start, for example: no dev server answering, inside a sandbox (Limits), a lock held
-  past the hold limit (Decisions), run under the lock's `run` wrapper, or an output directory that cannot be made; **2**
-  bad arguments or steps; **128 + n** stopped by signal n, after the browser is stopped.
+- The page's WebGL draws on the machine's graphics card by default (`SCRIPTED_BROWSER_RENDERER=gpu`), or on the CPU with
+  `SCRIPTED_BROWSER_RENDERER=swiftshader`, for a machine without a usable card. A GPU run stops if the page draws in
+  software anyway (Decisions, below); with the lock it also needs `nvidia-smi`, from which the lock reads the free video
+  memory, and a machine with more than one NVIDIA card fails there.
+- `SCRIPTED_BROWSER_LOCK=off` runs without the lock (unset or `on` takes it), for a machine where this run is the only
+  headless Chromium, such as a Claude Code cloud session: the lock refuses to queue in a PID namespace of its own
+  (Decisions), and a container usually has one. Without a usable graphics card set
+  `SCRIPTED_BROWSER_RENDERER=swiftshader` as well. Not yet tried in a cloud session. Known from Chromium, not seen here:
+  as root it refuses to start without `--no-sandbox`, which the tool does not pass, so a run in a container that runs as
+  root fails at its start. The two text scanners (below) take the same switch.
+- Exit status: **0** every step passed, the page answered once more after them (Steps, below), a GPU run still drew on
+  the GPU at the end, Chromium's log shows no GPU process that died, and the browser is gone; **1** a step, that last
+  question or the browser failed, a GPU run drew in software (before the first step or after the last), or Chromium's
+  GPU process died during the run (the run's temporary directory with the browser's log is kept and named), or the run
+  could not start, for example: no dev server answering, inside a sandbox (Limits), a lock held past the hold limit
+  (Decisions), run under the lock's `run` wrapper, or an output directory that cannot be made; **2** bad arguments,
+  steps or environment values; **128 + n** stopped by signal n, after the browser is stopped.
 
 ### Limits
-- The browser draws in software, so it needs no graphics card, but it is slow: the app was ready about 5 to 13 s
-  after the page was opened (Performance, below), and 3D scenes run at about one frame per second or fewer: 0.84
-  frames per second in a short race on Mars (2026-11-06, a busy 16-core Linux machine; Performance, below).
-- So a real-time run cannot test physics. The rover and race physics cap a frame's time step at 0.05 s (`Math.min(rawDt,
-  0.05)` in `Rover.tsx` and `Rally.tsx`), so the rover and the race run at 1/20 of real time or less, in steps three
-  times longer than at 60 fps. A clock fixed from the page, as in the tiny race test, makes a race's time the time the
-  game simulated, in steps of the test's choosing: 0.05 s there; 1/60 s would give a fast machine's steps, in three
-  times as many frames.
-- One run at a time per machine, among the scripts that share its lock (Decisions, below): a run that finds it held
-  waits for its turn and prints its place in the queue.
-- It runs on the machine itself, not inside a sandbox or container: there it cannot see the other runs, so it refuses
-  to queue.
+- On a graphics card the app was ready in about 6.5 s and the tiny race test drew about 31 frames per second
+  (Performance, below). In software the browser needs no graphics card, but it is slow: the app was ready about 5 to 13
+  s after the page was opened, and 3D scenes run at about one frame per second or fewer: 0.84 frames per second in a
+  short race on Mars (2026-11-06, a busy 16-core Linux machine; Performance, below).
+- So a real-time run in software cannot test physics. The rover and race physics cap a frame's time step at 0.05 s
+  (`Math.min(rawDt, 0.05)` in `Rover.tsx` and `Rally.tsx`), so the rover and the race run at 1/20 of real time or less,
+  in steps three times longer than at 60 fps. A clock fixed from the page, as in the tiny race test, makes a race's time
+  the time the game simulated, in steps of the test's choosing: 0.05 s there; 1/60 s would give a fast machine's steps,
+  in three times as many frames.
+- Among the scripts that share its lock (Decisions, below), two GPU runs at a time per machine, or one software run
+  alone: a run that cannot start yet (no slot free, the memory checks, or a run queued before it: Decisions) waits for
+  its turn and prints its place in the queue.
+- With the lock, it runs on the machine itself, not inside a sandbox or container: there it cannot see the other runs,
+  so it refuses to queue (without the lock: Running it, above).
 - Linux as written.
 
 ### Steps
@@ -113,45 +127,64 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   aborts, and the tool sees only a port that never answers.
 - **Profile deleted; `chrome.log` kept when the run failed.** A profile is about 60 MB, `/tmp` is often in RAM, and 14
   left-over profiles (733 MB) had once piled up.
-- **One holder of the lock at a time among the scripts that take it, in turn**
-  (`.memory/tools/automation/chromium_lock.py`, beside the tool, shared by every script that imports it, such as our own
-  test scripts, which are not published). The holder decides how many browsers it starts: the scripted browser starts
-  one; one of our own test scripts starts two side by side, pinned to their own cores. Why: on 2026-11-04, several
-  software-rendered browsers at once used up the memory (1.6 to 1.8 GB available, the swap full or nearly full), and the
-  out-of-memory guard (earlyoom) stopped a test's page processes, twice. A script that starts a Chromium without the
-  lock is not held back. The two published text scanners (Checking the game's text in a browser, below) do not take
-  it themselves: wrap them in `chromium_lock.py run` (below).
-  A waiter writes a ticket into `/tmp/headless-chromium.queue/`, named by the time it arrived, and takes
-  `/tmp/headless-chromium.lock` only when its ticket is the oldest of a live process: first come, first served. Before
-  the queue, every waiter polled and the fastest grabber won, so one waiter could wait for ever.
-  - Every ticket and lock appears with its whole text at once: written to a temporary file, then hard-linked into
-    place, which fails if the name exists. Each records the process id and its PID namespace.
+- **Slots of one lock, taken in turn by the scripts that take it** (`.memory/tools/automation/chromium_lock.py`, beside
+  the tool, shared by every script that imports it: the two text scanners, below, and our own test scripts, which are
+  not published). There are two slots. A GPU run takes one, so two may run at once; a software run, or one that names no
+  renderer, takes both and runs alone. A GPU run starts only while the card has 2048 MiB of video memory free for each
+  slot it takes (counting a GPU run that started less than 30 s ago as using its share already) and, when it would start
+  beside another run, while the machine has 8192 MiB of memory available; both are checked only before it starts. The
+  holder decides how many browsers it starts: the scripted browser starts one; one of our own test scripts starts two
+  side by side, pinned to their own cores, and takes two slots. Why: on 2026-11-04, several software-rendered browsers
+  at once used up the memory (1.6 to 1.8 GB available, the swap full or nearly full), and the out-of-memory guard
+  (earlyoom) stopped a test's page processes, twice. A script that starts a Chromium without the lock is not held back.
+  A waiter writes a ticket into `/tmp/headless-chromium.queue/`, named by the time it arrived, and takes its slots
+  (`/tmp/headless-chromium.lock`, `/tmp/headless-chromium.lock2`), all at once, only when its ticket is the oldest of a
+  live process: first come, first served, so no run passes one queued before it, even when a slot is free. Before the
+  queue, every waiter polled and the fastest grabber won, so one waiter could wait for ever.
+  - Every ticket and slot appears with its whole text at once: written to a temporary file, then hard-linked into
+    place, which fails if the name exists; the older lock file (below) is handed over by renaming the new text over
+    it. Each records the process id, the number of slots its run holds and its PID namespace.
   - Tickets and locks of processes that are gone (checked in `/proc`) are removed by whoever finds them, after reading
-    them once more so that one written meanwhile is left alone. At the end the run removes the lock only if it still
+    them once more so that one written meanwhile is left alone. At the end the run removes a slot only if it still
     holds its own process id.
   - Only processes of the machine's own PID namespace may queue. Inside a sandbox other processes are hidden, and a
     live run's lock would look like one whose process is gone.
-  - A live run that has held the lock for more than an hour is taken as stuck: each waiter stops with an error that
-    names it, rather than wait for ever. The longest test run measured took 27 minutes: a run of our rover battery
-    (Tests we run, below) on 2026-11-04, while the memory ran out.
-  - `python3 .memory/tools/automation/chromium_lock.py status` prints the holder and the queue.
-  - A script in another language wraps each step in `python3 .memory/tools/automation/chromium_lock.py run <label> --
-    <command...>`. It waits for its turn, runs the command in a process group of its own while it holds the lock, and
-    releases the lock afterwards. Its exit status is the command's (128 + n after signal n). SIGTERM, SIGHUP or
-    SIGINT to the wrapper stops the whole command first; one that comes while it stops what a finished command left
-    running takes effect once the lock is released. SIGKILL cannot, so stop it with SIGTERM. A command that takes
-    the lock itself, as the scripted browser does, waits for its own turn and needs no wrapper; under one it stops at
-    once with an error that says so.
+  - A live run that has held the lock for more than an hour is taken as stuck: a waiter that needs its slot stops with
+    an error that names it, rather than wait for ever; so does a GPU run that the memory checks have held back for an
+    hour. The longest test run measured took 27 minutes: a run of our rover battery (Tests we run, below) on 2026-11-04,
+    while the memory ran out.
+  - `python3 .memory/tools/automation/chromium_lock.py status` prints the slots, their holders and the queue.
+  - A script in another language wraps each step in `python3 .memory/tools/automation/chromium_lock.py run [--gpu
+    [--slots N]] <label> -- <command...>` (without `--gpu` it takes both slots; with it, the command is told to draw on
+    the GPU). It waits for its turn, runs the command in a process group of its own while it holds the lock, and
+    releases the lock afterwards. Its exit status is the command's (128 + n after signal n); it is 2, without running
+    the command, when `--gpu` meets another renderer asked for in the environment, and 1 with the usage line for bad
+    arguments (`--slots` takes 1 or 2). SIGTERM, SIGHUP or SIGINT to the wrapper stops the whole command first; one that
+    comes while it stops what a finished command left running takes effect once the lock is released. SIGKILL cannot, so
+    stop it with SIGTERM. A command that takes the lock itself, as the scripted browser does, waits for its own turn and
+    needs no wrapper; under one it stops at once with an error that says so.
   - Hold the lock per step (one page, one build), not for a whole job, so that the others in the queue get their
     turns in between.
-  - For now the holder also takes an older lock file, `/tmp/ody-battery.lock`, which our own test scripts (not
-    published) still take or watch. A script that takes neither is not held back.
+  - For now a holder also holds an older lock file, `/tmp/ody-battery.lock` (two GPU runs share one copy of it, handed
+    on by the first to leave), which our own test scripts (not published) still take or watch. A script that takes
+    neither is not held back.
 - **The address must answer before the lock is touched.** A dev server that is down ends the run before it waits in
   the queue or starts anything.
 - **Never through a proxy.** The DevTools channel and the address check go to localhost directly, whatever
   `http_proxy` or `HTTPS_PROXY` say.
-- **Software WebGL.** `--use-angle=swiftshader --enable-unsafe-swiftshader`: SwiftShader draws on the CPU, so a run needs
-  no GPU and no screen.
+- **The renderer, from one shared file** (`.memory/tools/automation/renderer.py`, which the two text scanners use too):
+  on the GPU `--use-angle=gl-egl`, which with `--headless=new` needs no window and no display; in software
+  `--use-angle=swiftshader --enable-unsafe-swiftshader`, which needs no GPU and no screen. Chromium falls back to
+  software by itself when its GPU process fails, and chrome://gpu then still says "Hardware accelerated"; only the
+  page's WebGL renderer string tells. So the tool reads it in a new WebGL2 context of the page before it loads the
+  address and again after the last step, and a GPU run fails on a software renderer or none. A GPU process can also die
+  during a run, and Chromium starts another; the tool reads Chromium's log for "GPU process exited unexpectedly" before
+  it stops Chromium, and the run fails.
+- **No back-forward cache.** `--disable-features=BackForwardCache`, for both renderers. Chromium keeps a page it
+  navigated away from in that cache, its WebGL context included, so each new page loaded in one browser added a scene's
+  video memory to the last: in our own test script's two GPU browsers (2026-11-06, a GTX 1660 with 6 GB) the GPU
+  processes grew to 2655 and 2666 MiB, the card had less than 200 MiB free for 14 s, and one GPU process died. With the
+  flag: at most 1376 MiB per browser, falling after each load.
 - **Low priority.** Chromium starts under `nice -n 10`: a software renderer can take most of a machine's cores (about
   12 of 16, Performance below), and the desktop of whoever works at it must stay responsive.
 - **Fail loud.** The whole steps file is checked before Chromium starts: an unknown kind or key, two kinds in one step,
@@ -402,16 +435,18 @@ How it fails:
   ship-race code is the original's).
 
 ## Pitfalls
-- **A second copy of a module.** The dev server adds `?t=<time>` to the address of a file changed since it started
-  (Vite 5). `import('/src/…')` of the bare path then loads a second copy that the game never reads, and a change to its
-  tables or stores does nothing. Read the exact address from the code of a module that imports it, as the tiny race
-  test's `setup.js` does, and check the copy against `window.__sv`.
+- **A second copy of a module.** The dev server adds `?t=<time>` to the address of a file changed since it started, and
+  of the files that import it without accepting the change (Vite 5). `import('/src/…')` of the bare path then loads a
+  second copy that the game never reads, and a change to its tables or stores does nothing. Read the exact address from
+  the code of a module that imports it, as the tiny race test's `setup.js` does, and check the copy against
+  `window.__sv`. After a checkout under a running dev server, `curl -s localhost:<port>/src/App.tsx | grep -c '?t='`
+  counts how many of one module's imports carry it.
 - **A wait judged by the tool's language.** A DOM element comes back from `Runtime.evaluate` as `{}`, which Python
   counts as false; `[]` too. Let the page decide (`!!value`), as the scripted browser does. `en_scan.py` and
   `visible_text.py` still judge in Python; their waits are comparisons, so it does not bite there today.
 - **Deleting the profile too early.** Chromium's helper processes write into the profile for a moment after the main
-  process has exited. Wait for all of them, or retry the delete (`visible_text.py`); `en_scan.py` waits for the main
-  process only.
+  process has exited. Wait for all of them, as the scripted browser and both text scanners do (the browser's whole
+  process group).
 - **Restarting the dev server reloads every open page**, a race in progress included: Vite's client polls while the
   server is away and reloads when it answers.
 - **Two dev servers on one tree** (or on trees that share `node_modules`) share `node_modules/.vite`: one server's
@@ -464,8 +499,9 @@ graphics card (here an NVIDIA GTX 1660: "Hardware accelerated"); Vulkan gave onl
 - The longest frame on the GPU could not be isolated. The longest timer queries (2.1 to 4.1 s) spanned the pauses
   between frames at scene changes (2.8 to 4.6 s), most likely shader compiles on the CPU, and the card was never more
   than 56 % busy. Whether such a pause holds up the desktop of someone at the machine was not checked.
-- Chromium falls back to software by itself when its GPU process fails, so a GPU run should read the WebGL renderer
-  (`WEBGL_debug_renderer_info`) and stop if it is SwiftShader.
+- Chromium falls back to software by itself when its GPU process fails, so a GPU run reads the WebGL renderer
+  (`WEBGL_debug_renderer_info`) and stops on a software renderer (SwiftShader, llvmpipe, softpipe) or no WebGL2
+  (Decisions, above).
 
 ## Checking the game's text in a browser
 Two published scanners in `.memory/tools/localization/`, with the scenarios `scen-ui.json`, `scen-eva.json` and

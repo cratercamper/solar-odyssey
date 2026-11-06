@@ -6,6 +6,17 @@ The scripts that check the game's texts, the ones that moved them into `src/i18n
 - `l10n-regen.sh` and `l10n-convert-verify.mjs` need `git` (on `PATH`, or named by `L10N_GIT`);
 - the fallback probe needs `esbuild` (the checkout's `node_modules/.bin/esbuild` will do);
 - the browser tools (`checks/visible_text.py`, `en_scan.py`) need `chromium` on `PATH`, Python 3 with `websockets`, and the app served by its dev server.
+  They take Chromium's start, stop and renderer from `../automation/` (`chromium_lock.py`, `renderer.py`, `scripted_browser.py`):
+  each waits for its turn in the machine's browser lock itself, so do not run it under `chromium_lock.py run`, and draws on
+  the graphics card unless `SCRIPTED_BROWSER_RENDERER=swiftshader`, which draws on the CPU and is two to five times as
+  slow, by the scenes (measured on one machine: the Apollo scenes 87 s against 41 s, 23 screens 268 s against 55 s).
+  A run on the graphics card stops when the page draws in software; any run fails when Chromium's GPU process dies.
+  The lock needs Linux and the machine's own PID namespace (it reads `/proc`), and for a run on the graphics card
+  `nvidia-smi`; the graphics card is reached through EGL (`--use-angle=gl-egl`, `renderer.py`). Elsewhere (macOS, a
+  container, a cloud session) set `SCRIPTED_BROWSER_LOCK=off`, as for `scripted_browser.py`, so the run takes no lock
+  (run one at a time), and `SCRIPTED_BROWSER_RENDERER=swiftshader`. As root (a container's default) Chromium does not
+  start, since these tools do not pass `--no-sandbox` (known from Chromium, not tried here). Tried on Linux only, not
+  on macOS, in a container or in a cloud session.
 
 `keys.mjs`, `l10n-convert-verify.mjs`, the fallback probe and the browser tools run parts of the game's code. The
 others only read the tree, and the conversion steps rewrite it when given `--write`. Commands below are run in this

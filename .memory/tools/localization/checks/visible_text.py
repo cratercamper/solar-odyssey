@@ -11,10 +11,22 @@ language, then compare with visible_text_compare.py. Same scenarios and browser 
   - the quality setting is pinned to low (its 'auto' picks by frame rate, which differs between runs).
 Run the two trees one after the other, not side by side.
 Fails loud on a JS exception in a scenario, and on an app that never becomes ready.
+Browser: the machine's lock, renderer and stop from ../../automation/ (chromium_lock.py, renderer.py,
+scripted_browser.py): it waits for its turn itself (so do not run it under `chromium_lock.py run`), draws on the
+graphics card unless SCRIPTED_BROWSER_RENDERER=swiftshader, and fails when a gpu run draws in software or Chromium's
+GPU process dies. Chromium's log is kept beside <out.json> as <out.json>.chrome.log.
+The lock needs Linux and the machine's own PID namespace (it reads /proc). SCRIPTED_BROWSER_LOCK=off skips it, as in
+scripted_browser.py (unset or `on` takes it; any other value is an error): for a machine where this is the only
+headless Chromium. Nothing then holds other runs back from this one, nor this one from them.
 Usage:  python3 checks/visible_text.py out.json scen-ui.json 'http://localhost:<port>/?lang=en#debug'
 """
-import asyncio, json, os, shutil, subprocess, sys, tempfile, time, urllib.request
+import asyncio, json, os, shutil, signal, subprocess, sys, tempfile, time, urllib.request
 import websockets
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "automation"))
+import chromium_lock  # noqa: E402
+import renderer  # noqa: E402
+from scripted_browser import LOCK_ENV, on_signal, stop_chromium  # noqa: E402
 
 T0_MS = 1793404800000  # 2026-10-31 00:00 UTC: the fixed start of the app's clock
 SEED = """(() => {
@@ -51,19 +63,22 @@ def log(msg):
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 
-async def main(out_path, scenarios, url):
+async def main(out_path, scenarios, url, kind):
     tmp = tempfile.mkdtemp(prefix="l10n-chr-vt-")  # the ~60 MB browser profile: deleted whole in finally
+    chrome_log = f"{out_path}.chrome.log"
     chrome = subprocess.Popen(
-        ["chromium", "--headless=new", "--no-first-run", f"--user-data-dir={tmp}/prof",
-         "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--window-size=1280,800",
+        ["nice", "-n", "10", "chromium", "--headless=new", "--no-first-run", f"--user-data-dir={tmp}/prof",
+         *renderer.FLAGS[kind], "--window-size=1280,800",
          "--remote-debugging-port=0", "about:blank"],
-        env=dict(os.environ, TMPDIR=tmp), stdout=subprocess.DEVNULL, stderr=open(f"{tmp}/chrome.log", "w"))
+        env=dict(os.environ, TMPDIR=tmp), stdout=subprocess.DEVNULL, stderr=open(chrome_log, "w"),
+        start_new_session=True)  # own process group: stop_chromium() stops its helpers too before the rmtree
+    lost = []
     console, report = [], {}
     try:
         for _ in range(50):
             if chrome.poll() is not None:  # e.g. "Socket path too long" when TMPDIR is long: say so at once
                 raise RuntimeError(f"chromium exited ({chrome.returncode}) before its DevTools port answered; its stderr ends:\n"
-                                   + open(f"{tmp}/chrome.log").read()[-1500:])
+                                   + open(chrome_log).read()[-1500:])
             try:
                 port = int(open(f"{tmp}/prof/DevToolsActivePort").readline())
                 targets = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
@@ -71,7 +86,7 @@ async def main(out_path, scenarios, url):
             except (OSError, ValueError):
                 await asyncio.sleep(0.2)
         else:
-            raise RuntimeError("chromium DevTools port never answered; its stderr ends:\n" + open(f"{tmp}/chrome.log").read()[-1500:])
+            raise RuntimeError("chromium DevTools port never answered; its stderr ends:\n" + open(chrome_log).read()[-1500:])
         page = next(t for t in targets if t["type"] == "page")
         async with websockets.connect(page["webSocketDebuggerUrl"], max_size=2**27) as ws:
             n, pending = 0, {}
@@ -108,6 +123,9 @@ async def main(out_path, scenarios, url):
 
             await call("Runtime.enable")
             await call("Page.enable")
+            drawn_by = await js(renderer.RENDERER_JS)
+            log(f"WebGL renderer ({kind}): {drawn_by}")
+            renderer.check(kind, drawn_by)
             await call("Page.addScriptToEvaluateOnNewDocument", source=SEED)
             await call("Page.navigate", url=url)
             t0 = time.time()
@@ -138,26 +156,43 @@ async def main(out_path, scenarios, url):
                 await asyncio.sleep(sc.get("sleep", 1.5))
                 report[sc["name"]] = await js(COLLECT)
                 log(f"{sc['name']}: {len(report[sc['name']])} texts")
+            drawn_by = await js(renderer.RENDERER_JS)
+            log(f"WebGL renderer at the end ({kind}): {drawn_by}")
+            renderer.check(kind, drawn_by, at_end=True)
             rtask.cancel()
         with open(out_path, "w") as f:
             json.dump({"url": url, "report": report, "console": console}, f, ensure_ascii=False, indent=1)
         log(f"{sum(len(v) for v in report.values())} texts in {len(report)} scenarios; console errors/warnings: {len(console)}")
     finally:
-        chrome.terminate()
-        chrome.wait(timeout=10)
-        # chromium's helper processes can still be writing the profile for a moment after the main one exits
-        for i in range(20):
-            try:
-                shutil.rmtree(tmp)
-                break
-            except OSError:
-                if i == 19:
-                    raise
-                time.sleep(0.5)
+        try:  # the stop must run even when reading the log fails or a signal lands here
+            lost = renderer.gpu_deaths(chrome_log)  # before the stop, whose SIGTERM also reaches the GPU process
+            if lost:  # said here too: after a failed scenario the raise below is not reached
+                log(f"ERROR: Chromium's GPU process died during the run ({len(lost)} time(s)): {lost[0]}")
+        finally:
+            stop_chromium(chrome)
+        shutil.rmtree(tmp)
+    if lost:
+        raise RuntimeError(f"Chromium's GPU process died during the run ({len(lost)} time(s)): {lost[0]}")
 
 
 if __name__ == "__main__":
     out, sc_path, url = sys.argv[1], sys.argv[2], sys.argv[3]
     if "debug" not in url.partition("#")[2]:
         sys.exit(f"visible_text: url needs '#debug' (window.__sv exists only then): {url}")
-    asyncio.run(main(out, json.load(open(sc_path)), url))
+    kind = renderer.kind()
+    locked = os.environ.get(LOCK_ENV, "on")
+    if locked not in ("on", "off"):
+        sys.exit(f"visible_text: {LOCK_ENV}={locked!r}: must be on or off")
+    locked = locked == "on"
+    scenarios = json.load(open(sc_path))
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, on_signal)  # unwinds through the finally blocks: Chromium stopped, lock released
+    if locked:
+        chromium_lock.acquire(" ".join(sys.argv), kind=kind)
+    else:
+        log(f"{LOCK_ENV}=off: no lock taken; nothing holds other headless Chromiums back from this run, nor it from them")
+    try:
+        asyncio.run(main(out, scenarios, url, kind))
+    finally:
+        if locked:
+            chromium_lock.release()

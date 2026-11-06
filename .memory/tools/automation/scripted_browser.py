@@ -19,16 +19,32 @@ The page's own uncaught exceptions and console errors are logged with the time t
 next talks to the browser, at the latest after the last step, or after the step that failed).
 Needs Python's `websockets` (15 or newer), `chromium` on PATH, and the dev server reachable at the url. Linux as
 written (the lock check reads /proc).
-Lock: the run waits for its turn in chromium_lock.py (beside this file: one holder at a time on the machine among the
-scripts that take it, first come, first served; it prints its place while it waits), so it never runs
-beside the scripts that take the same lock, such as our own test scripts (not published). Scripts that do not take it
-are not held back by it.
-Exit: 0 = every step passed, the page answered once more after them (that call reads its last events), and Chromium's
-process group is gone (its crash reporter runs outside the group and exits with the browser); 1 = a step, that last
-call or the browser failed (the run's temp dir with chrome.log is kept and named), or the run
-could not start (for example: no dev server answering at the url, not on the machine's own PID namespace, a lock held
-past the hold limit, run under `chromium_lock.py run`, an out_dir that cannot be made); 2 = bad arguments or steps;
-128 + n = stopped by signal n (Chromium stopped and the lock released first).
+Renderer: the page's WebGL draws on the machine's graphics card by default; SCRIPTED_BROWSER_RENDERER=swiftshader draws
+on the CPU, for a machine without a usable card or without nvidia-smi, which the lock reads for a GPU run (renderer.py,
+beside this file). A GPU run stops before loading the url when a WebGL2 context in its page gets a software renderer
+(or none: check() in renderer.py), and fails when a new one does at the end of the steps. Any run fails when Chromium's
+log says its GPU process died (Chromium then starts another, and the page may go on without its WebGL).
+Lock: the run waits for its turn in chromium_lock.py (beside this file: holders in turn on the machine among the
+scripts that take it, first come, first served; it prints its place while it waits). It takes the lock with its
+renderer as the kind: a GPU run takes one slot, so it may run beside another GPU run while the GPU and the machine have
+the memory; a swiftshader run takes all slots and runs alone. Our own test scripts (not published) take the same lock;
+scripts that do not take it are not held back by it.
+Without the lock: SCRIPTED_BROWSER_LOCK=off skips it (unset or `on` takes it; any other value is an error), for a
+machine where this run is the only headless Chromium, such as a Claude Code cloud session. There the lock may not
+work at all: it refuses to queue outside the kernel's initial PID namespace, and a container usually has its own.
+Nothing then holds other runs back from this one, nor this one from them. On a machine without a usable graphics
+card, set SCRIPTED_BROWSER_RENDERER=swiftshader as well: a GPU run there stops at its renderer check. Not yet tried
+in a cloud session. Known from Chromium, not seen here: as root it refuses to start without --no-sandbox, which this
+tool does not pass, so a run in a container that runs as root fails at its start (exit 1).
+Exit: 0 = every step passed, the page answered once more after them (that call reads its last events), a GPU run still
+got the GPU at the end, Chromium's log has no dead GPU process, and Chromium's process group is gone (its crash
+reporter runs outside the group and exits with the browser); 1 = the renderer check before loading, a step, that last
+call, the end check or the browser failed, or Chromium's GPU process died (the run's temp dir with chrome.log is kept
+and named; a dead GPU process is logged as an ERROR line, also after a step that failed), or the run could not
+start (for example: no dev server answering at the url, the lock taken outside the machine's own PID namespace, a
+lock held past the hold limit, the lock taken under `chromium_lock.py run`, an out_dir that cannot be made); 2 = bad
+arguments, steps or environment values; 128 + n = stopped by signal n (Chromium stopped and the lock, if taken,
+released first).
 """
 import asyncio
 import base64
@@ -46,8 +62,10 @@ import websockets
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import chromium_lock  # noqa: E402 (lives beside this file)
+import renderer  # noqa: E402 (lives beside this file)
 
 DEFAULT_URL = "http://localhost:5173/?lang=en#debug"
+LOCK_ENV = "SCRIPTED_BROWSER_LOCK"  # off: run without chromium_lock (docstring, "Without the lock")
 CALL_TIMEOUT = 120  # s: the longest a single DevTools call may wait for its answer (an eval step can set its own)
 KINDS = {"eval": {"save", "timeout"}, "wait": {"timeout"}, "sleep": set(), "shot": set()}
 NO_PROXY = urllib.request.build_opener(urllib.request.ProxyHandler({}))  # localhost only: never through a proxy
@@ -146,13 +164,13 @@ def page_event(msg):
 WAIT_JS = "Promise.resolve((\n{}\n)).then((v) => !!v)"
 
 
-async def main(out_dir, steps, url):
+async def main(out_dir, steps, url, kind):
     tmp = tempfile.mkdtemp(prefix="scripted-browser-", dir="/tmp")  # short (SingletonSocket limit) and never reused
     ok = False
     chrome = subprocess.Popen(
-        # nice: the desktop keeps priority over a software renderer
+        # nice: the desktop keeps priority (a software renderer takes several cores)
         ["nice", "-n", "10", "chromium", "--headless=new", "--no-first-run", f"--user-data-dir={tmp}/prof",
-         "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--window-size=1280,800",
+         *renderer.FLAGS[kind], "--window-size=1280,800",
          "--remote-debugging-port=0", "about:blank"],  # free port: a fixed one once let two runs share one browser
         env=dict(os.environ, TMPDIR=tmp), stdout=subprocess.DEVNULL, stderr=open(f"{tmp}/chrome.log", "w"),
         start_new_session=True)  # own process group, so stop_chromium() reaches all of it
@@ -216,6 +234,9 @@ async def main(out_dir, steps, url):
 
             for domain in ("Inspector", "Runtime", "Page"):
                 await call(f"{domain}.enable")
+            drawn_by = (await js(renderer.RENDERER_JS)).get("value")
+            log(f"WebGL renderer ({kind}): {drawn_by}")
+            renderer.check(kind, drawn_by)
             nav = await call("Page.navigate", url=url)
             if nav.get("errorText"):
                 raise RuntimeError(f"loading {url} failed: {nav['errorText']}")
@@ -267,15 +288,32 @@ async def main(out_dir, steps, url):
             # Page events are read only while a call waits for its answer: this last call reads those that came during
             # the last step (a sleep, say); drain() above does it for a step that failed.
             await call("Runtime.evaluate", expression="0")
+            # Chromium starts a new GPU process when one dies, and the page may go on in software: a gpu run must still
+            # get the GPU in a new WebGL2 context at its end (a page's own context lost without a dead GPU process is
+            # not checked).
+            drawn_by = (await js(renderer.RENDERER_JS)).get("value")
+            log(f"WebGL renderer at the end ({kind}): {drawn_by}")
+            renderer.check(kind, drawn_by, at_end=True)
         ok = True
     finally:
-        stop_chromium(chrome)
+        # Read also after a failed step (the one death seen so far, 2026-11-06, showed as a wait that timed out), and
+        # before Chromium is stopped, so that its own shutdown is never counted: the stop sends SIGTERM to the GPU
+        # process too. The browser logs a death a few ms after the page notices it, so a death in the last few ms
+        # before this read can be missed (after every step's output). The stop runs even if the read or the print fails.
+        try:
+            lost = renderer.gpu_deaths(f"{tmp}/chrome.log")
+            if lost:
+                log(f"ERROR: Chromium's GPU process died during the run ({len(lost)} time(s)): {lost[0]}")
+        finally:
+            stop_chromium(chrome)
         if os.path.exists(f"{tmp}/prof"):
             shutil.rmtree(f"{tmp}/prof")
-        if ok:
+        if ok and not lost:
             shutil.rmtree(tmp)  # the ~60 MB profile is gone already; /tmp is often RAM, left-over dirs pile up
         else:
             log(f"kept {tmp}/chrome.log")
+    if lost:  # every step passed, but the run's GPU process died: the run fails
+        raise RuntimeError(f"Chromium's GPU process died during the run ({len(lost)} time(s)): {lost[0]}")
 
 
 if __name__ == "__main__":
@@ -283,6 +321,14 @@ if __name__ == "__main__":
         die(2, "usage: scripted_browser.py <out_dir> <steps.json> [url]")
     out, steps_path = sys.argv[1], sys.argv[2]
     url = sys.argv[3] if len(sys.argv) == 4 else DEFAULT_URL
+    try:
+        kind = renderer.kind()
+    except ValueError as e:
+        die(2, str(e))
+    locked = os.environ.get(LOCK_ENV, "on")
+    if locked not in ("on", "off"):
+        die(2, f"{LOCK_ENV}={locked!r}: must be on or off")
+    locked = locked == "on"
     try:
         steps = json.load(open(steps_path))
     except (OSError, ValueError) as e:
@@ -294,8 +340,13 @@ if __name__ == "__main__":
     check_url(url)
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, on_signal)
-    chromium_lock.acquire(" ".join(sys.argv))
+    if locked:
+        chromium_lock.acquire(" ".join(sys.argv), kind=kind)
+    else:
+        log(f"{LOCK_ENV}=off: no lock taken; nothing holds other headless Chromiums back from this run, nor it "
+            "from them")
     try:
-        asyncio.run(main(out, steps, url))
+        asyncio.run(main(out, steps, url, kind))
     finally:
-        chromium_lock.release()
+        if locked:
+            chromium_lock.release()

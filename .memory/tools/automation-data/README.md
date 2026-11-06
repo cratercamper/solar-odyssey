@@ -17,8 +17,10 @@ after a change. It goes from the menus to the result card:
 3. It presses Start, drives the race once, from the start to the finish gate (the track is a line, not a loop),
    through the rover's input on `window.__sv` (Driving, below), and reads the result.
 
-The browser draws in software, about one frame per second, so a run takes about four minutes, two and a half of
-them for the race.
+On a graphics card, the scripted browser's default, a run takes about a minute (56 s on one machine; a GPU run under the
+lock needs `nvidia-smi`). In software (`SCRIPTED_BROWSER_RENDERER=swiftshader`, for a machine without a usable graphics
+card or without `nvidia-smi`) the browser draws about one frame per second, so a run takes about four minutes, two and a
+half of them for the race.
 
 The track is added while the page runs, and for the race the page's clock is fixed to one time step per frame
 (below). No file of the game changes, so the test runs on the game's code as it is.

@@ -1,0 +1,24 @@
+[
+ {
+  "name": "e1-europa",
+  "js": "__sv.store.getState().setTarget('europa'); __sv.landing.start('europa'); return __sv.landing.state.getState().phase",
+  "sleep": 4
+ },
+ {
+  "name": "e2-surface",
+  "js": "__sv.landing.skip(); return __sv.landing.state.getState().phase",
+  "sleep": 6
+ },
+ {
+  "name": "e3-conamara",
+  "js": "__sv.landing.site('conamara'); return 'ok'",
+  "wait": "__sv.landing.state.getState().phase === 'surface'",
+  "timeout": 60,
+  "sleep": 2
+ },
+ {
+  "name": "e4-race",
+  "js": "__sv.rally.start(); return __sv.rally.state.getState().phase",
+  "sleep": 6
+ }
+]

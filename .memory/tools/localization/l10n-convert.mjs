@@ -2,7 +2,8 @@
 // l10n-convert.mjs <tree> [--write] [--keys <keys.json>] [--manifest <out.json>]   (--keys default: data/keys.json here)
 //
 // The conversion commit of the localization branch. The branch carries the design first and the big conversion last,
-// by script, so the conversion can be re-run on each newer upstream main until upstream takes the branch (PR #100).
+// by script, so the conversion could be re-run on each newer upstream main while the branch was open (PR #100, merged
+// 2026-11-05).
 // Moves every inline t('日本語', 'English') call whose two texts are written at the call site into
 // per-screen catalogs src/i18n/<topic>.ja.ts + <topic>.en.ts, read as ui().<topic>.<key>.
 //

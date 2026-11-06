@@ -57,10 +57,13 @@ async def main(out_path, scenarios, url):
         ["chromium", "--headless=new", "--no-first-run", f"--user-data-dir={tmp}/prof",
          "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--window-size=1280,800",
          "--remote-debugging-port=0", "about:blank"],
-        env=dict(os.environ, TMPDIR=tmp), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        env=dict(os.environ, TMPDIR=tmp), stdout=subprocess.DEVNULL, stderr=open(f"{tmp}/chrome.log", "w"))
     console, report = [], {}
     try:
         for _ in range(50):
+            if chrome.poll() is not None:  # e.g. "Socket path too long" when TMPDIR is long: say so at once
+                raise RuntimeError(f"chromium exited ({chrome.returncode}) before its DevTools port answered; its stderr ends:\n"
+                                   + open(f"{tmp}/chrome.log").read()[-1500:])
             try:
                 port = int(open(f"{tmp}/prof/DevToolsActivePort").readline())
                 targets = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
@@ -68,7 +71,7 @@ async def main(out_path, scenarios, url):
             except (OSError, ValueError):
                 await asyncio.sleep(0.2)
         else:
-            raise RuntimeError("chromium DevTools port never answered")
+            raise RuntimeError("chromium DevTools port never answered; its stderr ends:\n" + open(f"{tmp}/chrome.log").read()[-1500:])
         page = next(t for t in targets if t["type"] == "page")
         async with websockets.connect(page["webSocketDebuggerUrl"], max_size=2**27) as ws:
             n, pending = 0, {}
@@ -120,9 +123,12 @@ async def main(out_path, scenarios, url):
             await asyncio.sleep(2)
             log(f"app ready in {time.time() - t0:.1f}s; quality pinned to low")
             for k, sc in enumerate(scenarios):
-                await js(f"window.__vtReseed({20261104 + k}); 'ok'")  # frame-driven code draws a different count per run
-                if sc.get("js"):
-                    await js(f"(async () => {{ {sc['js']} }})()")
+                # frame-driven code draws a different count per run, so each scenario starts from its own seed. The reseed
+                # runs in the same evaluate as the scenario's code: anything still loading in between (three.js draws
+                # Math.random for the uuid of every new object, material, geometry and texture) would otherwise move
+                # the scenario's random picks (EVA jobs)
+                seed = f"window.__vtReseed({20261104 + k});"
+                await js(f"{seed} (async () => {{ {sc['js']} }})()" if sc.get("js") else f"{seed} 'ok'")
                 if sc.get("wait"):
                     t1 = time.time()
                     while not await js(sc["wait"]):

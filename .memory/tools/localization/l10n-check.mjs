@@ -1,4 +1,4 @@
-// l10n-check.mjs <tree> — every Japanese string in a Solar Odyssey source tree that has no English twin.
+// l10n-check.mjs <tree> — every Japanese string in a checkout of the game that has no English twin.
 // Run through ./l10n-check (checks for Node, picks the default tree). Static analysis only: parses <tree>/src with the tree's own
 // @babel/parser + @babel/traverse; executes nothing from the tree.
 //
@@ -40,10 +40,10 @@ const LANG_ARG = langAt >= 0 ? argv[langAt + 1] : null
 if (langAt >= 0 && (!LANG_ARG || LANG_ARG.startsWith('-'))) die('--lang needs a language code (a key of LANG_SCRIPTS)')
 const rest = argv.filter((a, i) => i !== langAt && i !== langAt + 1 || langAt < 0)
 const treeArg = rest.filter((a) => !FLAGS.includes(a))[0]
-if (!treeArg || rest.some((a) => a.startsWith('-') && !FLAGS.includes(a))) die('usage: l10n-check.mjs [--all] [--strict] [--lang <code>] <tree>   (a Solar Odyssey checkout: <tree>/src, <tree>/node_modules)')
+if (!treeArg || rest.some((a) => a.startsWith('-') && !FLAGS.includes(a))) die('usage: l10n-check.mjs [--all] [--strict] [--lang <code>] <tree>   (a checkout of the game: <tree>/src, <tree>/node_modules)')
 const TREE = resolve(treeArg)
 if (!existsSync(TREE) || !statSync(TREE).isDirectory()) die(`tree not found: ${TREE}`)
-for (const need of ['src', 'package.json', 'index.html']) if (!existsSync(join(TREE, need))) die(`not a Solar Odyssey tree (no ${need}): ${TREE}`)
+for (const need of ['src', 'package.json', 'index.html']) if (!existsSync(join(TREE, need))) die(`not a checkout of the game (no ${need}): ${TREE}`)
 const req = createRequire(join(TREE, 'package.json'))
 const loadDep = (name) => {
   const p = (() => { try { return req.resolve(name) } catch (e) { die(`${name} not found from ${TREE}/node_modules (${e.code}); run npm ci --ignore-scripts there, or symlink node_modules`) } })()
@@ -299,9 +299,12 @@ const findTwin = (f, declPath, N, exported) => {
   const key = `${f.abs}\0${declPath.node.start}`
   if (twinCache.has(key)) return twinCache.get(key)
   let out = null
-  // a top-level alias of the table names its twin too: `const texts = {…} satisfies …; export const bodiesJa: … = texts`
+  // a top-level alias of the table names its twin too: `const texts = {…} satisfies …; export const bodiesJa: … = texts`,
+  // also through a one-argument call that returns its argument, such as the marker `= byId(texts)`
   // (l10n-records' record catalogs, which keep their ids literal for the English type) → bodiesEn
-  const aliases = [...f.topDecls.values()].filter((a) => a.name !== N && a.root && unwrap(a.root)?.type === 'Identifier' && unwrap(a.root).name === N).map((a) => a.name)
+  const named = (x) => x?.type === 'Identifier' && x.name === N
+  const aliasOf = (r) => named(r) || (r?.type === 'CallExpression' && r.arguments.length === 1 && named(unwrap(r.arguments[0])))
+  const aliases = [...f.topDecls.values()].filter((a) => a.name !== N && a.root && aliasOf(unwrap(a.root))).map((a) => a.name)
   for (const M of [N, ...aliases]) { if (out) break
   for (const T of twinNamesOf(M)) {
     let d = declOfBinding(f, declPath, T)

@@ -2,7 +2,8 @@
 // l10n-leftovers.mjs — the last step of the conversion (after l10n-convert, l10n-move, l10n-records): lists every
 // place outside src/i18n/ where code still holds or picks both languages, and stops when that list differs from the
 // allowlist (data/leftovers.json). So a new two-language table in upstream main cannot pass a regeneration
-// silently: it shows up as NEW until it gets a records.json row, or is allowed here on purpose (step D, by hand).
+// silently: it shows up as NEW until it gets a records.json row, or is allowed here on purpose. The allowlist is the
+// tree after step D, the work done by hand after the scripted steps (the fork's branch pr/l10n-3).
 //
 // Usage: l10n-leftovers.mjs <tree> --allow <leftovers.json>          check (exit 0 = same as allowed, 1 = differs)
 //        l10n-leftovers.mjs <tree> --allow <leftovers.json> --write  rewrite the allowlist from the tree (look at the
@@ -85,7 +86,7 @@ const now = count(found)
 const total = found.length
 if (WRITE) {
   const sorted = Object.fromEntries(Object.keys(now).sort().map((f) => [f, Object.fromEntries(Object.keys(now[f]).sort().map((k) => [k, now[f][k]]))]))
-  writeFileSync(ALLOW, JSON.stringify({ _: 'Places outside src/i18n/ that still hold or pick both languages, counted per file and kind by .memory/tools/localization/l10n-leftovers.mjs; step D (by hand) removed the rest. Left on purpose (2026-11-04, 8 places): data/facts.ts factsFor (upstream\'s whole-entry fallback to Japanese), state/quiz.ts (a question keeps both languages, so a switch in the middle of a quiz keeps working), ui/NavPanel.tsx (the language buttons). Rewritten with --write; look at the diff.', allow: sorted }, null, 1) + '\n')
+  writeFileSync(ALLOW, JSON.stringify({ _: 'Places outside src/i18n/ that still hold or pick both languages, counted per file and kind by .memory/tools/localization/l10n-leftovers.mjs; step D (the work done by hand after the scripted steps, on the fork\'s branch pr/l10n-3) removed the rest. Left on purpose (2026-11-04, 8 places): data/facts.ts factsFor (upstream\'s whole-entry fallback to Japanese), state/quiz.ts (a question keeps both languages, so a switch in the middle of a quiz keeps working), ui/NavPanel.tsx (the language buttons). Rewritten with --write; look at the diff.', allow: sorted }, null, 1) + '\n')
   log(`allowlist written: ${total} places in ${Object.keys(now).length} files → ${ALLOW}`)
   process.exit(0)
 }

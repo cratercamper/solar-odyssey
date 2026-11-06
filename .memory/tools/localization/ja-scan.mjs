@@ -1,4 +1,4 @@
-// ja-scan.mjs <src-root> — list Japanese text in a Solar Odyssey source tree that has no English counterpart.
+// ja-scan.mjs <src-root> — list Japanese text in a source tree of the game that has no English counterpart.
 // Understands the app's four ways of carrying English:
 //   t('日本語', 'English') at the call site · ui()/missions dictionaries (ja.ts ↔ en.ts, typed) ·
 //   objects with `foo` + `fooEn` (or `ja` + `en`) siblings · named(b) over name/nameEn.

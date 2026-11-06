@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# l10n-check [--all] [--strict] [--lang <code>] [<tree>] — every Japanese string in a Solar Odyssey source tree that has no English twin.
+# l10n-check [--all] [--strict] [--lang <code>] [<tree>] — every Japanese string in a checkout of the game that has no English twin.
 # Default tree: $L10N_TREE, else the checkout this .memory/ folder sits in. Gap lines: KIND<TAB>file:line<TAB>context<TAB>text
 # (KIND = NO-EN | FOREIGN | PARITY | FALLBACK | NO-EN-SYM | FOREIGN-SYM; --lang: only that language), then a summary. --all also prints every explained literal (OK lines).
 # Exit 0 = no word gaps, 1 = word gaps (--strict: also punctuation/symbol-only gaps, KIND …-SYM), 2 = tool error. Static analysis with the tree's own @babel/parser + @babel/traverse;

@@ -28,7 +28,7 @@ process.on('uncaughtException', (e) => die(e.stack ?? String(e)))
 const [treeArg, BASE] = process.argv.slice(2)
 if (!treeArg || !BASE) die('usage: l10n-convert-verify.mjs <tree> <base-rev>')
 const TREE = resolve(treeArg), SRC = join(TREE, 'src'), I18N = join(SRC, 'i18n')
-const GIT = '/usr/bin/git'
+const GIT = process.env.L10N_GIT ?? 'git'  // git on PATH, or $L10N_GIT
 const ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'].includes(k)))
 const git = (...a) => execFileSync(GIT, ['-C', TREE, ...a], { encoding: 'utf8', env: ENV, maxBuffer: 1 << 28 })
 const req = createRequire(join(TREE, 'package.json'))

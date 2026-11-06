@@ -12,7 +12,9 @@
  {
   "name": "a3-taurus",
   "js": "__sv.landing.site('taurus'); return 'ok'",
-  "sleep": 10
+  "wait": "__sv.landing.state.getState().phase === 'surface'",
+  "timeout": 60,
+  "sleep": 2
  },
  {
   "name": "a4-drive",

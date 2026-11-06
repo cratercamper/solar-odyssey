@@ -10,7 +10,8 @@ Browser automation here means anything that controls the browser by itself, with
 development and testing today, perhaps a race bot later. It has two parts:
 - **Navigation:** getting to a game state (a race, a landing site, a scene) through the app's menus. The scripted
   browser below does this: its steps click the real buttons (warp, land, start a race); the example below clicks
-  Warp. In your own browser, the game's own functions reach a race faster (In your own browser, below).
+  Warp. Calling the game's own functions from inside the page reaches a race in fewer steps, without the menus (In your
+  own browser, below).
 - **Race pilot:** controlling the rover during a race. One small pilot exists, in the tiny race test
   (`.memory/tools/automation-data/README.md`): it drives a short track once, from the start to the finish gate, so that
   the test can check the race.
@@ -50,9 +51,9 @@ take.
   bad arguments or steps; **128 + n** stopped by signal n, after the browser is stopped.
 
 ### Limits
-- The browser draws in software, so it needs no graphics card, but it is slow: in one measurement the app was ready
-  about 13 s after the page was opened, and 3D scenes run at about one frame per second or fewer: 0.84 frames per
-  second in a short race on Mars (2026-11-06, a busy 16-core Linux machine; Performance, below).
+- The browser draws in software, so it needs no graphics card, but it is slow: the app was ready about 5 to 13 s
+  after the page was opened (Performance, below), and 3D scenes run at about one frame per second or fewer: 0.84
+  frames per second in a short race on Mars (2026-11-06, a busy 16-core Linux machine; Performance, below).
 - So a real-time run cannot test physics. The rover and race physics cap a frame's time step at 0.05 s (`Math.min(rawDt,
   0.05)` in `Rover.tsx` and `Rally.tsx`), so the rover and the race run at 1/20 of real time or less, in steps three
   times longer than at 60 fps. A clock fixed from the page, as in the tiny race test, makes a race's time the time the
@@ -118,7 +119,8 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   one; one of our own test scripts starts two side by side, pinned to their own cores. Why: on 2026-11-04, several
   software-rendered browsers at once used up the memory (1.6 to 1.8 GB available, the swap full or nearly full), and the
   out-of-memory guard (earlyoom) stopped a test's page processes, twice. A script that starts a Chromium without the
-  lock is not held back.
+  lock is not held back. The two published text scanners (Checking the game's text in a browser, below) do not take
+  it themselves: wrap them in `chromium_lock.py run` (below).
   A waiter writes a ticket into `/tmp/headless-chromium.queue/`, named by the time it arrived, and takes
   `/tmp/headless-chromium.lock` only when its ticket is the oldest of a live process: first come, first served. Before
   the queue, every waiter polled and the fastest grabber won, so one waiter could wait for ever.
@@ -129,8 +131,9 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
     holds its own process id.
   - Only processes of the machine's own PID namespace may queue. Inside a sandbox other processes are hidden, and a
     live run's lock would look like one whose process is gone.
-  - A live run that has held the lock for more than an hour (the longest test run measured took 27 minutes) is taken
-    as stuck: each waiter stops with an error that names it, rather than wait for ever.
+  - A live run that has held the lock for more than an hour is taken as stuck: each waiter stops with an error that
+    names it, rather than wait for ever. The longest test run measured took 27 minutes: a run of our rover battery
+    (Tests we run, below) on 2026-11-04, while the memory ran out.
   - `python3 .memory/tools/automation/chromium_lock.py status` prints the holder and the queue.
   - A script in another language wraps each step in `python3 .memory/tools/automation/chromium_lock.py run <label> --
     <command...>`. It waits for its turn, runs the command in a process group of its own while it holds the lock, and
@@ -149,8 +152,8 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   `http_proxy` or `HTTPS_PROXY` say.
 - **Software WebGL.** `--use-angle=swiftshader --enable-unsafe-swiftshader`: SwiftShader draws on the CPU, so a run needs
   no GPU and no screen.
-- **Low priority.** Chromium starts under `nice -n 10`: a software renderer can take half of a machine's cores, and
-  the desktop of whoever works at it must stay responsive.
+- **Low priority.** Chromium starts under `nice -n 10`: a software renderer can take most of a machine's cores (about
+  12 of 16, Performance below), and the desktop of whoever works at it must stay responsive.
 - **Fail loud.** The whole steps file is checked before Chromium starts: an unknown kind or key, two kinds in one step,
   or a value of the wrong type is refused, with every problem listed. A wait that times out, a JavaScript exception in a
   step, a DevTools call with no answer within its time, a page that crashes, a page load that fails, or no DevTools port
@@ -171,17 +174,23 @@ What our other scripts do over the same DevTools channel, worth copying into a t
   the end of a composition. A plain `new KeyboardEvent(…)` dispatched on `window` also reaches the rover's keys
   (`bindRoverKeys` in `src/state/rover.ts` does not check `isTrusted`), but it types nothing into a text field.
 - **Window sizes.** `Emulation.setDeviceMetricsOverride` (`width`, `height`, `deviceScaleFactor`, `mobile`) checks a
-  layout at 375 to 960
-  pixels in one browser; `Emulation.clearDeviceMetricsOverride` ends it.
+  layout at 375 to 960 pixels in one browser; `Emulation.clearDeviceMetricsOverride` ends it.
 - **Downloads.** `Browser.setDownloadBehavior` with `behavior: "allow"`, a `downloadPath` and `eventsEnabled: true`;
   the file is complete when no `.crdownload` name is left. Without it, a browser profile saves into its user's
   Downloads folder, and the app shows no sign of it.
-- **Pin the quality.** `__sv.store.getState().updateSettings({ quality: 'high' })` (or `'low'`) before measuring: the
-  setting `'auto'` picks a level by frame rate, so it can change during a run: it steps up after four 2-second windows
-  above 56 frames per second (`src/components/QualityGovernor.tsx`), which a run on a GPU can reach, and so did our
-  stepped-frame tests, whose clock reads 60 frames per second: there it stepped up 4.4 to 5.2 s into a race. A change
-  of level makes the race code build its rivals again (the rivals' `useMemo` depends on `level` in
-  `src/components/surface/Rally.tsx`), back at the start grid's distance along the course and at a standstill.
+- **Pin the quality.** `__sv.store.getState().updateSettings({ quality: 'low' })` (or `'medium'`, `'high'`) before
+  the scene you measure. The game saves the setting in the browser's storage (`localStorage`), so in your own browser
+  set it back afterwards. On `'auto'`, the game's default, the level follows the frame rate, counted in 2-second
+  windows (`src/components/QualityGovernor.tsx`): one step down after two windows below 30 frames per second, one step
+  up after four above 56. A fixed clock sets the frame rate the game counts: at 0.05 s per frame that is 20, so on
+  `'auto'` the tiny race test stepped down from high during its race, 3.95 s in, on a GPU (2026-11-06, before it pinned
+  `'low'`); our stepped-frame tests, at 1/60 s, count 60 and stepped up 4.4 to 5.2 s into a race. A change of level
+  makes the race code build its rivals again (the rivals' `useMemo` depends on `level` in
+  `src/components/surface/Rally.tsx`): at the scene's origin (x = 0, z = 0), at a standstill and with no finish time. On
+  the next frame the race counts each rival at the course's point nearest it, within about 300 m of the start grid,
+  where a new rival's count begins (`progressOf`); a rival finishes once its count is past the last gate. On the tiny
+  track the point nearest the origin is already past it, so all three rivals finished at once: the result card showed
+  them all at 0:04.0, the player 4th.
 - **Exact numbers.** Take a large result as one string, `JSON.stringify(value)` in the page, parsed by the tool: every
   float keeps JavaScript's own digits. A websocket client may need a larger message limit for it: the scripted browser
   allows 64 MiB, the text scanners 128 MiB, and our own test scripts 256 MiB.
@@ -215,12 +224,13 @@ or a Claude Code session working with the author, as a recipe; none of it is a f
 From space, as after the page loads, the game reaches a rover race in two hops, each with its own surface scene. Each
 call returns at once; wait on the store named before making the next one.
 
-Nothing has to be waited for before the first step. `useWarpPrep` (`src/state/flight.ts`) is the gate of the warp,
-not of landing: `QualityGovernor` (`src/components/QualityGovernor.tsx`) opens it once loading has been quiet for 1 s
-and the space scene's shaders and textures are ready, or after 20 s of the scene's clock, and `engage()` queues a
-warp asked for before that. `startLanding` does not read it. Our own test scripts land as soon as the Warp button is
-on the page; that button is no sign of readiness: it reads "Warp" from the start, and "Getting ready" only while a
-warp already asked for waits (`src/ui/NavPanel.tsx`).
+Once the app has loaded (`window.__sv` is set; Performance below), nothing has to be waited for before the first step.
+`useWarpPrep` (`src/state/flight.ts`) is the gate of the warp, not of landing: `QualityGovernor`
+(`src/components/QualityGovernor.tsx`) opens it once loading has been quiet for 1 s and the space scene's shaders and
+textures are ready, or after 20 s of the scene's clock, and `engage()` queues a warp asked for before that.
+`startLanding` does not read it. Our own test scripts land as soon as the Warp button is on the page; that button is no
+sign of readiness: it reads "Warp" from the start, and "Getting ready" only while a warp already asked for waits
+(`src/ui/NavPanel.tsx`).
 1. `useStore.getState().setTarget(body)`: the race's body as the target, as a click in the navigation list sets it.
    The race sites are the keys of `TRACKS` (`src/data/rallyTracks.ts`): `coprates` on Mars, `taurus` on the Moon,
    `conamara` on Europa; a site's body is `SITES[site].body` (`src/data/surfaces.ts`).
@@ -230,8 +240,8 @@ warp already asked for waits (`src/ui/NavPanel.tsx`).
    `phase` is not `'idle'`) or the body has no surface. Wait on `useLanding` for `phase === 'descent' && ready`.
    `ready` means the surface scene's shaders are compiled (`gl.compileAsync` in `SurfaceView.tsx`), or that 10 s went
    by without it; and the phase becomes `'descent'` once the terrain has loaded (with the 0.7 s fade, and on Mars the
-   ground tiles), or after 12 s (`READY_LIMIT`). On a
-   slow machine `ready` can therefore come before the scene is complete.
+   ground tiles), or after 12 s (`READY_LIMIT`). On a slow machine `ready` can therefore come before the scene is
+   complete.
 4. `skipDescent()`; wait for `phase === 'surface'`. It is optional: 8 s after `ready` the game moves to `'surface'` by
    itself (`DESCENT`). It acts only in `'descent'`, and sets `ready` itself, so call it only once `ready` is true;
    earlier it would raise the curtain on a scene still being built.
@@ -248,8 +258,9 @@ warp already asked for waits (`src/ui/NavPanel.tsx`).
 
 The stores are zustand stores: `getState()` reads one, and `subscribe(fn)` calls `fn` on each later change, so a wait
 needs no polling. Read `getState()` first, then subscribe: some calls change the state before they return (`skipDescent`
-sets `'surface'` at once, `src/state/landing.ts`), and a wait that only subscribes would never fire. A wait with a time
-limit that logs an error and stops tells a step that did not happen from a slow one.
+sets `'surface'` at once, `src/state/landing.ts`), and a wait that only subscribes may never fire: it fires on the
+store's next change, if one comes. A wait with a time limit that logs an error and stops tells a step that did not
+happen from a slow one.
 
 ### Two ways to run it
 - **From the console.** Load (or reload) the game with `#debug` in the address; adding it to an open page loads nothing.
@@ -259,10 +270,11 @@ limit that logs an error and stops tells a step that did not happen from a slow 
   do not need it (above). Then paste an async function of the steps above into the DevTools console. The published game
   (https://junzzy827.github.io/solar-odyssey/) loads the hooks as well (checked 2026-11-06).
 - **On load, behind a hash pointer**, in the game's own style (`#raceauto`, `#hangar`, `#surface-lab=` and the
-  others): for example `#race=coprates`, read in `src/main.tsx`, which then imports a small module (as it imports
-  `debugHooks` for `#debug`) that runs the steps once the scene is ready. Every reload then lands in the race. The
-  original game has nothing of this kind. Our own version has a start of this kind (an address parameter that starts a
-  race on load; Tests we run, below); it is kept internal.
+  others): for example `#race=coprates`, which `src/main.tsx` would read and then import a small module (as it imports
+  `debugHooks` for `#debug`) that runs the steps once the scene is ready. Every reload would then land in the race.
+  Nothing in the original game starts a rover race on load (`#surface-lab=<body>` with `skip` lands on a body,
+  `src/components/surface/SurfaceLab.tsx`). Our own version of the game (the original with our changes, not published;
+  Tests we run, below) has a start of this kind, an address parameter that starts a race on load; it is kept internal.
 
 ### How long it takes
 In a headless, software-rendered Chromium at about one frame per second (2026-11-06), the steps took 14 to 17 s from
@@ -308,8 +320,9 @@ game value for value:
   every frame (`Rover.tsx`).
 - With stepped frames the same commit gives the same traces every time, so a stored run shows when a new commit of
   the game changes how the rover drives.
-- Cost under software rendering, drawing off: a median of 5.2 ms per frame (1.5 to 23 ms over the scenarios), in steps
-  of 1/60 s, so 170 s of race (10,200 frames) took 46 to 48 s (2026-11-06, two browsers side by side).
+- Cost under software rendering, drawing off, in steps of 1/60 s: a median of 5.2 ms per frame over the driving
+  scenarios (1.5 to 23 ms). The stepped Coprates race, 170 s of game time from the countdown to the finish (3.6 s +
+  166.4 s, 10,200 frames), took 46 to 48 s, 4.5 to 4.7 ms per frame (2026-11-06, two browsers side by side).
 
 **Floats.** The race time is the difference of two clock readings, and the reading at the start differs from run to
 run. So the same 139 steps of 0.05 s give 6.949999999999989 in one run and 6.950000000000003 in another, and the result
@@ -331,9 +344,10 @@ scripts (not published, on stepped frames).
   back to the last gate, as the R key does.
 - Reads `__sv.rover.pose` (x, z, heading, speed) and `__sv.rally.state` (phase, lost); writes `__sv.rover.input`
   (throttle, steer, reset). The game writes throttle and steer only on key events, on its on-screen hold buttons
-  (`SurfaceView.tsx`) and when the window loses focus (`src/state/rover.ts`), so the pilot's values stay until it
-  changes them; a loss of focus zeroes them until the pilot's next frame. The race code clears `reset` itself once it
-  has acted on it (`Rally.tsx`), so the pilot sets it and the game clears it.
+  (`SurfaceView.tsx`), when the window loses focus, and when the rover's panel closes, as when the rover is recalled
+  (the cleanup of `bindRoverKeys`, `src/state/rover.ts`). So the pilot's values stay until it changes them; a loss of
+  focus zeroes them until the pilot's next frame. The race code clears `reset` itself once it has acted on it
+  (`Rally.tsx`), so the pilot sets it and the game clears it.
 - `pilot.js` searches 40 m around its last place on the line (a lap may pass near its own start) and starts 45 m down
   it, where the grid stands (`GRID_S` in `Rally.tsx`); it drives only while the race runs.
 - Results: the tiny track, 6.95 or 7.00 s, 3rd of 4, no reset. The canyon race at Coprates (16 gates, stepped frames,
@@ -343,7 +357,7 @@ scripts (not published, on stepped frames).
 ## What a start can reach, and how it fails
 Through the game's own functions alone: on `window.__sv`, or as imports from `/src` on the dev server. On the
 published game only `__sv` works, and these are not on it: `startQuiz`, `openMissions`, `openProbes` / `playProbe`,
-`enterBridge`, `setScope`, `goToRally`, `setRallyColor`, `showBriefing` and `startMission`.
+`enterBridge`, `goToRally`, `setRallyColor`, `showBriefing` and `startMission`.
 - the ship parked at any body: `setTarget` (`src/state/store.ts`) and `flightControl.jumpTo`; the map: `setMode('map')`;
 - on the surface of any body that has one: `startLanding`, `skipDescent`; a race site: `goToSite` or `goToRally`;
 - the rover out, driving: `launchRover(true)` (`src/state/rover.ts`); placed at x, z and heading:
@@ -352,11 +366,18 @@ published game only `__sv` works, and these are not on it: `startQuiz`, `openMis
   `useRace.getState().start()` (`src/state/race.ts`); EVA: `startEva` (`src/state/eva.ts`);
 - the quiz, the missions list, probes, eclipses, the ship gallery, the bridge, a telescope view: `startQuiz`,
   `openMissions`, `openProbes` / `playProbe`, `openEclipses` / `playEclipse`, `openGallery`, `enterBridge`,
-  `setScope`;
+  `setScope` (a `useStore` action: `__sv.store.getState().setScope(id)`);
 - a time of day on the surface: `useSkyClock.setState({ seek })` (`__sv.skyClock`), which is all the time bar's own
-  `jumpTo` does (`src/components/surface/TimeBar.tsx`, not exported);
+  `jumpTo` does (`src/components/surface/TimeBar.tsx`, not exported). `seek` is in the clock's `hours`, the time since
+  landing in hours, not a local hour. For local noon: `seek = hours + a / 24 × d`, where `a` is how far noon is ahead
+  of `clock` (the local hour, 0 to 24) in hours, from 0 to 24, and `d` the length of the body's day in hours
+  (`Math.abs(dayHours(id))`, `src/components/surface/skyClock.ts`);
 - a locked mission: `showBriefing` refuses one until the mission before has a star (`src/state/mission.ts`), but
-  `startMission` does not check; or write stars into the mission store, which the game saves in the browser.
+  `startMission` does not check. It takes no argument and starts the mission at `useMission`'s `index`, so set that
+  first (`__sv.mission.setState({ index })`). Or give the mission before it a star by hand, keeping the others
+  (`__sv.mission.setState((s) => ({ stars: { ...s.stars, [id]: 1 } }))`, `id` that mission's): `isUnlocked` reads the
+  store, so it unlocks at once. Stars set by hand reach the browser's storage the next time any mission is finished,
+  when the game saves the whole map (`saveStars`); a map set without the others would erase them there.
 
 Not offered: a race in progress at gate N, and the same planets and random draws on every run (`Date.now()` and
 `Math.random`: only code put in before the game's modules, Techniques above).
@@ -407,8 +428,10 @@ How it fails:
 
 ## Performance
 All software-rendered (SwiftShader) unless it says GPU; a 16-core Linux machine with other work running.
-- App ready (`window.__sv` set) about 13 s after the page opens (2026-11-05). The race steps above: How long it takes.
-- Frames: about one per second or fewer; 0.84 per second in a short race on Mars (2026-11-06).
+- App ready (`window.__sv` set) about 13 s after the page opens (2026-11-05), and about 5 s on 2026-11-06 (a tiny race
+  test: page opened 10:27:37, `__sv` and the Warp button there 10:27:42). The race steps above: How long it takes.
+- Frames: about one per second or fewer: 0.84 per second in a short race on Mars while the machine was busy (a load
+  of 16 to 18 on its 16 cores, 2026-11-06), 1.07 in the same race at a load of about 13 (below).
 - CPU: one software-rendered Chromium took about 5 cores while the machine was busy with other work (2026-11-06), and
   about 12 cores on a quieter machine (below).
 - Memory runs out first when many run at once. On 2026-11-04 several software-rendered browsers ran together, the swap
@@ -416,16 +439,17 @@ All software-rendered (SwiftShader) unless it says GPU; a 16-core Linux machine 
   stopped their page processes, which Chromium marks to be stopped first. The page stops answering; nothing else says
   why. That is why the scripts take the lock (Decisions, above).
 
-**First measurements, software-rendered (2026-11-06, not yet repeated)**, with 13 to 19 GB of memory available:
+**First measurements, software-rendered (2026-11-06, two runs of each; the CPU figure from another session)**, with
+13 to 19 GB of memory available:
 - Frames: 1.07 per second in the tiny race alone, 0.62 beside a text scan.
 - The tiny race test takes 213 s alone and 345 s beside a text scan of 23 scenes; the scan takes 263 to 269 s alone
-  and 370 to 375 s beside the race. Side by side, neither broke in 2 of 2 tries, and the results were those of lone
-  runs; only the wall time grew.
+  and 370 to 375 s beside the race. Side by side (two browsers in one hold of the lock), neither broke in 2 of 2
+  tries, and the results were those of lone runs; only the wall time grew.
 - CPU: 2,644 to 2,696 s of CPU time in a tiny race test of 223 to 226 s (two runs in the GPU measurements' session
   below, not the 213 s ones), about 12 cores.
 - Memory at peak, all of a browser's processes together (proportional set size): 2.1 to 2.2 GB (race), 2.9 GB (scan).
 
-**First measurements on a GPU (2026-11-06, not yet repeated):** headless Chromium with `--headless=new
+**First measurements on a GPU (2026-11-06, one session of 16 runs):** headless Chromium with `--headless=new
 --use-angle=gl-egl` and no display draws on the graphics card (here an NVIDIA GTX 1660: "Hardware accelerated");
 Vulkan gave only "reduced performance", and `--use-gl=egl` or `--use-gl=angle --use-angle=gl` turned WebGL off.
 - The tiny race test takes 56 s (about 31 frames per second; 6.95 s in all four GPU runs), the text scan 55 s; the app
@@ -446,9 +470,8 @@ Two published scanners in `.memory/tools/localization/`, with the scenarios `sce
   `alt` and `placeholder` of every element (visible or not), with the nearest `lang`, and a screenshot of each scene.
   The app counts as ready when `window.__sv` is set and the loading screen (`#boot`, `src/ui/Boot.tsx`) is gone.
 - `checks/visible_text.py`, in either language: all visible text nodes, and those four attributes of every element
-  (visible or not), with `Math.random` seeded and `Date` set to start
-  at 2026-10-31 00:00 UTC (it then runs on), both before the game's modules; a new seed per scene; quality pinned to
-  `'low'`.
+  (visible or not), with `Math.random` seeded and `Date` set to start at 2026-10-31 00:00 UTC (it then runs on), both
+  before the game's modules; a new seed per scene; quality pinned to `'low'`.
   `checks/visible_text_compare.py` compares two runs (before and after a change) scene by scene, digits masked.
 - Run the same tree twice for a baseline: frame rate, the news ticker, 3D labels, distance and rover readouts and the
   EVA jobs also differ between two runs of one tree.
@@ -461,15 +484,17 @@ Two published scanners in `.memory/tools/localization/`, with the scenarios `sce
 ## Tests we run
 Every test we run, by what it checks. "The original game" is the game as its author publishes it
 (Junzzy827/solar-odyssey on GitHub); "our version" is the original with our changes, which is not published. Published,
-in `.memory/tools/`: the tiny race test, and the localization tools, which are the two browser scanners above and the
-static checks beside them (`l10n-check`, `keys.mjs`, `l10n-leftovers.mjs`, `checks/fallback_probe_mech.ts`; their
-README says what each checks). The other test scripts below are our own and are not on GitHub. They use the techniques
-above, so a script of your own can do the same.
+in `.memory/tools/`: the tiny race test; the race ghost's unit tests for the original game (`tests/rallyGhost.test.ts`,
+below); and the localization tools, which are the two browser scanners above and the static checks beside them
+(`l10n-check`, `keys.mjs`, `l10n-leftovers.mjs`, `checks/fallback_probe_mech.ts`; their README says what each checks).
+The other test scripts below are our own and are not on GitHub. They use the techniques above, so a script of your own
+can do the same.
 
 In a browser:
 - **The rover battery.** It checks that our version drives exactly as the original where we did not change it (slice
-  1), and that our own changes work (slice 2). It takes about 8 minutes, software-rendered
-  (494 to 504 s, 2026-11-06).
+  1), and that our own changes work (slice 2). It takes about 8 minutes, software-rendered (494 to 504 s, 2026-11-06).
+  We have its in-page harness, which steps the frames and compares two builds value for value; it is not published,
+  and we can share it.
   - Slice 1: our version and the original game run side by side in two headless browsers, frames stepped by hand
     with the same inputs, clock and random seeds (Stepping, above). Every value must be equal, as exact floats. It
     covers Mars (the default landing site and the Coprates race site), the Moon and Enceladus. Each runs the same
@@ -489,9 +514,8 @@ In a browser:
     whose behaviour changed, for a person to judge. The original must also pass on its own: its rivals and the pilot
     finish, and no uncaught exception occurs.
 - **The persistence live test**, for a change of ours to saving runs, not yet offered to the game's author: the name
-  typed into the hiscore
-  table, an Export button on the result card, and saved runs read back. It uses the real page with real input over
-  the DevTools protocol (Techniques, above) and checks:
+  typed into the hiscore table, an Export button on the result card, and saved runs read back. It uses the real page
+  with real input over the DevTools protocol (Techniques, above) and checks:
   - the name typed into the run's own row of the hiscore table: held keys, key repeats, Japanese input;
   - the table, measured cell by cell;
   - the result card at window widths of 960, 700, 500 and 375 pixels, in both languages;
@@ -517,13 +541,15 @@ Without a browser (Node's own test runner; the battery runs them too):
   frames, a finish not stored twice, the heading that turns the short way across ±π, and a teleport back to a gate
   that snaps instead of gliding. Time going back is an error. It also checks the storage round trip: another course
   version is refused, a broken record throws, a 3-minute run stays small enough for browser storage, a stored run keeps
-  its results-book entry, and each track has one storage key.
+  its results-book entry, and each track has one storage key. The same kind of tests for the original game's
+  `src/state/rallyGhost.ts` are published: `.memory/tools/tests/rallyGhost.test.ts` (Node 22.18 or later runs it as
+  it is with `node --test`, no `npm install`; its header lists what it checks and the flag for older Node).
 - **Localization:** Japanese and English side by side. It checks the same step counts and shape for the missions and
   chapters, quiz answers that point at a choice in both languages, the same shape for the facts and the interface
   dictionary, and English text with no Japanese letters. It also checks that templates keep the same placeholders in
   both languages. It overlaps with the published `keys.mjs` (the missions' and chapters' shape) and with `l10n-check`'s
   FOREIGN lines (Japanese in English text); what it adds is the step counts against the missions' data, the quiz
-  answers, the facts tables and the placeholders.
+  answers, the facts tables and the placeholders. We have this test; it is not published, and we can share it.
 - **Sites:** every landing site is drawn with the same haze as in the original's own code.
 
 ---

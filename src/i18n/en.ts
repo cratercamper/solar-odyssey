@@ -100,7 +100,7 @@ export const en: Translation<typeof ja> = {
   showResult: 'See the result',
   starsLabel: (n: number) => `${n} of 3 stars`,
   starsNote: 'One star for completing the mission, plus one for each correct answer.',
-  best: (n: number) => `Best so far: ${n} stars`,
+  best: (n: number) => `Best so far: ${n} ${n === 1 ? 'star' : 'stars'}`,
   nextMission: 'Next mission',
   retry: 'Try again',
   allDone:

@@ -100,16 +100,18 @@ remain.
 - Our leftover check finds only the 8 places left out on purpose.
 - In the 61 scenes recorded in a browser, nothing a player sees changed except what is listed above.
   `.memory/tools/localization/checks/visible_text.py` recorded every text shown in them, in English and in
-  Japanese, twice on `main` at `d0ef578` and twice on this branch, and `checks/visible_text_compare.py` compared them
-  with digits masked. 45 of the scenes are in `scen-ui.json`, `scen-eva.json`, `scen-apollo.json` and
+  Japanese, twice on `main` at `d0ef578` and twice on this branch, then once more on fresh copies of both commits as
+  they are on GitHub (`e7ba662` for this branch), and `checks/visible_text_compare.py` compared them with digits
+  masked. 45 of the scenes are in `scen-ui.json`, `scen-eva.json`, `scen-apollo.json` and
   `scen-europa.json` (the Europa race), in `.memory/tools/localization/`; the other 16 are in scenario files we have
   not published.
-  - Japanese: the same texts as on `main`. The time bar's temperature is now one text node (`-63℃`) instead of two
-    (`-63` and `℃`); it reads the same.
+  - Japanese: the same texts as on `main`. Two lines are now one text node each instead of several: the time bar's
+    temperature (`-63℃`, was `-63` and `℃`) and the mission panel's skill line (`得意技：ビーム`, was `得意技`, `：`
+    and `ビーム`); they read the same.
   - English: the punctuation, list and "the" changes above, the icy moons' hint and the spot names in quotes, and
     nothing else.
   - Some texts change from run to run on either build, with timing: the news toast, the Moon's phase, the distance
-    shown before a landing and the labels of bodies in the 3D view.
+    shown before a landing, the frame rate shown in the settings and the labels of bodies in the 3D view.
   - The browser console shows the same messages on both builds; none is the error this branch logs when an English
     text is missing.
   - The check cannot see a change in digits only, such as a date format. Its scenes do not reach the quiz questions
@@ -120,6 +122,9 @@ remain.
 `main` is merged into `pr/l10n-3` as usual. A conflict appears only where `main` changes a place that this branch also changes; at the last merge that was the two files above. Texts added to `main` in the new form need nothing from us. If a new table holding both languages appears on `main`, `l10n-leftovers.mjs` on the merged branch lists it; a new `t()` call no longer compiles there, because `lang.ts` on this branch has no `t()`; nor does a new rally track,
 landing site, title or rally colour until its texts are in `src/i18n/`. `l10n-check` on `main` shows only a text that has no English; on this branch the game's console shows that text on every
 load too.
+
+`main` at `a41f635` (#106) is newer than this branch. It merges into the branch without a conflict, and `tsc` passes on
+the result (checked 2026-11-06).
 
 ## Open
 

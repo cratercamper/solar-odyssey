@@ -188,6 +188,12 @@ type Bot = {
   sway: Sway
 }
 
+/** 作り直しで引き継ぐ走りの状態（モデル・塗り・轍などの部品は除く） */
+const BOT_STATE = [
+  's', 'off', 'v', 'x', 'z', 'y', 'vy', 'heading', 'pitch', 'roll', 'spin', 'steer', 'air', 'hopT', 'form', 'phase',
+  'tripT', 'tripping', 'finish', 'caught', 'turn', 'drift', 'squash', 'squashV', 'sway',
+] as const satisfies readonly (keyof Bot)[]
+
 /** コンピューターの姿勢（展開して、アームをたたんだ姿） */
 const BOT_POSE = (() => {
   const p = deployPose(1)
@@ -330,6 +336,8 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
 
   // ---- コンピューターのローバー 3 台 ----
   const { scene } = useGLTF(url('rover-orv7.glb'))
+  // 画質（Auto）がレースの途中で変わると 3 台を作り直す。そのとき走りの状態を色ごとに引き継ぐ（スタートへ戻らないように）
+  const prevBots = useRef<Bot[]>([])
   const bots = useMemo(() => {
     const owned: { dispose: () => void }[] = []
     const list: Bot[] = []
@@ -419,6 +427,14 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       })
       slot++
     }
+    for (const b of list) {
+      const old = prevBots.current.find((o) => o.color === b.color)
+      if (!old) continue
+      for (const k of BOT_STATE) (b as Record<string, unknown>)[k] = old[k]
+      b.model.position.copy(old.model.position)
+      b.model.quaternion.copy(old.model.quaternion)
+    }
+    prevBots.current = list
     return { list, owned }
   }, [scene, color, prepare, level, terrain])
   useEffect(() => () => bots.owned.forEach((m) => m.dispose()), [bots])

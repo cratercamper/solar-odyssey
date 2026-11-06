@@ -1,6 +1,6 @@
 ---
 name: d-browser-automation
-description: Browser automation — anything that controls the browser by itself: navigation and race pilot, outside vs in-page control, and the one tool described here, the scripted browser (.memory/tools/automation/scripted_browser.py). Written for a person first, technical towards the end.
+description: "Browser automation — anything that controls the browser by itself: navigation and race pilot, outside vs in-page control, and the one tool described here, the scripted browser (.memory/tools/automation/scripted_browser.py). Written for a person first, technical towards the end."
 type: design
 ---
 
@@ -11,13 +11,17 @@ development and testing today, perhaps a race bot later. It has two parts:
 - **Navigation:** getting to a game state (a race, a landing site, a scene) through the app's menus. The scripted
   browser below does this: its steps click the real buttons (warp, land, start a race); the example below clicks
   Warp.
-- **Race pilot:** controlling the rover during a race. Not described here yet; a race bot would get its own section
-  here or its own design doc branched from this one.
+- **Race pilot:** controlling the rover during a race. One small pilot exists, in the tiny race test
+  (`.memory/tools/automation-data/README.md`): it drives a short track once, from the start to the finish gate, so that
+  the test can check the race.
+  A race bot would get its own section here or its own design doc branched from this one.
 
 The browser can be controlled in two ways. From outside: a separate program remote-controls the browser, runs
 JavaScript in the page, waits and takes screenshots, while the app runs at its own pace. The scripted browser works this
 way. From inside: code injected into the page, which can also stop the app's frame loop and step the frames itself at a
-fixed time step. A test of physics needs the inside way (see Limits).
+fixed time step. A test of physics needs the inside way (see Limits). The two mix: a step of the scripted browser
+can put such code in the page. The tiny race test does a little of it: from the start of the race it fixes the page's
+clock to one step of 0.05 s per drawn frame, while the app's own frame loop runs as it is.
 
 ## The scripted browser (`.memory/tools/automation/scripted_browser.py`)
 
@@ -30,21 +34,25 @@ take.
 - Needs Python 3 with the `websockets` package (version 15 or newer; tested with 17.1), `chromium` on the PATH, and the
   dev server running (`npm run dev`).
 - `python3 .memory/tools/automation/scripted_browser.py <out_dir> <steps.json> [url]` writes its screenshots and saved
-  values to `<out_dir>` and prints one timestamped line per step.
+  values to `<out_dir>`. It prints a timestamped line for each step it runs (none for `sleep`), and further
+  lines while it waits for the lock and when the page logs an error. A run whose browser or step fails also prints
+  where it kept Chromium's log (`kept …/chrome.log`) and the error with its traceback.
 - The address defaults to `http://localhost:5173/?lang=en#debug`: the dev server, in English, with the debug hooks
   (below).
-- Exit status: **0** every step passed and the browser is gone; **1** a step or the browser failed (the run's temporary
-  directory with the browser's log is kept and named), or the run could not start, for example: no dev server
-  answering, inside a sandbox (Limits), a lock held past the hold limit (Decisions), run under the lock's `run`
-  wrapper, or an output directory that cannot be made; **2** bad arguments or steps; **128 + n** stopped by signal n,
-  after the browser is stopped.
+- Exit status: **0** every step passed, the page answered once more after them (Steps, below), and the browser is gone;
+  **1** a step, that last question or the browser failed (the run's temporary directory with the browser's log is kept
+  and named), or the run could not start, for example: no dev server answering, inside a sandbox (Limits), a lock held
+  past the hold limit (Decisions), run under the lock's `run` wrapper, or an output directory that cannot be made; **2**
+  bad arguments or steps; **128 + n** stopped by signal n, after the browser is stopped.
 
 ### Limits
 - The browser draws in software, so it needs no graphics card, but it is slow: in one measurement the app was ready
   about 13 s after the page was opened, and 3D scenes run at about 1–2 frames per second.
 - So a real-time run cannot test physics. The rover and race physics cap a frame's time step at 0.05 s
   (`Math.min(rawDt, 0.05)` in `Rover.tsx` and `Rally.tsx`), so the rover and the race run at 1/20 to 1/10 of real
-  time, in steps three times longer than at 60 fps. Physics needs the in-page way above.
+  time, in steps three times longer than at 60 fps. A clock fixed from the page, as in the tiny race test, makes a
+  race's time the time the game simulated, in steps of the test's choosing: 0.05 s there; 1/60 s would give a fast
+  machine's steps, in three times as many frames.
 - One run at a time per machine, among the scripts that share its lock (Decisions, below): a run that finds it held
   waits for its turn and prints its place in the queue.
 - It runs on the machine itself, not inside a sandbox or container: there it cannot see the other runs, so it refuses
@@ -80,7 +88,9 @@ the Warp button, because the click step further down throws when there is no suc
 says it is for recording and behaviour checks. Steps read state there; clicks go through the real buttons.
 
 The page's own uncaught exceptions and `console.error` calls are logged as `PAGE ERROR (at HH:MM:SS)`, with the time
-they happened (the log line itself comes at the next step); they do not end the run.
+they happened; the line itself is printed when the tool next talks to the browser, which can be a step later, and
+at the latest when the steps are done (the tool asks the page once more before it closes), or when a step fails (the
+tool then reads what the page has sent, for at most 5 s). They do not end the run.
 
 ### Decisions
 The tool talks to Chromium through the Chrome DevTools Protocol ("CDP": the remote-control channel Chromium opens, the
@@ -97,13 +107,13 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   aborts, and the tool sees only a port that never answers.
 - **Profile deleted; `chrome.log` kept when the run failed.** A profile is about 60 MB, `/tmp` is often in RAM, and 14
   left-over profiles (733 MB) had once piled up.
-- **One headless Chromium at a time, taken in turn** (`.memory/tools/automation/chromium_lock.py`, beside the tool,
-  shared by every script that imports it, such as our own test scripts, which are not published: a second
-  software-rendered Chromium beside a test run of several minutes once cost that run its GPU context; a script that
-  starts a Chromium without the lock is not held back). A waiter writes a ticket
-  into `/tmp/headless-chromium.queue/`, named by the time it arrived, and takes `/tmp/headless-chromium.lock` only when
-  its ticket is the oldest of a live process: first come, first served. Before the queue, every waiter polled and the
-  fastest grabber won, so one waiter could wait for ever.
+- **One headless Chromium at a time among the scripts that take the lock, in turn**
+  (`.memory/tools/automation/chromium_lock.py`, beside the tool, shared by every script that imports it, such as our
+  own test scripts, which are not published). Why: a second software-rendered Chromium beside a test run of several
+  minutes once cost that run its GPU context. A script that starts a Chromium without the lock is not held back.
+  A waiter writes a ticket into `/tmp/headless-chromium.queue/`, named by the time it arrived, and takes
+  `/tmp/headless-chromium.lock` only when its ticket is the oldest of a live process: first come, first served. Before
+  the queue, every waiter polled and the fastest grabber won, so one waiter could wait for ever.
   - Every ticket and lock appears with its whole text at once: written to a temporary file, then hard-linked into
     place, which fails if the name exists. Each records the process id and its PID namespace.
   - Tickets and locks of processes that are gone (checked in `/proc`) are removed by whoever finds them, after reading
@@ -124,8 +134,8 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   - Hold the lock per step (one page, one build), not for a whole job, so that the others in the queue get their
     turns in between.
   - For now the holder also takes an older lock file, `/tmp/ody-battery.lock`, which our own test scripts (not
-    published) written before the queue still use; it goes once they have switched. A script that takes neither is not
-    held back.
+    published) written before the queue still use; it goes once they import `chromium_lock.py`. A script that takes
+    neither is not held back.
 - **The address must answer before the lock is touched.** A dev server that is down ends the run before it waits in
   the queue or starts anything.
 - **Never through a proxy.** The DevTools channel and the address check go to localhost directly, whatever
@@ -139,13 +149,13 @@ same one its DevTools panel uses), over a WebSocket, with no browser-automation 
   step, a DevTools call with no answer within its time, a page that crashes, a page load that fails, or no DevTools port
   within 15 s ends the run.
 
-### Building it into the repository
-For the game's author, or a Claude Code session building this into the game's repository. Nothing of it is built
-there; the tool above is the working reference.
+### Building it into the game's code
+For the game's author, or a Claude Code session building this into the game's own code (`src/`, `scripts/`). None of
+it is built there; the tool above, in `.memory/tools/`, is the working reference.
 - Run against `npm run dev` with `#debug` in the address: `src/debugHooks.ts` then puts the stores and actions on
   `window.__sv`. Read state there, and click the real buttons.
-- One Node script under `scripts/`, with no new dependency. Node 22, which the build workflow installs, has a global
-  `WebSocket` (since 22.0) and a global `fetch`.
+- One Node script under `scripts/`, with no new dependency. Node 22, which the game's GitHub Pages workflow sets up
+  (`.github/workflows/deploy.yml`, job `build`), has a global `WebSocket` (since 22.0) and a global `fetch`.
   - Start a headless Chromium with `--remote-debugging-port=0` and read the port from `DevToolsActivePort` in its
     profile directory.
   - Ask `http://127.0.0.1:<port>/json` for the page's `webSocketDebuggerUrl` and talk to it over `WebSocket`:

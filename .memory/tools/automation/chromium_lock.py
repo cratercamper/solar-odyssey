@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""chromium_lock.py — one headless Chromium at a time on this machine, taken in turn (first come, first served).
+"""chromium_lock.py — one headless Chromium at a time on this machine among the scripts that take this lock, in turn
+(first come, first served).
 
 A second software-rendered Chromium beside a long test run once cost that run its GPU context. Scripts that take this
 lock never run beside one another; a script that starts a Chromium without it is not held back. Before the queue,

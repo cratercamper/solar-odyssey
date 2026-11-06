@@ -15,14 +15,17 @@ Steps (a JSON list), each an object of exactly one kind:
   {"sleep": s}                     waits s seconds
   {"shot": "<name>"}               writes <out_dir>/<name>.png
   The whole file is checked before Chromium starts: an unknown kind or key, or a value of the wrong type, is refused.
-The page's own uncaught exceptions and console errors are logged with the time they happened (at the next step).
+The page's own uncaught exceptions and console errors are logged with the time they happened (printed when the tool
+next talks to the browser, at the latest after the last step, or after the step that failed).
 Needs Python's `websockets` (15 or newer), `chromium` on PATH, and the dev server reachable at the url. Linux as
 written (the lock check reads /proc).
-Lock: the run waits for its turn in chromium_lock.py (beside this file: one headless Chromium at a time on the machine,
-first come, first served; it prints its place while it waits), so it never runs beside the scripts that take the same
-lock, such as our own test scripts (not published). Scripts that do not take it are not held back by it.
-Exit: 0 = every step passed and Chromium's process group is gone (its crash reporter runs outside the group and exits
-with the browser); 1 = a step or the browser failed (the run's temp dir with chrome.log is kept and named), or the run
+Lock: the run waits for its turn in chromium_lock.py (beside this file: one headless Chromium at a time on the machine
+among the scripts that take it, first come, first served; it prints its place while it waits), so it never runs
+beside the scripts that take the same lock, such as our own test scripts (not published). Scripts that do not take it
+are not held back by it.
+Exit: 0 = every step passed, the page answered once more after them (that call reads its last events), and Chromium's
+process group is gone (its crash reporter runs outside the group and exits with the browser); 1 = a step, that last
+call or the browser failed (the run's temp dir with chrome.log is kept and named), or the run
 could not start (for example: no dev server answering at the url, not on the machine's own PID namespace, a lock held
 past the hold limit, run under `chromium_lock.py run`, an out_dir that cannot be made); 2 = bad arguments or steps;
 128 + n = stopped by signal n (Chromium stopped and the lock released first).
@@ -139,7 +142,7 @@ def page_event(msg):
 
 
 # A wait asks the page itself for the truth value: Python's bool() of the returned value would call [] and {} (and so a
-# DOM element, which comes back as {}) false, and such a wait would never end.
+# DOM element, which comes back as {}) false, and such a wait would never pass.
 WAIT_JS = "Promise.resolve((\n{}\n)).then((v) => !!v)"
 
 
@@ -200,50 +203,70 @@ async def main(out_dir, steps, url):
                                        f"{d.get('exception', {}).get('description') or d.get('text')}")
                 return r["result"]  # a RemoteObject: type, value or unserializableValue
 
+            async def drain(quiet=0.5, most=5):
+                """Logs the page events Chromium has sent, without asking the page anything (so the events of a page
+                that hangs are read too): until none has come for `quiet` s, for at most `most` s."""
+                end = time.monotonic() + most
+                while (left := end - time.monotonic()) > 0:
+                    try:
+                        msg = json.loads(await asyncio.wait_for(ws.recv(), min(quiet, left)))
+                    except (asyncio.TimeoutError, websockets.ConnectionClosed):
+                        return  # none came for `quiet` s, or the connection is closed: nothing more to read
+                    page_event(msg)
+
             for domain in ("Inspector", "Runtime", "Page"):
                 await call(f"{domain}.enable")
             nav = await call("Page.navigate", url=url)
             if nav.get("errorText"):
                 raise RuntimeError(f"loading {url} failed: {nav['errorText']}")
             await asyncio.sleep(1)
-            for step in steps:
-                if "eval" in step:
-                    res = await js(step["eval"], step.get("timeout", CALL_TIMEOUT))
-                    if "save" in step:
-                        if res.get("type") == "undefined" or "unserializableValue" in res:
-                            raise ValueError(f"save {step['save']}: the value is {res.get('unserializableValue', 'undefined')}, not data")
-                        v = res.get("value")
-                        path = os.path.join(out_dir, step["save"])
-                        with open(path, "w") as f:
-                            f.write(v if isinstance(v, str) else json.dumps(v))
-                        log(f"eval -> saved {path}")
+            try:
+                for step in steps:
+                    if "eval" in step:
+                        res = await js(step["eval"], step.get("timeout", CALL_TIMEOUT))
+                        if "save" in step:
+                            if res.get("type") == "undefined" or "unserializableValue" in res:
+                                raise ValueError(f"save {step['save']}: the value is {res.get('unserializableValue', 'undefined')}, not data")
+                            v = res.get("value")
+                            path = os.path.join(out_dir, step["save"])
+                            with open(path, "w") as f:
+                                f.write(v if isinstance(v, str) else json.dumps(v))
+                            log(f"eval -> saved {path}")
+                        else:
+                            shown = res.get("unserializableValue", res.get("value", "undefined" if res.get("type") == "undefined" else None))
+                            log(f"eval {step['eval']} -> {shown!r}")
+                    elif "wait" in step:
+                        limit = step.get("timeout", 30)
+                        t0 = time.monotonic()
+                        while True:
+                            left = limit - (time.monotonic() - t0)
+                            if left <= 0:
+                                raise TimeoutError(f"wait timed out after {limit} s: {step['wait']}")
+                            try:
+                                if (await js(WAIT_JS.format(step["wait"]), left, step["wait"])).get("value") is True:
+                                    break
+                            except TimeoutError:
+                                raise TimeoutError(f"wait timed out after {limit} s (the page did not answer): {step['wait']}") from None
+                            await asyncio.sleep(0.25)
+                        log(f"wait ok in {time.monotonic() - t0:.1f}s: {step['wait']}")
+                    elif "sleep" in step:
+                        await asyncio.sleep(step["sleep"])
+                    elif "shot" in step:
+                        r = await call("Page.captureScreenshot", format="png")
+                        path = os.path.join(out_dir, step["shot"] + ".png")
+                        with open(path, "wb") as f:
+                            f.write(base64.b64decode(r["data"]))
+                        log(f"shot {path}")
                     else:
-                        shown = res.get("unserializableValue", res.get("value", "undefined" if res.get("type") == "undefined" else None))
-                        log(f"eval {step['eval']} -> {shown!r}")
-                elif "wait" in step:
-                    limit = step.get("timeout", 30)
-                    t0 = time.monotonic()
-                    while True:
-                        left = limit - (time.monotonic() - t0)
-                        if left <= 0:
-                            raise TimeoutError(f"wait timed out after {limit} s: {step['wait']}")
-                        try:
-                            if (await js(WAIT_JS.format(step["wait"]), left, step["wait"])).get("value") is True:
-                                break
-                        except TimeoutError:
-                            raise TimeoutError(f"wait timed out after {limit} s (the page did not answer): {step['wait']}") from None
-                        await asyncio.sleep(0.25)
-                    log(f"wait ok in {time.monotonic() - t0:.1f}s: {step['wait']}")
-                elif "sleep" in step:
-                    await asyncio.sleep(step["sleep"])
-                elif "shot" in step:
-                    r = await call("Page.captureScreenshot", format="png")
-                    path = os.path.join(out_dir, step["shot"] + ".png")
-                    with open(path, "wb") as f:
-                        f.write(base64.b64decode(r["data"]))
-                    log(f"shot {path}")
-                else:
-                    raise AssertionError(f"step passed check_steps but has no handler: {step}")
+                        raise AssertionError(f"step passed check_steps but has no handler: {step}")
+            except Exception:
+                # The failed step's page events, which no call has read yet, are logged before its error ends the run:
+                # they are often its cause.
+                await drain()
+                raise
+            # Page events are read only while a call waits for its answer: this last call reads those that came during
+            # the last step (a sleep, say); drain() above does it for a step that failed.
+            await call("Runtime.evaluate", expression="0")
         ok = True
     finally:
         stop_chromium(chrome)

@@ -1,0 +1,57 @@
+{
+ "id": "galetiny",
+ "site": {
+  "body": "mars",
+  "dem": "mars",
+  "name": [
+   "ゲール・クレーター",
+   "Gale crater"
+  ],
+  "note": [
+   "ゲール・クレーターの底の平原（アイオリス平原）。2012年に探査車キュリオシティが着陸した平原です。ほとんど平らで、南東には高さ約5 kmのアイオリス山（シャープ山）がそびえています。",
+   "The plain on the floor of Gale crater (Aeolis Palus), where the Curiosity rover landed in 2012. Mostly flat; Aeolis Mons (Mount Sharp), about 5 km high, rises to the south-east."
+  ]
+ },
+ "track": {
+  "body": "mars",
+  "line": [
+   [-38.7, 6.1],
+   [-29.3, 3.1],
+   [-23.5, -5],
+   [-19.1, -14],
+   [-17.3, -23.7],
+   [-18.2, -33.6],
+   [-14.2, -42.7],
+   [-5.2, -46.4],
+   [4.7, -46.5],
+   [14.5, -44.9],
+   [23.2, -40.3],
+   [27.3, -31.3],
+   [25, -21.6],
+   [19.9, -13.2],
+   [10.5, -10],
+   [1.1, -13]
+  ],
+  "gates": [70, 96.7, 118.2, 136.4],
+  "title": [
+   "着陸船ミニレース",
+   "Tiny lander race"
+  ],
+  "intro": [
+   "着陸船のまわりを約90 m走る、小さなレース。光の門は船のすぐそばに立っています。4台のローバーで、門を順にくぐってゴールへ！",
+   "A tiny race of about 90 m around the lander, its light gates right beside the ship. Four rovers: pass the gates in order to the finish!"
+  ],
+  "button": [
+   "着陸船ミニレース",
+   "Tiny lander race"
+  ],
+  "home": [
+   "ゲール・クレーターへ",
+   "To Gale crater"
+  ]
+ },
+ "check": {
+  "time": [5, 10],
+  "step": 0.05
+ }
+}

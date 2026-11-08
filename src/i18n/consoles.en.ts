@@ -61,4 +61,5 @@ export const consolesEn: Translation<typeof consolesJa> = {
   timeRate: 'Time rate',
   timeStopped: 'stopped',
   lift: 'LIFT',
+  numberLocale: 'en-US',
 }

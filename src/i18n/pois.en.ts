@@ -1,9 +1,9 @@
-import type { poisJa } from './pois.ja'
+import type { PoisJa } from './pois.ja'
 import type { Translation } from './translation'
 
 // The texts of components/surface/pois.ts (English). Same keys as pois.ja.ts
 
-export const poisEn: Translation<typeof poisJa> = {
+export const poisEn: Translation<PoisJa> = {
   'mars-buttes': { name: 'Layered buttes' },
   'mars-boulders': { name: 'Boulder field' },
   'mars-dunes': { name: 'Dark dunes' },

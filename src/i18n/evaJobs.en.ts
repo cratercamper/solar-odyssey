@@ -1,9 +1,9 @@
-import type { evaJobsJa } from './evaJobs.ja'
+import type { EvaJobsJa } from './evaJobs.ja'
 import type { Translation } from './translation'
 
 // The texts of state/evaJobs.ts (English). Same keys as evaJobs.ja.ts
 
-export const evaJobsEn: Translation<typeof evaJobsJa> = {
+export const evaJobsEn: Translation<EvaJobsJa> = {
   hole: {
     name: 'Patch a micrometeoroid hole',
     note: 'Space-station modules carry “Whipple shields”: thin bumper sheets spaced away from the wall that shatter incoming specks of dust. In 2021 a small hole was found in the Canadarm2 robotic arm, which kept on working.',

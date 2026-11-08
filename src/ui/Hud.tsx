@@ -9,7 +9,7 @@ import { isTelescope, scopeName, TELESCOPE_TEXT } from '../data/telescopes'
 import { canOpenGallery, closeGallery, openGallery } from '../state/gallery'
 import { isTouchDevice } from '../state/input'
 import { launchLander, useLaunchBusy } from '../state/launch'
-import { getLang, useLang } from '../i18n/lang'
+import { useLang } from '../i18n/lang'
 import { landableBody, landed, startLanding } from '../state/landing'
 import { useMission } from '../state/mission'
 import { toggleObserve } from '../state/observe'
@@ -140,14 +140,8 @@ function Toast() {
 
 /** 大きな数を「約22万」（英語は「220,000」「1.5 million」）のように読みやすくする */
 function roughly(n: number) {
-  if (getLang() === 'en') {
-    if (n >= 1e9) return `${Number((n / 1e9).toPrecision(2))} billion`
-    if (n >= 1e6) return `${Number((n / 1e6).toPrecision(2))} million`
-    if (n >= 1e4) return (Math.round(n / 1e4) * 1e4).toLocaleString('en-US')
-  } else {
-    if (n >= 1e8) return `${(n / 1e8).toPrecision(2)}億`
-    if (n >= 1e4) return `${Math.round(n / 1e4).toLocaleString()}万`
-  }
+  const big = ui().hud.bigNumber(n)
+  if (big !== null) return big
   if (n >= 100) return (Math.round(n / 10) * 10).toLocaleString('en-US')
   return n < 10 ? n.toFixed(1) : Math.round(n) + ''
 }

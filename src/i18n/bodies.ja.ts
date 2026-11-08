@@ -1,8 +1,9 @@
 import type { PlanetText, MoonText } from '../data/bodies'
+import { byId } from './translation'
 
 // data/bodies.ts の文言（日本語）
 
-export const bodiesJa: Record<string, PlanetText | MoonText> = {
+const texts = {
   sun: { name: '太陽' },
   mercury: { name: '水星' },
   venus: { name: '金星' },
@@ -35,4 +36,8 @@ export const bodiesJa: Record<string, PlanetText | MoonText> = {
   triton: { name: 'トリトン' },
   pluto: { name: '冥王星' },
   charon: { name: 'カロン' },
-}
+} satisfies Record<string, PlanetText | MoonText>
+
+// 英語の bodies.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type BodiesJa = typeof texts
+export const bodiesJa: Record<string, PlanetText | MoonText> = byId(texts)

@@ -1,5 +1,6 @@
 import type { quizPanelJa } from './quizPanel.ja'
 import type { Translation } from './translation'
+import { theEn } from './article'
 
 // The texts of ui/QuizPanel.tsx (English). Same keys as quizPanel.ja.ts
 
@@ -14,7 +15,7 @@ export const quizPanelEn: Translation<typeof quizPanelJa> = {
   bestSoFarCount: (best: number) => `${best}`,
   newRecord: 'New record!',
   goSeeMissed: 'Go and see the ones you missed',
-  warpTo: (id: string) => `Warp to ${id}`,
+  warpTo: (id: string) => `Warp to ${theEn(id)}`,
   arriveNote: 'When you arrive, the ship’s log has more facts and a quiz.',
   allCorrect: 'All correct. Amazing!',
   tryAgain: 'Try again',

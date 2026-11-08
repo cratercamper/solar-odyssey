@@ -2,22 +2,24 @@ import { PLANETS, SUN } from './bodies'
 import { CUBE_ID } from './cube'
 import { COLONY_ID, SF_OBJECTS, sfEntry } from './sf'
 import { HUBBLE_ID, WEBB_ID } from './telescopes'
-import { uiEn, uiJa } from '../i18n'
+import { ui } from '../i18n'
+import type { StampTitlesJa } from '../i18n/stampTitles.ja'
 
 // 訪問スタンプ帳：天体のそばまで行くとスタンプがもらえる。決まった組をそろえたり、たくさん集めたりすると称号がもらえる
 
-export type StampGroup = { id: string; name: string; nameEn: string; ids: string[] }
+/** name：ページの名前（今の言語、i18n/stampGroups） */
+export type StampGroup = { id: string; name: () => string; ids: string[] }
 
 const planet = (id: string) => PLANETS.find((p) => p.id === id)!
 const moonsOf = (id: string) => planet(id).moons.map((m) => m.id)
 
 export const STAMP_GROUPS: StampGroup[] = [
-  { id: 'planets', name: '太陽と惑星', nameEn: 'The Sun and planets', ids: ['sun', ...PLANETS.filter((p) => !p.dwarf).map((p) => p.id)] },
-  ...PLANETS.filter((p) => !p.dwarf && p.moons.length > 0).map((p) => ({ id: `moons-${p.id}`, name: `${uiJa.bodies[p.id].name}の衛星`, nameEn: p.moons.length === 1 ? `${uiEn.bodies[p.id].name}’s moon` : `Moons of ${uiEn.bodies[p.id].name}`, ids: moonsOf(p.id) })),
-  { id: 'dwarf', name: '準惑星とその衛星', nameEn: 'Dwarf planet and its moon', ids: PLANETS.filter((p) => p.dwarf).flatMap((p) => [p.id, ...moonsOf(p.id)]) },
-  { id: 'scopes', name: '宇宙望遠鏡', nameEn: 'Space telescopes', ids: [HUBBLE_ID, WEBB_ID] },
+  { id: 'planets', name: () => ui().stampGroups.planets, ids: ['sun', ...PLANETS.filter((p) => !p.dwarf).map((p) => p.id)] },
+  ...PLANETS.filter((p) => !p.dwarf && p.moons.length > 0).map((p) => ({ id: `moons-${p.id}`, name: () => ui().stampGroups.moonsOf(ui().bodies[p.id].name, p.moons.length), ids: moonsOf(p.id) })),
+  { id: 'dwarf', name: () => ui().stampGroups.dwarf, ids: PLANETS.filter((p) => p.dwarf).flatMap((p) => [p.id, ...moonsOf(p.id)]) },
+  { id: 'scopes', name: () => ui().stampGroups.scopes, ids: [HUBBLE_ID, WEBB_ID] },
   // SF モードだけのページ（本物の太陽系のスタンプとは別に数える）
-  { id: 'sf', name: 'SF（架空）', nameEn: 'SF (imaginary)', ids: SF_OBJECTS.map((e) => e.id) },
+  { id: 'sf', name: () => ui().stampGroups.sf, ids: SF_OBJECTS.map((e) => e.id) },
 ]
 
 /** 太陽・惑星・衛星（数を数える称号はこれだけで数える） */
@@ -39,12 +41,8 @@ export function stampColor(id: string) {
 }
 
 export type Title = {
-  id: string
-  name: string
-  nameEn: string
-  /** もらい方 */
-  how: string
-  howEn: string
+  /** 文言は src/i18n/stampTitles.ja.ts（同じ id）。文言のない id は型エラー */
+  id: keyof StampTitlesJa
   /** この中から count 個（stamp：行った天体、quiz：航海日誌のクイズに正解した天体） */
   ids: string[]
   count: number
@@ -57,38 +55,41 @@ export type Title = {
   sf?: boolean
 }
 
+/** 称号の文言（i18n/stampTitles、称号の id ごと） */
+export type TitleText = {
+  name: string
+  /** もらい方（count：いる数） */
+  how: (count: number) => string
+}
+
 const group = (id: string) => STAMP_GROUPS.find((g) => g.id === id)!.ids
-const rank = (count: number, id: string, name: string, nameEn: string): Title => ({
+const rank = (count: number, id: Title['id']): Title => ({
   id,
-  name,
-  nameEn,
-  how: count === NATURAL.length ? `太陽・惑星・衛星をぜんぶ（${count}）訪れる` : `天体を${count}つ訪れる`,
-  howEn: count === NATURAL.length ? `Visit every sun, planet and moon (${count})` : `Visit ${count} bod${count === 1 ? 'y' : 'ies'}`,
   ids: NATURAL,
   count,
   source: 'stamp',
   rank: true,
 })
-const set = (id: string, ids: string[], name: string, nameEn: string, how: string, howEn: string, secret = false): Title => ({ id, name, nameEn, how, howEn, ids, count: ids.length, source: 'stamp', secret })
+const set = (id: Title['id'], ids: string[], secret = false): Title => ({ id, ids, count: ids.length, source: 'stamp', secret })
 
 export const TITLES: Title[] = [
-  rank(1, 'rookie', '宇宙の新人', 'Space Rookie'),
-  rank(5, 'apprentice', '見習い探検家', 'Apprentice Explorer'),
-  rank(12, 'skilled', '一人前の探検家', 'Skilled Explorer'),
-  rank(22, 'veteran', 'ベテラン探検家', 'Veteran Explorer'),
-  rank(NATURAL.length, 'grand-tour', '太陽系グランドツアー', 'Grand Tour of the Solar System'),
-  set('rocky', ['mercury', 'venus', 'earth', 'mars'], '岩の惑星めぐり', 'Rocky Planets Tour', '水星・金星・地球・火星を訪れる', 'Visit Mercury, Venus, Earth and Mars'),
-  set('giants', ['jupiter', 'saturn', 'uranus', 'neptune'], '巨大惑星めぐり', 'Giant Planets Tour', '木星・土星・天王星・海王星を訪れる', 'Visit Jupiter, Saturn, Uranus and Neptune'),
-  set('nearby', ['moon', ...moonsOf('mars')], '近くの衛星めぐり', 'Nearby Moons Tour', '月と、火星の衛星2つを訪れる', 'Visit the Moon and both moons of Mars'),
-  set('galilean', moonsOf('jupiter'), 'ガリレオ衛星コンプリート', 'All Four Galilean Moons', '木星の4つの衛星（1610年にガリレオが見つけた）を訪れる', 'Visit the four moons of Jupiter that Galileo found in 1610'),
-  set('saturn-moons', moonsOf('saturn'), '土星の衛星めぐり', 'Moons of Saturn', `土星の衛星${moonsOf('saturn').length}つを訪れる`, `Visit all ${moonsOf('saturn').length} moons of Saturn`),
-  set('ice-moons', [...moonsOf('uranus'), ...moonsOf('neptune')], '氷の巨大惑星の衛星めぐり', 'Moons of the Ice Giants', '天王星と海王星の衛星をぜんぶ訪れる', 'Visit every moon of Uranus and Neptune'),
-  set('far', group('dwarf'), '最果ての冥王星', 'Out to Pluto', '冥王星とカロンを訪れる', 'Visit Pluto and Charon'),
-  set('scopes', group('scopes'), '望遠鏡ウォッチャー', 'Telescope Spotter', 'ハッブルとウェッブ、2つの宇宙望遠鏡を訪れる', 'Visit both space telescopes, Hubble and Webb'),
-  { ...set('mystery', [CUBE_ID], '謎の発見者', 'Mystery Finder', 'どこかに浮かぶ、見たことのない船を見つける', 'Find the strange ship floating somewhere out there', true), sf: true },
-  { ...set('colonist', [COLONY_ID], 'コロニー訪問者', 'Colony Visitor', 'L5スペースコロニーを訪れる', 'Visit the L5 Space Colony'), sf: true },
-  { id: 'scholar', name: '博士の卵', nameEn: 'Budding Scientist', how: '航海日誌のクイズに10問正解する', howEn: 'Answer 10 ship’s log quizzes correctly', ids: NATURAL, count: 10, source: 'quiz' },
-  { id: 'professor', name: '太陽系博士', nameEn: 'Solar System Professor', how: `航海日誌のクイズに、太陽・惑星・衛星ぜんぶ（${NATURAL.length}）正解する`, howEn: `Answer the ship’s log quiz for every sun, planet and moon (${NATURAL.length})`, ids: NATURAL, count: NATURAL.length, source: 'quiz' },
+  rank(1, 'rookie'),
+  rank(5, 'apprentice'),
+  rank(12, 'skilled'),
+  rank(22, 'veteran'),
+  rank(NATURAL.length, 'grand-tour'),
+  set('rocky', ['mercury', 'venus', 'earth', 'mars']),
+  set('giants', ['jupiter', 'saturn', 'uranus', 'neptune']),
+  set('nearby', ['moon', ...moonsOf('mars')]),
+  set('galilean', moonsOf('jupiter')),
+  set('saturn-moons', moonsOf('saturn')),
+  set('ice-moons', [...moonsOf('uranus'), ...moonsOf('neptune')]),
+  set('far', group('dwarf')),
+  set('scopes', group('scopes')),
+  { ...set('mystery', [CUBE_ID], true), sf: true },
+  { ...set('colonist', [COLONY_ID]), sf: true },
+  { id: 'scholar', ids: NATURAL, count: 10, source: 'quiz' },
+  { id: 'professor', ids: NATURAL, count: NATURAL.length, source: 'quiz' },
 ]
 
 /** 称号のための数（集めた数、いる数） */
@@ -96,6 +97,9 @@ export function titleProgress(title: Title, stamps: Record<string, number>, expl
   const have = title.source === 'stamp' ? title.ids.filter((id) => id in stamps).length : title.ids.filter((id) => explored.includes(id)).length
   return { have: Math.min(have, title.count), need: title.count }
 }
+
+/** 称号の文言（今の言語） */
+export const titleText = (title: Title) => ui().stampTitles[title.id]
 
 export const titleEarned = (title: Title, stamps: Record<string, number>, explored: string[]) => {
   const { have, need } = titleProgress(title, stamps, explored)

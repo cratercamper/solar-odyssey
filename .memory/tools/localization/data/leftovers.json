@@ -1,5 +1,5 @@
 {
- "_": "Places outside src/i18n/ that still hold or pick both languages, counted per file and kind by .memory/tools/localization/l10n-leftovers.mjs; step D (the work done by hand after the scripted steps, on the fork's branch pr/l10n-3) removed the rest. Left on purpose (2026-11-04, 8 places): data/facts.ts factsFor (upstream's whole-entry fallback to Japanese), state/quiz.ts (a question keeps both languages, so a switch in the middle of a quiz keeps working), ui/NavPanel.tsx (the language buttons). Rewritten with --write; look at the diff.",
+ "_": "Places outside src/i18n/ that still hold or pick both languages, counted per file and kind by .memory/tools/localization/l10n-leftovers.mjs; step D (the work done by hand after the scripted steps, in pull request #107, merged into main as 7cb4dda) removed the rest. Left on purpose (2026-11-04, 8 places): data/facts.ts factsFor (upstream's whole-entry fallback to Japanese), state/quiz.ts (a question keeps both languages, so a switch in the middle of a quiz keeps working), ui/NavPanel.tsx (the language buttons). Rewritten with --write; look at the diff.",
  "allow": {
   "src/data/facts.ts": {
    "langPick": 1

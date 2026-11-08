@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { NATURAL, STAMP_IDS, TITLES, titleEarned } from '../data/stamps'
+import { NATURAL, STAMP_IDS, TITLES, titleEarned, titleText } from '../data/stamps'
 import { playBeep } from '../audio/sfx'
 import { ui } from '../i18n'
 import { bodies } from './registry'
@@ -75,7 +75,7 @@ function newTitles(stamps: Record<string, number>) {
   useStamps.setState({ titles })
   return fresh.map((id) => {
     const title = TITLES.find((x) => x.id === id)!
-    return ui().stamps.newTitle(title.name, title.nameEn)
+    return ui().stamps.newTitle(titleText(title).name)
   })
 }
 

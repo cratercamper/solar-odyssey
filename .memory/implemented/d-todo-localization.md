@@ -1,23 +1,27 @@
 ---
 name: d-todo-localization
-description: "what is left of the localization work after PR #100 was merged (2026-11-05) — the texts that code puts together, punctuation and lists (on the fork's branch pr/l10n-3, offered as pull request #107), the checks run on it, open questions and ideas."
+description: "the localization work after PR #100 (merged 2026-11-05) — the texts that code puts together, punctuation and lists, merged as pull request #107 on 2026-11-07 (merge commit 7cb4dda); the checks run on it, the one open question and ideas."
 type: design
 ---
 
-# Localization: what is left after #100
+# Localization: the work after #100, merged as #107
 
-State on 2026-11-06. #100 and the other numbers are pull requests of `Junzzy827/solar-odyssey`. #100 is merged into `main` (merge commit `cd5cb86`): almost every text the player sees is in `src/i18n/` and is read by key through `ui()`. Most of the rest, the texts that code puts together, is listed under "Not here yet" in `src/i18n/README.md` on `main`; the date and number formats and the punctuation that the code writes for both languages are not listed there. Newer work on `main` already uses this form:
+**Merged as #107 on 2026-11-07** (merge commit `7cb4dda` on `main`, joining #106 at `a41f635` and the branch's last
+commit `e7ba662`; the branch went in unchanged). This file is kept as the record of that work. "Open" and "Ideas" at
+the end are still open.
+
+State on 2026-11-06, before the merge. #100 and the other numbers are pull requests of `Junzzy827/solar-odyssey`. #100 is merged into `main` (merge commit `cd5cb86`): almost every text the player sees is in `src/i18n/` and is read by key through `ui()`. Most of the rest, the texts that code puts together, was then listed under "Not here yet" in `src/i18n/README.md` on `main`; the date and number formats and the punctuation that the code writes for both languages were not listed there. Newer work on `main` already uses this form:
 - #102 put the hiscore texts into `src/i18n/rallyHiscore.{ja,en}.ts`;
 - #104 added `news.{ja,en}.ts`;
 - #103 added the photo texts to `apollo17` and `historicPanel`.
 
-Our missing-English check (`l10n-check`, in `.memory/tools/localization/` on this fork's `main`) finds no Japanese word without English on `main` at `d0ef578`.
+Our missing-English check (`l10n-check`, in `.memory/tools/localization/` on this fork's `main`) found no Japanese word without English on `main` at `d0ef578`, and finds none at `7cb4dda`.
 
-## On this fork's `pr/l10n-3`: texts that code puts together, punctuation, lists
+## In #107: texts that code puts together, punctuation, lists
 
-The branch `pr/l10n-3` of this fork has 33 commits that `main` at `d0ef578` does not have: 13 on #100's last commit
-(`1ad4f0b`), a merge of `d0ef578`, and 19 after it; the 32 that are not the merge do the work below. It is offered as
-pull request #107 (opened 2026-11-06).
+The pull request came from this fork's branch `pr/l10n-3`, deleted after the merge (its commits are on `main`). It had
+33 commits that `main` at `d0ef578` did not have: 13 on #100's last commit (`1ad4f0b`), a merge of `d0ef578`, and 19
+after it; the 32 that are not the merge do the work below. It was opened on 2026-11-06 and merged on 2026-11-07.
 
 - **Ids are type-checked, in both directions.** A misspelt id in an English text file now fails `tsc`: a record id, a
   mission or chapter id in `missions.en.ts`, one of the photo-framing words in `en.ts`, or a key in `news.en.ts`. A rally track, landing site,
@@ -83,16 +87,20 @@ pull request #107 (opened 2026-11-06).
 Places outside `src/i18n/` that still hold or pick both languages, counted by `l10n-leftovers.mjs`: on `main` at
 `d0ef578` it prints 140 places in 18 files. 8 of them are allowed on purpose in
 `.memory/tools/localization/data/leftovers.json` (1 in `src/data/facts.ts`, 2 in `src/state/quiz.ts`, 5 in `src/ui/NavPanel.tsx`;
-marked below under "Left out on purpose"), so 132 places in 16 files were left to move. On `pr/l10n-3` only those 8
-remain.
+marked below under "Left out on purpose"), so 132 places in 16 files were left to move. On the branch only those 8
+remained, and on `main` at `7cb4dda` only those 8 remain.
 
-`main` at `d0ef578` is merged in. Two files conflicted, both changed on `main` by #101 (the Europa race) and #104
+The branch had `main` at `d0ef578` merged in. Two files conflicted, both changed on `main` by #101 (the Europa race) and #104
 (winding courses; Europa's look and grip). Their new texts now move like the others:
 - `src/data/rallyTracks.ts`: the `conamara` track's 4 texts go to `rallyTracks.*`;
 - `src/data/surfaces.ts`: the `conamara` site's name and note go to `surfaceSites.*`; the file keeps `main`'s wider `SITES`
   type and `siteDef` spreading the site's `look`.
 
-## Checks on `pr/l10n-3`
+## Checks on the branch, before the merge
+
+On `main` at `7cb4dda`, after the merge, `tsc` and `vite build` pass, the missing-English check in its strict mode
+finds nothing and the leftover check finds only the 8 places left out on purpose. The rest of this section is the
+branch as it was offered.
 
 - `tsc` and `vite build` pass.
 - Our missing-English check finds nothing in its strict mode: no Japanese word, punctuation or symbol shown without an
@@ -117,14 +125,12 @@ remain.
   - The check cannot see a change in digits only, such as a date format. Its scenes do not reach the quiz questions
     whose answer is Earth, the SF destinations or the rally rovers' colours.
 
-## How changes to `main` come in now
+## New texts on `main` from now on
 
-`main` is merged into `pr/l10n-3` as usual. A conflict appears only where `main` changes a place that this branch also changes; at the last merge that was the two files above. Texts added to `main` in the new form need nothing from us. If a new table holding both languages appears on `main`, `l10n-leftovers.mjs` on the merged branch lists it; a new `t()` call no longer compiles there, because `lang.ts` on this branch has no `t()`; nor does a new rally track,
-landing site, title or rally colour until its texts are in `src/i18n/`. `l10n-check` on `main` shows only a text that has no English; on this branch the game's console shows that text on every
-load too.
-
-`main` at `a41f635` (#106) is newer than this branch. It merges into the branch without a conflict, and `tsc` passes on
-the result (checked 2026-11-06).
+Texts added in the new form need nothing more. If a new table holding both languages appears, `l10n-leftovers.mjs`
+lists it; a new `t()` call does not compile, because `lang.ts` has no `t()`; nor does a new rally track, landing site,
+title or rally colour until its texts are in `src/i18n/`. A text that has no English is shown by `l10n-check`, and the
+game's console shows it on every load.
 
 ## Open
 
@@ -140,7 +146,7 @@ the result (checked 2026-11-06).
 
 ## Left out on purpose
 
-On `pr/l10n-3` these stay outside `src/i18n/` on purpose and need no work. The three marked "allowed" are the 8 places
+On `main` these stay outside `src/i18n/` on purpose and need no work. The three marked "allowed" are the 8 places
 that the leftover check allows:
 
 - words painted into textures;

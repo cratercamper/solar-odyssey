@@ -5,16 +5,11 @@ import { samplesFor, type RockSample } from './rockSamples'
 import { SURFACES } from './surfaces'
 
 export type RockGroup = {
+  /** 先頭の天体。名前は src/i18n/rockGroups（id があれば）か、その天体の名前 */
   id: string
-  name: [string, string]
   /** この岩が採れる天体 */
   bodies: string[]
   samples: RockSample[]
-}
-
-const NAMES: Record<string, [string, string]> = {
-  europa: ['氷の衛星・冥王星', 'Icy moons & Pluto'],
-  phobos: ['そのほかの岩の天体', 'Other rocky worlds'],
 }
 
 /** 先に並べる天体（火星はこのアプリの目玉なので最初に） */
@@ -29,7 +24,7 @@ function build(): RockGroup[] {
   const groups: RockGroup[] = []
   for (const [samples, bodies] of byList) {
     const lead = bodies.includes('europa') ? 'europa' : bodies.includes('phobos') ? 'phobos' : bodies[0]
-    groups.push({ id: lead, name: NAMES[lead] ?? ['', ''], bodies, samples })
+    groups.push({ id: lead, bodies, samples })
   }
   const rank = (g: RockGroup) => (ORDER.includes(g.id) ? ORDER.indexOf(g.id) : ORDER.length)
   return groups.sort((a, b) => rank(a) - rank(b))

@@ -13,16 +13,17 @@ the original game fixes one of these bugs, its entry is removed, and bugs found 
 Already fixed in the original game, and so not listed: the rival rovers that jumped back when the quality level
 changed, and "Best so far: 1 stars" (both in #106, `a41f635`).
 
-Checked against the original game's `main` at commit `a41f635` (#106). File and line references are to that commit.
+Checked against the original game's `main` at commit `7cb4dda` (#107). File and line references are to that commit.
 The diff below applies to it with `git apply`, and with it applied `tsc --noEmit` passes. Comments in the suggested
 code are in Japanese, like the rest of the game's code.
 
 The checks were run in Chromium (on the GPU) at `d0ef578`, the commit before #106, and showed what their entries say;
-the change in the sound entry did what it says there. #106 changed `Rally.tsx` only where the rivals are rebuilt. The
-race clock check runs in the browser's console with `#debug` in the address, for example `http://localhost:5173/#debug`
-on the dev server (`npm run dev`): when the page loads with it, `src/main.tsx:10` loads `src/debugHooks.ts`, which puts
-the game's stores on `window.__sv` (adding `#debug` to a page already open does nothing until it is reloaded). The
-sound check imports a module from `/src/…`, so it needs the dev server.
+the change in the sound entry did what it says there. #106 changed `Rally.tsx` only where the rivals are rebuilt, and
+#107 changed none of the lines cited here (in `src/state/rally.ts` they moved down). The race clock check runs in the
+browser's console with `#debug` in the address, for example `http://localhost:5173/#debug` on the dev server
+(`npm run dev`): when the page loads with it, `src/main.tsx:10` loads `src/debugHooks.ts`, which puts the game's stores
+on `window.__sv` (adding `#debug` to a page already open does nothing until it is reloaded). The sound check imports a
+module from `/src/…`, so it needs the dev server.
 
 ## On a slow machine, race times are longer than the drive (intended?)
 
@@ -37,7 +38,7 @@ pulls ahead.
 **Where.** Each frame's step is capped at 0.05 s: `const dt = Math.min(rawDt, 0.05)`
 (`src/components/surface/Rally.tsx:730`; the player's rover the same, `src/components/surface/Rover.tsx:797`). The race
 time is wall time: `const now = rallyNow()` (`Rally.tsx:743`), `r.start = now` when the race starts (:750),
-`t = now - r.start` (:755), with `rallyNow = () => performance.now() / 1000` (`src/state/rally.ts:88`). `t` is the
+`t = now - r.start` (:755), with `rallyNow = () => performance.now() / 1000` (`src/state/rally.ts:99`). `t` is the
 split at each gate (:774), the time at which a rival finishes (:571, in `stepBots`, called at :789), the race panel's
 time (:817), and in
 `finish` (:822-838) the result, the best time and the hiscore entry. The ghost reads the race time from the same clock

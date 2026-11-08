@@ -4,19 +4,18 @@ import { EPOCH_MS } from '../data/ephemeris'
 import { closeEclipses, eclipseClock, eclipseNow, eclipseStage, playEclipse, seekEclipse, toggleEclipsePlay, useEclipse } from '../state/eclipse'
 import { useStore } from '../state/store'
 import { raceActive, useRace } from '../state/race'
-import { getLang, useLang } from '../i18n/lang'
+import { useLang } from '../i18n/lang'
 import { ui } from '../i18n'
 
 const HOUR_MS = 3_600_000
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const pad = (n: number) => String(n).padStart(2, '0')
 
-/** 日本語は日本時間、英語は世界時（UTC）で読む */
-const zoned = (ms: number) => new Date(ms + (getLang() === 'en' ? 0 : 9 * HOUR_MS))
+/** 言語の時間帯で読む（日本語は日本時間、英語は世界時（UTC）：eclipsePanel.utcOffsetHours） */
+const zoned = (ms: number) => new Date(ms + ui().eclipsePanel.utcOffsetHours * HOUR_MS)
 
 function dayText(ms: number) {
   const d = zoned(ms)
-  return ui().eclipsePanel.date(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), MONTHS[d.getUTCMonth()])
+  return ui().eclipsePanel.date(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())
 }
 
 function clockText(ms: number) {

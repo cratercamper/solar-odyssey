@@ -1,9 +1,9 @@
-import type { compareItemsJa } from './compareItems.ja'
+import type { CompareItemsJa } from './compareItems.ja'
 import type { Translation } from './translation'
 
 // The texts of data/shipParts.ts (English). Same keys as compareItems.ja.ts
 
-export const compareItemsEn: Translation<typeof compareItemsJa> = {
+export const compareItemsEn: Translation<CompareItemsJa> = {
   skytree: { name: 'Tokyo Skytree', note: '634 m tall, laid on its side' },
   iss: { name: 'International Space Station', note: 'the biggest structure in space where people live' },
   jet: { name: 'Jumbo jet', note: 'Boeing 747' },

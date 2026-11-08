@@ -1,6 +1,6 @@
 import { useEffect, type CSSProperties } from 'react'
 import * as THREE from 'three'
-import { NATURAL, STAMP_GROUPS, STAMP_IDS, TITLES, stampColor, titleProgress } from '../data/stamps'
+import { NATURAL, STAMP_GROUPS, STAMP_IDS, TITLES, stampColor, titleProgress, titleText } from '../data/stamps'
 import { CUBE_ID } from '../data/cube'
 import { useSF } from '../data/sf'
 import { closeStamps, collectStamp, useStamps } from '../state/stamps'
@@ -8,21 +8,18 @@ import { nearRange } from '../state/proximity'
 import { ship } from '../state/flight'
 import { bodies } from '../state/registry'
 import { useStore } from '../state/store'
-import { getLang, t, useLang } from '../i18n/lang'
+import { useLang } from '../i18n/lang'
 import { ui } from '../i18n'
 
 /** スタンプの傾き（天体ごとに決まった、少しずつちがう角度） */
 const tilt = (id: string) => ([...id].reduce((h, c) => h * 31 + c.charCodeAt(0), 7) % 15) - 7
 
-const shortDate = (ms: number) => {
-  const d = new Date(ms)
-  return getLang() === 'en' ? `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear() % 100}` : `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`
-}
+const shortDate = (ms: number) => ui().stampBook.shortDate(new Date(ms))
 
 function Stamp({ id, at, star }: { id: string; at: number | undefined; star: boolean }) {
   const got = at !== undefined
   const secret = id === CUBE_ID && !got
-  const name = secret ? '？？？' : (bodies.get(id)?.name ?? id)
+  const name = secret ? ui().stampBook.secret : (bodies.get(id)?.name ?? id)
   const style = { '--c': stampColor(id), '--r': `${tilt(id)}deg` } as CSSProperties
   return (
     <button
@@ -95,7 +92,7 @@ export function StampBook() {
       <div className="stamp-summary">
         <div>
           {ui().stampBook.currentTitle}
-          <strong>{current ? t(current.name, current.nameEn) : ui().stampBook.noneYet}</strong>
+          <strong>{current ? titleText(current).name : ui().stampBook.noneYet}</strong>
         </div>
         <div className="muted">
           {ui().stampBook.stamps} {count}/{NATURAL.length} · {ui().stampBook.quizzes} {answered}/{NATURAL.length} · {ui().stampBook.titles} {shownTitles.filter((title) => titles.includes(title.id)).length}/{shownTitles.length}
@@ -106,7 +103,7 @@ export function StampBook() {
       </p>
       {groups.map((g) => (
         <div key={g.id} className="stamp-group">
-          <h3>{t(g.name, g.nameEn)}</h3>
+          <h3>{g.name()}</h3>
           <div className="stamp-grid">
             {g.ids.map((id) => (
               <Stamp key={id} id={id} at={stamps[id]} star={explored.includes(id)} />
@@ -123,8 +120,8 @@ export function StampBook() {
             <li key={title.id} className={got ? 'got' : ''}>
               <span className="medal" aria-hidden />
               <span className="title-text">
-                <strong>{title.secret && !got ? '？？？' : t(title.name, title.nameEn)}</strong>
-                <span className="muted small">{t(title.how, title.howEn)}</span>
+                <strong>{title.secret && !got ? ui().stampBook.secret : titleText(title).name}</strong>
+                <span className="muted small">{titleText(title).how(title.count)}</span>
               </span>
               <span className="title-count">{got ? ui().stampBook.done : `${have}/${need}`}</span>
             </li>

@@ -58,4 +58,6 @@ export const consolesJa = {
   timeRate: '時間の速さ',
   timeStopped: '停止',
   lift: '昇降機',
+  /** 数字の書き方（toLocaleString の言語） */
+  numberLocale: 'ja-JP',
 }

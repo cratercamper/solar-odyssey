@@ -14,7 +14,7 @@ export const rallyPanelJa = {
   gateOfGates: (gate: number, gates: number) => `門 ${gate}/${gates}`,
   finishSplit: 'ゴール！',
   gateSplit: (gate: number) => `門 ${gate}`,
-  caughtRover: (nameJa: string, _nameEn: string) => `${nameJa}をつかまえた！`,
+  caughtRover: (name: string) => `${name}をつかまえた！`,
   missedGate: '門を通っていません',
   missedGateHint: '矢印の門へもどるか、R（もどる）で直前の門へ',
   caughtAll: '3台ぜんぶつかまえた！🏆',

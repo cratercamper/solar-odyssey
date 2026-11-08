@@ -26,7 +26,7 @@ export const surfaceViewJa = {
   recall: '回収',
   raceTrackTip: 'レース場へ。着いたらすぐローバーで走れます',
   backToShip: '母船に戻る',
-  siteSuffix: (siteJa: string, _siteEn: string) => `・${siteJa}`,
+  siteSuffix: (site: string) => `・${site}`,
   descendingTo: (name: string) => `${name}へ降下中…`,
   skip: 'スキップ',
   liftOff: '離陸！母船へもどります',
@@ -41,7 +41,13 @@ export const surfaceViewJa = {
   viewLander: '着陸船を眺める',
   standAndLook: '地面に立って見回す',
   deployRover: 'ローバーを出す',
-  toRaceTrack: (trackJa: string, _trackEn: string) => `${trackJa}場へ`,
+  /** 運転中のボタン（track：レース場のボタンの名前） */
+  raceButton: (track: string) => `${track}へ`,
+  toRaceTrack: (track: string) => `${track}場へ`,
   takeOff: '離陸する',
   toApollo17: 'アポロ17号の跡地へ',
+  /** 気温（最低と最高が同じとき） */
+  temp: (t: number) => `${t}℃`,
+  /** 気温の幅 */
+  tempRange: (min: number, max: number) => `${min}〜${max}℃`,
 }

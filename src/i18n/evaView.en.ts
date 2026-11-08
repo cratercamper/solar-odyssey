@@ -32,8 +32,8 @@ export const evaViewEn: Translation<typeof evaViewJa> = {
   reelingIn: 'Reeling in the tether and heading back inside',
   keysHint: 'WASD move · R/F up/down · drag or arrows to turn · Z/C roll · X brake · E use tool · 1–5 tools · V view',
   swappingTools: 'Swapping tools…',
-  workingWithTool: (_toolName: string, toolName2: string) => `Working with the ${toolName2}`,
-  useTool: (_toolName: string, toolName2: string) => `Use the ${toolName2}`,
+  workingWithTool: (toolName: string) => `Working with the ${toolName.toLowerCase()}`,
+  useTool: (toolName: string) => `Use the ${toolName.toLowerCase()}`,
   tetherFull: 'The tether is at full length',
   tetherRange: (TETHER_M: number) => `Tsumugi can go up to ${TETHER_M} m from the airlock`,
   outOfGas: 'Out of gas — thrust is weak',
@@ -45,4 +45,6 @@ export const evaViewEn: Translation<typeof evaViewJa> = {
   autoBrakeOn: 'Auto-brake ON',
   autoBrakeOff: 'Auto-brake OFF',
   recall: 'Recall and go back aboard',
+  pendingMark: '•',
+  sep: ' · ',
 }

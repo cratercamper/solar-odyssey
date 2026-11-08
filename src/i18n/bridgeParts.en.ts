@@ -1,9 +1,9 @@
-import type { bridgePartsJa } from './bridgeParts.ja'
+import type { BridgePartsJa } from './bridgeParts.ja'
 import type { Translation } from './translation'
 
 // The texts of data/bridgeParts.ts (English). Same keys as bridgeParts.ja.ts
 
-export const bridgePartsEn: Translation<typeof bridgePartsJa> = {
+export const bridgePartsEn: Translation<BridgePartsJa> = {
   captain: {
     name: 'Captain’s chair',
     text: 'The seat of the person who decides where the ship goes. It sits in the lower middle of the room, with a clear view of the window and every other station. The armrests have small control panels.',

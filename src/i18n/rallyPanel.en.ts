@@ -17,7 +17,7 @@ export const rallyPanelEn: Translation<typeof rallyPanelJa> = {
   gateOfGates: (gate: number, gates: number) => `Gate ${gate}/${gates}`,
   finishSplit: 'Finish!',
   gateSplit: (gate: number) => `Gate ${gate}`,
-  caughtRover: (_nameJa: string, nameEn: string) => `Caught ${nameEn}!`,
+  caughtRover: (name: string) => `Caught ${name}!`,
   missedGate: 'You missed a gate',
   missedGateHint: 'Head back to the arrowed gate, or press R (Back) to return to the last gate',
   caughtAll: 'You caught all three! 🏆',

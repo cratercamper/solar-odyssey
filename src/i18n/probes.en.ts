@@ -1,9 +1,9 @@
-import type { probesJa } from './probes.ja'
+import type { ProbesJa } from './probes.ja'
 import type { Translation } from './translation'
 
 // The texts of data/probes.ts (English). Same keys as probes.ja.ts
 
-export const probesEn: Translation<typeof probesJa> = {
+export const probesEn: Translation<ProbesJa> = {
   voyager2: {
     name: 'Voyager 2',
     summary: 'The only probe to visit Jupiter, Saturn, Uranus and Neptune',

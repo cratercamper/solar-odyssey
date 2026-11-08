@@ -1,6 +1,6 @@
 # Localization tools
 
-The scripts that check the game's texts, the ones that moved them into `src/i18n/` (PR #100 and the branch `pr/l10n-3`), their tables
+The scripts that check the game's texts, the ones that moved them into `src/i18n/` (pull requests #100 and #107), their tables
 (`data/`) and the checks made of the conversion (`checks/`). They need Node ≥ 23.6 on `PATH` and a checkout with
 `src/`, `index.html` and `node_modules/`. Some need more:
 - `l10n-regen.sh` and `l10n-convert-verify.mjs` need `git` (on `PATH`, or named by `L10N_GIT`);
@@ -45,7 +45,7 @@ not resolve is an error, never a silent skip. The scripts each language may use 
 `l10n-check.mjs`; a new language is one more line there. An optional `l10n-check.env` beside the wrapper is read
 first, for one machine's `PATH` and default tree (`L10N_TREE`).
 
-## The conversion (PR #100 and `pr/l10n-3`)
+## The conversion (PR #100 and #107)
 
 With `--write`, each step rewrites `<tree>/src` and runs `tsc`, stopping on any error; without it, nothing is written.
 
@@ -55,14 +55,14 @@ With `--write`, each step rewrites `<tree>/src` and runs `tsc`, stopping on any 
 | A, checked | `node l10n-convert-verify.mjs <tree> <base-rev>` | each catalog text, with the call's values put back, equals the old `t()` argument |
 | B | `node l10n-move.mjs <tree> [--write]` | moves whole tables (the ship's log, the SF tables) into `src/i18n/` unchanged and fixes the imports |
 | C | `node l10n-records.mjs <tree> [--write]` | the data records give up their text fields; the texts go to `src/i18n/`, keyed by record id; the readers are rewritten from a counted edit table |
-| D | by hand | what the scripts could not move: the time bar's tables, the rock groups and composition words, the Apollo 17 compass, the stamp pages and titles, the quiz questions, the rally colours, the dates and number words, the punctuation that differs between the languages, the list joins (`ui().list`), and the removal of `t()`. On the fork's branch `pr/l10n-3` these are the commits of `git log --no-merges --first-parent 1ad4f0b..pr/l10n-3` whose subject does not end in "(made by the script)": 28 of its 32, four of them README-only. Besides the moves above, they check each record's ids against its texts and the English missions by id, join with "or" in a list, work out the tool name's case and the lux units in the texts, let a missing text log an error instead of stopping the game (the `byId(…)` mark on the record catalogs; missing English logged on every load), put "the" before names inside an English sentence, fix the quiz's English when Earth is the answer and the rock book's two hints, and check the news texts by key. `l10n-records.mjs` still writes `= texts`, without the mark |
-| last | `node l10n-leftovers.mjs <tree>` | lists every place outside `src/i18n/` that still holds or picks both languages; exit 1 when that differs from the allowlist, which is the tree after step D (`pr/l10n-3`) |
+| D | by hand | what the scripts could not move: the time bar's tables, the rock groups and composition words, the Apollo 17 compass, the stamp pages and titles, the quiz questions, the rally colours, the dates and number words, the punctuation that differs between the languages, the list joins (`ui().list`), and the removal of `t()`. In #107 these are the commits of `git log --no-merges --first-parent 1ad4f0b..e7ba662` (`e7ba662` is that pull request's last commit) whose subject does not end in "(made by the script)": 28 of its 32, four of them README-only. Besides the moves above, they check each record's ids against its texts and the English missions by id, join with "or" in a list, work out the tool name's case and the lux units in the texts, let a missing text log an error instead of stopping the game (the `byId(…)` mark on the record catalogs; missing English logged on every load), put "the" before names inside an English sentence, fix the quiz's English when Earth is the answer and the rock book's two hints, and check the news texts by key. `l10n-records.mjs` still writes `= texts`, without the mark |
+| last | `node l10n-leftovers.mjs <tree>` | lists every place outside `src/i18n/` that still holds or picks both languages; exit 1 when that differs from the allowlist, which is the tree after step D (`e7ba662`) |
 | all | `./l10n-regen.sh <tree>` | resets `src/`, runs A, its check, B and C, stopping at the first failure. With `L10N_STEPD=<dir>` it then replays step D from that folder's `*.patch` files (`git format-patch` of those commits; none are included here) 3-way, and runs the leftover check |
 
 The tables these steps read are in `data/`: `keys.json` (the key of every text), `moves.json`, `records.json` and
-`leftovers.json`. Each script takes another file with its flag (`--keys`, `--moves`, `--spec`, `--allow`). Since PR #100
-was merged, `main` holds its part of the conversion and `pr/l10n-3` the rest: the records step C took on later (the
-landing notes and sites, the rally tracks), its id-checked form and type names, and step D. The steps are kept as the
+`leftovers.json`. Each script takes another file with its flag (`--keys`, `--moves`, `--spec`, `--allow`). PR #100
+brought its part of the conversion to `main`, and #107 (merged as `7cb4dda`) the rest: the records step C took on
+later (the landing notes and sites, the rally tracks), its id-checked form and type names, and step D. The steps are kept as the
 record of how it was made, and to be run again.
 
 ## Checks of the conversion (`checks/`)

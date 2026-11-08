@@ -1,9 +1,9 @@
-import type { shipsJa } from './ships.ja'
+import type { ShipsJa } from './ships.ja'
 import type { Translation } from './translation'
 
 // The texts of data/ships.ts, data/shipParts.ts (English). Same keys as ships.ja.ts
 
-export const shipsEn: Translation<typeof shipsJa> = {
+export const shipsEn: Translation<ShipsJa> = {
   sv01: {
     name: 'Solar Voyager',
     kind: 'Survey vessel',

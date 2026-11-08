@@ -1,12 +1,16 @@
 import type { rockBookJa } from './rockBook.ja'
 import type { Translation } from './translation'
+import { theEn } from './article'
+import { listEn } from './list'
 
 // The texts of ui/RockBook.tsx (English). Same keys as rockBook.ja.ts
 
 export const rockBookEn: Translation<typeof rockBookJa> = {
-  landerHint: (where: string) => `Land on ${where} and look for the rocks marked by light beams with the rover.`,
-  spotsHint: (where: string, spots: string[]) => `Try the ${spots.join(', ')} on ${where}. Drive to the ◆ on the minimap.`,
+  landerHint: (where: string) => `Land on ${theEn(where)} and look for the rocks marked by light beams with the rover.`,
+  // The spots are place labels ("Large crater"), so they go in quotes, as the Japanese puts them in 「」
+  spotsHint: (where: string, spots: string[]) => `Try ${listEn(spots.map((s) => `“${s}”`))} on ${theEn(where)}. Drive to the ◆ on the minimap.`,
   back: 'Back',
+  unknownName: '???',
   foundOn: 'Found on: ',
   notFoundYet: 'Not found yet. ',
   rockCollection: 'Rock collection',

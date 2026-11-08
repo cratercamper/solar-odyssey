@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { t, useLang } from '../../i18n/lang'
+import { useLang } from '../../i18n/lang'
 import { COUNT_SEC, RALLY_COLORS, loadBest, quitRally, rallyNow, setRallyColor, startRally, useRally } from '../../state/rally'
 import { roverInput } from '../../state/rover'
 import { TRACKS } from '../../data/rallyTracks'
@@ -15,20 +15,21 @@ export const fmtTime = (s: number) => {
   return `${m}:${r < 10 ? '0' : ''}${r.toFixed(1)}`
 }
 
-const colorName = (i: number) => t(RALLY_COLORS[i].ja, RALLY_COLORS[i].en)
+const colorName = (i: number) => ui().rallyColors[RALLY_COLORS[i].id].color
+/** コンピューターが運転するときの名前 */
+const driverName = (i: number) => ui().rallyColors[RALLY_COLORS[i].id].name
 
 /** スタート前のカード：色をえらぶ・自己ベスト・スタート */
 export function RallyStart({ track, compact = false }: { track: string; compact?: boolean }) {
   useLang()
-  const tr = TRACKS[track]
   const color = useRally((r) => r.color)
   const best = loadBest()
   return (
     <div className={`rally-start${compact ? ' compact' : ''}`}>
-      <div className="rally-title">🏁 {t(tr.title[0], tr.title[1])}</div>
+      <div className="rally-title">🏁 {ui().rallyTracks[track].title}</div>
       {!compact && (
         <p>
-          {t(tr.intro[0], tr.intro[1])}
+          {ui().rallyTracks[track].intro}
         </p>
       )}
       <div className="rally-colors" role="radiogroup" aria-label={ui().rallyPanel.roverColour}>
@@ -149,7 +150,7 @@ export function RallyPanel() {
       )}
       {phase === 'run' && chase && chase.last >= 0 && now - chase.at < 2.5 && (
         <div className="rally-count chase-caught" style={{ ['--c' as string]: RALLY_COLORS[chase.last].hex }}>
-          {ui().rallyPanel.caughtRover(RALLY_COLORS[chase.last].name[0], RALLY_COLORS[chase.last].name[1])}
+          {ui().rallyPanel.caughtRover(driverName(chase.last))}
         </div>
       )}
       {phase === 'run' && lost && (
@@ -180,7 +181,7 @@ export function RallyPanel() {
                   return (
                     <li key={e.color} className={got ? 'got' : ''} style={{ ['--c' as string]: RALLY_COLORS[e.color].hex }}>
                       <span className="dot" />
-                      {t(RALLY_COLORS[e.color].name[0], RALLY_COLORS[e.color].name[1])}
+                      {driverName(e.color)}
                       <span className="t">{got ? ui().rallyPanel.caught : ui().rallyPanel.gotAway}</span>
                     </li>
                   )
@@ -192,7 +193,7 @@ export function RallyPanel() {
               <li key={e.color} className={e.you ? 'you' : ''} style={{ ['--c' as string]: RALLY_COLORS[e.color].hex }}>
                 <span className="n">{i + 1}.</span>
                 <span className="dot" />
-                {e.you ? ui().rallyPanel.you : t(RALLY_COLORS[e.color].name[0], RALLY_COLORS[e.color].name[1])}
+                {e.you ? ui().rallyPanel.you : driverName(e.color)}
                 <span className="t">{e.time !== null ? fmtTime(e.time) : '—'}</span>
               </li>
             ))}

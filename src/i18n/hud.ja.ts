@@ -33,4 +33,6 @@ export const hudJa = {
   lookThrough: (scopeNear: string) => `${scopeNear}でのぞく`,
   warpFactor: (warpFactor: number) => `ワープ${warpFactor}`,
   destination: (name: string) => `${name}へ`,
+  /** 大きな数の読み方（roughly）：null ならこの大きさは数字のまま */
+  bigNumber: (n: number) => (n >= 1e8 ? `${(n / 1e8).toPrecision(2)}億` : n >= 1e4 ? `${Math.round(n / 1e4).toLocaleString()}万` : null),
 }

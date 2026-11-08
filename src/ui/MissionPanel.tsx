@@ -86,7 +86,7 @@ function ChapterList() {
                   </span>
                   <span className="mission-name">{text.title}</span>
                   <span className="muted small">
-                    {t.skill}：{text.skill}　★ {got} / {max}
+                    {t.labelled(t.skill, text.skill)}{t.gap}★ {got} / {max}
                   </span>
                 </span>
               </button>
@@ -120,7 +120,7 @@ function ShipSkill({ chapter, ship = chapter.ship }: { chapter: ChapterDef; ship
       <div>
         <div className="muted small">{chapter.fleet ? t.shipForMission(shipLabel(shipSpec(ship))) : t.shipForChapter(shipLabel(shipSpec(ship)))}</div>
         <div>
-          <b>{t.skill}：{text.skill}</b>
+          <b>{t.labelled(t.skill, text.skill)}</b>
         </div>
         <div className="muted small">{text.how}</div>
       </div>
@@ -172,7 +172,7 @@ function Briefing() {
   const t = ui()
   return (
     <>
-      <Header title={`${t.missionNumber(k + 1)}　${text.title}`} />
+      <Header title={`${t.missionNumber(k + 1)}${t.gap}${text.title}`} />
       <div className="muted small">{t.client(text.client)}</div>
       <div className="mission-comm">
         <b>{t.navi}</b>

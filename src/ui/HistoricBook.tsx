@@ -7,15 +7,12 @@ import { HistoricPhoto } from './HistoricPhoto'
 
 // アポロ17号の史跡ずかん：タウルス・リットロウ谷で訪ねた場所の話。まだの場所は ？？？ と、着陸船からの向きと距離だけ
 
-const DIRS_JA = ['北', '北東', '東', '南東', '南', '南西', '西', '北西']
-const DIRS_EN = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest']
-
 /** 着陸地点（レース場のスタート）からの向きと距離 */
 function where(it: Historic) {
   const d = Math.hypot(it.x, it.z)
   const k = Math.round(((Math.atan2(it.x, -it.z) * 180) / Math.PI + 360) / 45) % 8
   const dist = d >= 1000 ? `${(d / 1000).toFixed(1)} km` : `${Math.round(d / 10) * 10} m`
-  return ui().historicBook.fromLandingSpot(DIRS_JA[k], dist, DIRS_EN[k])
+  return ui().historicBook.fromLandingSpot(ui().historicBook.directions[k], dist)
 }
 
 function Detail({ it, got }: { it: Historic; got: boolean }) {
@@ -25,9 +22,9 @@ function Detail({ it, got }: { it: Historic; got: boolean }) {
         ◀ {ui().historicBook.back}
       </button>
       <div className="historic-detail">
-        <span className="historic-icon big">{got ? it.icon : '？'}</span>
+        <span className="historic-icon big">{got ? it.icon : ui().historicBook.unknownIcon}</span>
         <div className="rock-text">
-          <h3>{got ? ui().apollo17[it.id].name : '？？？'}</h3>
+          <h3>{got ? ui().apollo17[it.id].name : ui().historicBook.unknownName}</h3>
           {got ? (
             <>
               <p className="historic-when">{ui().apollo17[it.id].when}</p>
@@ -89,8 +86,8 @@ export function HistoricBook() {
               const got = found.includes(x.id)
               return (
                 <button key={x.id} className={`rock-card historic-item${got ? ' got' : ''}`} onClick={() => useHistoric.setState({ sel: x.id })}>
-                  <span className="historic-icon">{got ? x.icon : '？'}</span>
-                  <span className="rock-name">{got ? ui().apollo17[x.id].name : x.no ? ui().historicBook.station(x.no) : '？？？'}</span>
+                  <span className="historic-icon">{got ? x.icon : ui().historicBook.unknownIcon}</span>
+                  <span className="rock-name">{got ? ui().apollo17[x.id].name : x.no ? ui().historicBook.station(x.no) : ui().historicBook.unknownName}</span>
                 </button>
               )
             })}

@@ -5,7 +5,7 @@ import { PLANETS } from '../data/bodies'
 import { nearLander, spotsOf } from '../data/rockSpots'
 import { useSampleLog } from '../state/rover'
 import { closeRocks, useRockBook } from '../state/rockBook'
-import { getLang, t, useLang } from '../i18n/lang'
+import { useLang } from '../i18n/lang'
 import { ui } from '../i18n'
 
 function bodyName(id: string) {
@@ -17,7 +17,7 @@ function bodyName(id: string) {
   return id
 }
 
-const groupName = (g: RockGroup) => (g.name[0] ? t(g.name[0], g.name[1]) : bodyName(g.id))
+const groupName = (g: RockGroup) => ui().rockGroups[g.id] ?? bodyName(g.id)
 
 function RockCard({ g, k, found }: { g: RockGroup; k: RockSample; found: boolean }) {
   return (
@@ -26,7 +26,7 @@ function RockCard({ g, k, found }: { g: RockGroup; k: RockSample; found: boolean
         <img src={rockImage(k.id)} alt="" loading="lazy" draggable={false} />
         {!found && <span className="rock-q">?</span>}
       </span>
-      <span className="rock-name">{found ? ui().rockSamples[k.id].name : '？？？'}</span>
+      <span className="rock-name">{found ? ui().rockSamples[k.id].name : ui().rockBook.unknownName}</span>
     </button>
   )
 }
@@ -35,7 +35,8 @@ function RockDetail({ g, k }: { g: RockGroup; k: RockSample }) {
   const log = useSampleLog((l) => l.log)
   const at = foundAt(g, k.id, log)
   const found = at.length > 0
-  const where = g.bodies.length > 3 ? groupName(g) : g.bodies.map(bodyName).join('・')
+  // 着陸するのはどれか一つ。天体の多いページは、まとめた言い方（なければページの名前）
+  const where = g.bodies.length > 3 ? (ui().rockGroupsWhere[g.id] ?? groupName(g)) : ui().listOr(g.bodies.map(bodyName))
   // どこで採れるか：着陸地点のまわりか、見どころ（名前がかぶるものは 1 つに）
   const atLander = g.bodies.some((b) => nearLander(b, k.id))
   const spots = [...new Set(g.bodies.flatMap((b) => spotsOf(b, k.id).map((p) => ui().pois[p.id].name)))].slice(0, 3)
@@ -54,14 +55,14 @@ function RockDetail({ g, k }: { g: RockGroup; k: RockSample }) {
           {!found && <span className="rock-q">?</span>}
         </span>
         <div className="rock-text">
-          <h3>{found ? ui().rockSamples[k.id].name : '？？？'}</h3>
+          <h3>{found ? ui().rockSamples[k.id].name : ui().rockBook.unknownName}</h3>
           {found ? (
             <>
               <p>{ui().rockSamples[k.id].note}</p>
               <div className="sample-comp">
                 {k.comp.map(([label, v]) => (
                   <div className="sample-bar" key={label}>
-                    <span className="sb-k">{compLabel(label, getLang())}</span>
+                    <span className="sb-k">{compLabel(label)}</span>
                     <span className="sb-track">
                       <span className="sb-fill" style={{ width: `${(v / max) * 100}%` }} />
                     </span>
@@ -71,7 +72,7 @@ function RockDetail({ g, k }: { g: RockGroup; k: RockSample }) {
               </div>
               <p className="muted small">
                 {ui().rockBook.foundOn}
-                {at.map(bodyName).join('・')}
+                {ui().list(at.map(bodyName))}
               </p>
             </>
           ) : (

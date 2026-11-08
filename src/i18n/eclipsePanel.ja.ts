@@ -1,8 +1,10 @@
 // ui/EclipsePanel.tsx の文言（日本語）
 
 export const eclipsePanelJa = {
-  date: (d: number, d2: number, d3: number, _month: string) => `${d}年${d2}月${d3}日`,
+  date: (year: number, month: number, day: number) => `${year}年${month}月${day}日`,
   dateTime: (ms: string, time: string) => `${ms} ${time}（日本時間）`,
+  /** 日付と時刻を読む時間帯（世界時から何時間進んでいるか）：dateTime の書き方と合わせる */
+  utcOffsetHours: 9,
   totalSolarEclipse: '皆既日食',
   annularSolarEclipse: '金環日食',
   partialSolarEclipse: '部分日食',

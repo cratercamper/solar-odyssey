@@ -1,9 +1,9 @@
-import type { eclipsesJa } from './eclipses.ja'
+import type { EclipsesJa } from './eclipses.ja'
 import type { Translation } from './translation'
 
 // The texts of data/eclipses.ts (English). Same keys as eclipses.ja.ts
 
-export const eclipsesEn: Translation<typeof eclipsesJa> = {
+export const eclipsesEn: Translation<EclipsesJa> = {
   'solar-2024-04': {
     where: 'Mexico, the United States and Canada',
     note: 'A total eclipse that crossed North America. Tens of millions of people watched it.',

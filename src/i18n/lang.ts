@@ -1,6 +1,6 @@
 import { useStore } from '../state/store'
 
-// 日本語と英語の切り替え。文は使う場所で t('日本語', 'English') のように両方書き、表示するときに選ぶ。
+// 日本語と英語の切り替え。文言は src/i18n/ の言語ごとのファイルにあり、ui() などが今の言語のものを読む（index.ts）。
 // 言語は設定（settings.lang）に保存する。選ぶ前は日本語
 
 export type Lang = 'ja' | 'en'
@@ -9,12 +9,6 @@ export const getLang = (): Lang => useStore.getState().settings.lang ?? 'ja'
 
 /** 言語が変わったら描き直す（コンポーネントの最初で呼ぶ） */
 export const useLang = (): Lang => useStore((s) => s.settings.lang ?? 'ja')
-
-/** 今の言語の文を選ぶ */
-export const t = (ja: string, en: string) => (getLang() === 'en' ? en : ja)
-
-/** 天体などの名前（name と nameEn を持つもの） */
-export const named = (b: { name: string; nameEn: string }) => t(b.name, b.nameEn)
 
 export function setLang(lang: Lang) {
   useStore.getState().updateSettings({ lang })

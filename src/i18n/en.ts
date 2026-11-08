@@ -1,5 +1,6 @@
 import type { ja } from './ja'
 import type { Translation } from './translation'
+import { listEn } from './list'
 import { approachEn } from './approach.en'
 import { beamGaugeEn } from './beamGauge.en'
 import { blackHoleEn } from './blackHole.en'
@@ -12,6 +13,7 @@ import { contextLostEn } from './contextLost.en'
 import { cubeEn } from './cube.en'
 import { deepSpaceEn } from './deepSpace.en'
 import { eclipsePanelEn } from './eclipsePanel.en'
+import { ephemerisEn } from './ephemeris.en'
 import { evaEn } from './eva.en'
 import { evaViewEn } from './evaView.en'
 import { exoplanetEn } from './exoplanet.en'
@@ -28,6 +30,7 @@ import { observePanelEn } from './observePanel.en'
 import { photoNoteEn } from './photoNote.en'
 import { probePanelEn } from './probePanel.en'
 import { probeSceneEn } from './probeScene.en'
+import { quizEn } from './quiz.en'
 import { quizPanelEn } from './quizPanel.en'
 import { raceEn } from './race.en'
 import { racePanelEn } from './racePanel.en'
@@ -48,6 +51,8 @@ import { sizeCompareEn } from './sizeCompare.en'
 import { spaceDockEn } from './spaceDock.en'
 import { stampBookEn } from './stampBook.en'
 import { stampsEn } from './stamps.en'
+import { stampGroupsEn } from './stampGroups.en'
+import { stampTitlesEn } from './stampTitles.en'
 import { stateLaunchEn } from './stateLaunch.en'
 import { sunEn } from './sun.en'
 import { surfaceViewEn } from './surfaceView.en'
@@ -59,6 +64,8 @@ import { touchBarEn } from './touchBar.en'
 import { newsEn } from './news.en'
 import { touchControlsEn } from './touchControls.en'
 import { apollo17En } from './apollo17.en'
+import { rockCompEn } from './rockComp.en'
+import { rockGroupsEn, rockGroupsWhereEn } from './rockGroups.en'
 import { bodiesEn } from './bodies.en'
 import { bridgePartsEn } from './bridgeParts.en'
 import { compareItemsEn } from './compareItems.en'
@@ -70,8 +77,13 @@ import { evaToolsEn } from './evaTools.en'
 import { phaserFactsEn } from './phaserFacts.en'
 import { poisEn } from './pois.en'
 import { probesEn } from './probes.en'
+import { rallyColorsEn } from './rallyColors.en'
+import { rallyTracksEn } from './rallyTracks.en'
 import { rockSamplesEn } from './rockSamples.en'
 import { shipsEn } from './ships.en'
+import { surfaceNotesEn } from './surfaceNotes.en'
+import { surfaceSitesEn } from './surfaceSites.en'
+import { surfaceSkyNotesEn } from './surfaceSkyNotes.en'
 
 // UI strings (English). Same keys as ja.ts; a key left out is shown in Japanese
 
@@ -110,6 +122,10 @@ export const en: Translation<typeof ja> = {
   chaptersIntro: 'You command a fleet. Pick a ship to start missions that use its special skill. Switch to SF mode to unlock the SF chapters.',
   chaptersIntroSF: 'You command a fleet. Pick a ship to start missions that use its special skill. The purple SF chapters take place among imaginary structures.',
   skill: 'Skill',
+  labelled: (label: string, value: string) => `${label}: ${value}`,
+  gap: ' · ',
+  list: listEn,
+  listOr: (items: readonly string[]) => listEn(items, 'or'),
   shipForChapter: (ship: string) => `In this chapter you fly the ${ship} (you switch ships when a mission starts)`,
   backToChapters: 'All chapters',
   chapterDone: 'You have completed every mission in this chapter! Try another ship’s chapter.',
@@ -133,7 +149,7 @@ export const en: Translation<typeof ja> = {
     near: 'Back off a little',
     hidden: 'Hidden behind another body',
     fast: 'Slow down',
-  } as Record<string, string>,
+  },
   approach: approachEn,
   beamGauge: beamGaugeEn,
   blackHole: blackHoleEn,
@@ -146,6 +162,7 @@ export const en: Translation<typeof ja> = {
   cube: cubeEn,
   deepSpace: deepSpaceEn,
   eclipsePanel: eclipsePanelEn,
+  ephemeris: ephemerisEn,
   eva: evaEn,
   evaView: evaViewEn,
   exoplanet: exoplanetEn,
@@ -162,6 +179,7 @@ export const en: Translation<typeof ja> = {
   photoNote: photoNoteEn,
   probePanel: probePanelEn,
   probeScene: probeSceneEn,
+  quiz: quizEn,
   quizPanel: quizPanelEn,
   race: raceEn,
   racePanel: racePanelEn,
@@ -182,6 +200,8 @@ export const en: Translation<typeof ja> = {
   spaceDock: spaceDockEn,
   stampBook: stampBookEn,
   stamps: stampsEn,
+  stampGroups: stampGroupsEn,
+  stampTitles: stampTitlesEn,
   stateLaunch: stateLaunchEn,
   sun: sunEn,
   surfaceView: surfaceViewEn,
@@ -204,6 +224,14 @@ export const en: Translation<typeof ja> = {
   phaserFacts: phaserFactsEn,
   pois: poisEn,
   probes: probesEn,
+  rallyColors: rallyColorsEn,
+  rallyTracks: rallyTracksEn,
   rockSamples: rockSamplesEn,
+  rockComp: rockCompEn,
+  rockGroups: rockGroupsEn,
+  rockGroupsWhere: rockGroupsWhereEn,
   ships: shipsEn,
+  surfaceNotes: surfaceNotesEn,
+  surfaceSites: surfaceSitesEn,
+  surfaceSkyNotes: surfaceSkyNotesEn,
 }

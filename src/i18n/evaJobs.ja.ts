@@ -1,8 +1,9 @@
-import type { JobDefText } from '../state/evaJobs'
+import type { JobText } from '../state/evaJobs'
+import { byId } from './translation'
 
 // state/evaJobs.ts の文言（日本語）
 
-export const evaJobsJa: Record<string, JobDefText> = {
+const texts = {
   hole: {
     name: '微小隕石の穴をふさぐ',
     note: '宇宙ステーションの外壁には、飛んでくる小さなちりを受け止める「ホイップル・シールド」という、すき間をあけて重ねた板が付いています。2021年には、ロボットアーム「カナダアーム2」に小さな穴が見つかりました（アームはそのまま使われ続けています）。',
@@ -43,4 +44,8 @@ export const evaJobsJa: Record<string, JobDefText> = {
       { text: '新しいセンサーを差し込む' },
     ],
   },
-}
+} satisfies Record<string, JobText>
+
+// 英語の evaJobs.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type EvaJobsJa = typeof texts
+export const evaJobsJa: Record<string, JobText> = byId(texts)

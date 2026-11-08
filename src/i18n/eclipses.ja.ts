@@ -1,8 +1,9 @@
 import type { EclipseText } from '../data/eclipses'
+import { byId } from './translation'
 
 // data/eclipses.ts の文言（日本語）
 
-export const eclipsesJa: Record<string, EclipseText> = {
+const texts = {
   'solar-2024-04': { where: 'メキシコ・アメリカ・カナダ', note: '北アメリカを縦断した皆既日食。何千万人もの人が見ました。' },
   'lunar-2025-09': {
     where: '日本（9月8日の未明）・アジア・ヨーロッパ・アフリカ・オーストラリア',
@@ -44,4 +45,8 @@ export const eclipsesJa: Record<string, EclipseText> = {
     where: '中国・朝鮮半島・日本（北陸・関東の北など）',
     note: '日本の本州で見られる皆既日食。本州では1887年以来、148年ぶりです。',
   },
-}
+} satisfies Record<string, EclipseText>
+
+// 英語の eclipses.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type EclipsesJa = typeof texts
+export const eclipsesJa: Record<string, EclipseText> = byId(texts)

@@ -1,8 +1,9 @@
 import type { ProbeText } from '../data/probes'
+import { byId } from './translation'
 
 // data/probes.ts の文言（日本語）
 
-export const probesJa: Record<string, ProbeText> = {
+const texts = {
   voyager2: {
     name: 'ボイジャー2号',
     summary: '木星・土星・天王星・海王星をめぐった、ただ一つの探査機',
@@ -67,4 +68,8 @@ export const probesJa: Record<string, ProbeText> = {
       { text: 'リュウグウを出発して、地球へ。' },
     ],
   },
-}
+} satisfies Record<string, ProbeText>
+
+// 英語の probes.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type ProbesJa = typeof texts
+export const probesJa: Record<string, ProbeText> = byId(texts)

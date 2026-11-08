@@ -1,9 +1,9 @@
-import type { bodiesJa } from './bodies.ja'
+import type { BodiesJa } from './bodies.ja'
 import type { Translation } from './translation'
 
 // The texts of data/bodies.ts (English). Same keys as bodies.ja.ts
 
-export const bodiesEn: Translation<typeof bodiesJa> = {
+export const bodiesEn: Translation<BodiesJa> = {
   sun: { name: 'Sun' },
   mercury: { name: 'Mercury' },
   venus: { name: 'Venus' },

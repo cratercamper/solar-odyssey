@@ -1,9 +1,9 @@
-import type { rockSamplesJa } from './rockSamples.ja'
+import type { RockSamplesJa } from './rockSamples.ja'
 import type { Translation } from './translation'
 
 // The texts of data/rockSamples.ts (English). Same keys as rockSamples.ja.ts
 
-export const rockSamplesEn: Translation<typeof rockSamplesJa> = {
+export const rockSamplesEn: Translation<RockSamplesJa> = {
   mudstone: {
     name: 'Mudstone',
     note: 'Fine mud that settled at the bottom of water and hardened. Curiosity found rocks like this in Gale Crater, showing a lake once filled it.',

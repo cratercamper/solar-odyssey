@@ -243,7 +243,7 @@ function JobPanel() {
           <ul className="ej-list">
             {jobUi.jobs.map((j, i) => (
               <li key={i} className={j.done ? 'done' : i === jobUi.focus ? 'on' : ''}>
-                <span className="ej-mark">{j.done ? '✓' : i === jobUi.focus ? '▶' : '・'}</span>
+                <span className="ej-mark">{j.done ? '✓' : i === jobUi.focus ? '▶' : ui().evaView.pendingMark}</span>
                 {ui().evaJobs[j.type].name}
               </li>
             ))}
@@ -320,7 +320,7 @@ function JobCard() {
       </p>
       <div className="sample-foot">
         <span>
-          {ui().evaView.workLog} {kinds} / {JOB_TYPES.length} {ui().evaView.kindsUnit} ・ {ui().evaView.thisKind} ×{log[j.type] ?? 0}
+          {ui().evaView.workLog} {kinds} / {JOB_TYPES.length} {ui().evaView.kindsUnit}{ui().evaView.sep}{ui().evaView.thisKind} ×{log[j.type] ?? 0}
         </span>
         <button className="secondary" onClick={() => useEvaJobs.setState({ card: null })}>
           {ui().evaView.close}
@@ -362,10 +362,10 @@ function EvaPanel() {
             {swapping ? (
               <span className="es-busy">{ui().evaView.swappingTools}</span>
             ) : working ? (
-              <span className="es-busy">{ui().evaView.workingWithTool(toolName, toolName.toLowerCase())}</span>
+              <span className="es-busy">{ui().evaView.workingWithTool(toolName)}</span>
             ) : (
               <button className="eva-work" {...holdProps(() => (evaInput.work = true), () => (evaInput.work = false))}>
-                {ui().evaView.useTool(toolName, toolName.toLowerCase())} <kbd>E</kbd>
+                {ui().evaView.useTool(toolName)} <kbd>E</kbd>
               </button>
             )}
           </div>

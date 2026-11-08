@@ -1,8 +1,9 @@
-import type { ChapterText, MissionText } from '../data/missions'
+import type { ChaptersJa, MissionsJa } from './missions.ja'
+import type { Translation } from './translation'
 
 // Story mode text (English). Same ids and order as missions.ja.ts. The narrator is the ship's navigation AI, NAVI.
 
-export const missionsEn: Record<string, MissionText> = {
+export const missionsEn: Translation<MissionsJa> = {
   'moon-supply': {
     title: 'Supplies for the Moon base',
     client: 'Tranquility Station, Moon base',
@@ -1435,7 +1436,7 @@ export const missionsEn: Record<string, MissionText> = {
   },
 }
 
-export const chaptersEn: Record<string, ChapterText> = {
+export const chaptersEn: Translation<ChaptersJa> = {
   'sv01-real': { title: 'Solar Voyager’s chapter', skill: 'Beam', how: 'Press F or click (the beam button on a phone) to fire the beam where you aim.', intro: 'The basic missions around the solar system: eight requests, from the Moon to Pluto.' },
   'amatsu-real': {
     title: 'Amatsukaze: the observatory ship',

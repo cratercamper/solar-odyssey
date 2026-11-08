@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTrimShadows } from '../../hooks/useTrimShadows'
-import { SITES, demIdFor, siteDef, surfaceFor, type SurfaceDef } from '../../data/surfaces'
+import { demIdFor, siteDef, surfaceFor, type SurfaceDef } from '../../data/surfaces'
 import { textureUrl } from '../../data/textures'
 import { PLANETS } from '../../data/bodies'
 import { useOptionalTexture } from '../../hooks/useOptionalTexture'
@@ -14,7 +14,7 @@ import { goToRally, useRally } from '../../state/rally'
 import { TRACKS, trackForBody } from '../../data/rallyTracks'
 import { LANDER_POS, Terrain, grainTexture, rockGeometry, seeded, type Rock } from './terrain'
 import { WideWorld, isWide, wideNow, withHole } from './wideGround'
-import { t, useLang } from '../../i18n/lang'
+import { useLang } from '../../i18n/lang'
 import { AirParams, ApUniforms, SkyLut, airFor, airUniforms, apUniforms, autoExposure, luminance, skyLookupGlsl, sunTransmittance, withAir } from './atmosphere'
 import { SurfacePost } from './SurfacePost'
 import { SurfaceLab } from './SurfaceLab'
@@ -1387,7 +1387,7 @@ function holdProps(on: () => void, off: () => void) {
 /** ローバーを出しているあいだの表示：速さ・見方の切り替え・回収、スマホでは運転のボタン */
 /** 採集した岩の分析結果のカード */
 function SampleCard({ bodyId, id }: { bodyId: string; id: string }) {
-  const lang = useLang()
+  useLang()
   const all = samplesFor(bodyId)
   const k = all.find((s) => s.id === id)
   const got = useSampleLog((l) => l.log[bodyId]?.length ?? 0)
@@ -1405,7 +1405,7 @@ function SampleCard({ bodyId, id }: { bodyId: string; id: string }) {
       <div className="sample-comp">
         {k.comp.map(([label, v]) => (
           <div className="sample-bar" key={label}>
-            <span className="sb-k">{compLabel(label, lang)}</span>
+            <span className="sb-k">{compLabel(label)}</span>
             <span className="sb-track">
               <span className="sb-fill" style={{ width: `${(v / max) * 100}%` }} />
             </span>
@@ -1522,7 +1522,7 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
         </button>
         {!site && trackForBody(bodyId) && (
           <button className="secondary rally-site" onClick={() => goToRally(trackForBody(bodyId)!)} title={ui().surfaceView.raceTrackTip}>
-            🏁 {t(`${TRACKS[trackForBody(bodyId)!].button[0]}へ`, TRACKS[trackForBody(bodyId)!].button[1])}
+            🏁 {ui().surfaceView.raceButton(ui().rallyTracks[trackForBody(bodyId)!].button)}
           </button>
         )}
         <button className="primary" onClick={startTakeoff}>
@@ -1546,11 +1546,13 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
   const setView = useLanding((l) => l.setView)
   // スマホ（縦も横も）では、説明は畳んでおく（タップで開く）
   const [open, setOpen] = useState(() => window.innerWidth > 700 && window.innerHeight > 500)
-  const siteName = def.site ? SITES[def.site].name : null
-  const name = bodyName(def.id) + (siteName ? ui().surfaceView.siteSuffix(siteName[0], siteName[1]) : '')
+  const name = bodyName(def.id) + (def.site ? ui().surfaceView.siteSuffix(ui().surfaceSites[def.site].name) : '')
   const weight = Math.max(0.01, 30 * def.gravity)
-  const temp = def.temp[0] === def.temp[1] ? `${def.temp[0]}℃` : `${def.temp[0]}〜${def.temp[1]}℃`
+  const temp = def.temp[0] === def.temp[1] ? ui().surfaceView.temp(def.temp[0]) : ui().surfaceView.tempRange(def.temp[0], def.temp[1])
   const skyName = def.skyBody ? bodyName(def.skyBody.id) : null
+  // 説明：別の着陸地点ならその地点の、そうでなければ天体の。空の説明は天体のもの（無い天体もある）
+  const note = def.site ? ui().surfaceSites[def.site].note : ui().surfaceNotes[def.id]
+  const skyNote: string | undefined = ui().surfaceSkyNotes[def.id]
   return (
     <div className={`surface-ui${rover !== 'none' && showInfo ? ' rover-menu' : ''}`}>
       {phase === 'descent' && (
@@ -1583,9 +1585,9 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
                 <div className="surface-weight">
                   {ui().surfaceView.weightNote(weight < 1 ? weight.toFixed(2) : weight.toFixed(1))}
                 </div>
-                <p>{t(def.note[0], def.note[1])}</p>
-                {def.skyNote && <p className="muted">{t(def.skyNote[0], def.skyNote[1])}</p>}
-                {skyName && !def.skyNote && (
+                <p>{note}</p>
+                {skyNote && <p className="muted">{skyNote}</p>}
+                {skyName && !skyNote && (
                   <p className="muted">
                     {ui().surfaceView.skyBodyNote(skyName, def.skyBody!.angle.toFixed(1))}
                   </p>
@@ -1618,7 +1620,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             </button>
             {!def.site && trackForBody(def.id) && (
               <button className="secondary rally-site" onClick={() => goToSite(trackForBody(def.id))}>
-                🏁 {ui().surfaceView.toRaceTrack(TRACKS[trackForBody(def.id)!].button[0], TRACKS[trackForBody(def.id)!].button[1].toLowerCase())}
+                🏁 {ui().surfaceView.toRaceTrack(ui().rallyTracks[trackForBody(def.id)!].button)}
               </button>
             )}
             {!def.site && def.id === 'moon' && (
@@ -1628,7 +1630,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             )}
             {def.site && TRACKS[def.site] && (
               <button className="secondary" onClick={() => goToSite(null)}>
-                {t(TRACKS[def.site].home[0], TRACKS[def.site].home[1])}
+                {ui().rallyTracks[def.site].home}
               </button>
             )}
             <button className="primary" onClick={startTakeoff}>

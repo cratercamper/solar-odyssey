@@ -1,8 +1,9 @@
 import type { HistoricText } from '../data/apollo17'
+import { byId } from './translation'
 
 // data/apollo17.ts の文言（日本語）
 
-export const apollo17Ja: Record<string, HistoricText> = {
+const texts = {
   lm: {
     name: '着陸船チャレンジャー号の下半分',
     when: '1972年12月11日 着陸',
@@ -70,4 +71,8 @@ export const apollo17Ja: Record<string, HistoricText> = {
     when: '3回目の船外活動・最後の観測点',
     story: 'アポロ17号の最後の観測点です。黒っぽいクレーターなので火山かもしれないと考えられていましたが、調べてみると、隕石がぶつかって砕けた土が固まったものでした。ここにも爆薬（5番）を置きました。このあと2人は着陸船にもどり、セルナン船長が月を歩いた最後の人になりました。',
   },
-}
+} satisfies Record<string, HistoricText>
+
+// 英語の apollo17.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type Apollo17Ja = typeof texts
+export const apollo17Ja: Record<string, HistoricText> = byId(texts)

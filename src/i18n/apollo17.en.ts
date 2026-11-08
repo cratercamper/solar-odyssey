@@ -1,9 +1,9 @@
-import type { apollo17Ja } from './apollo17.ja'
+import type { Apollo17Ja } from './apollo17.ja'
 import type { Translation } from './translation'
 
 // The texts of data/apollo17.ts (English). Same keys as apollo17.ja.ts
 
-export const apollo17En: Translation<typeof apollo17Ja> = {
+export const apollo17En: Translation<Apollo17Ja> = {
   lm: {
     name: 'Challenger, the descent stage',
     when: 'Landed 11 December 1972',

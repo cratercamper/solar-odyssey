@@ -1,13 +1,14 @@
-import type { ShipSpecText } from '../data/ships'
+import type { ShipText } from '../data/ships'
+import { byId } from './translation'
 
 // data/ships.ts, data/shipParts.ts の文言（日本語）
 
-export const shipsJa: Record<string, ShipSpecText> = {
+const texts = {
   sv01: {
     name: 'ソーラーボイジャー',
     kind: '調査船',
     blurb: '円盤部と2本のナセルを持つ、この船団の旗艦。バランスのよい船です。',
-    parts: {
+    parts: byId({
       saucer: {
         name: '円盤部',
         text: '乗組員が暮らし、働く場所という設定です。直径は約390m。円盤の形は、内側の部屋をたくさん取れて、外板も少なくてすみます。',
@@ -53,13 +54,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
         text: 'ナセルの側面の溝で青く光る部分。ワープの準備をすると、明るく輝きます。',
       },
       bay: { name: '格納庫', text: '副船体の後ろの扉。小型艇が発着する、という設定です。' },
-    },
+    }),
   },
   heron: {
     name: 'ホワイトヘロン',
     kind: '探査母艦',
     blurb: '前へ長く伸びた2本の「脚」に、小型の探査艇を積む白い母艦。武装はありません。',
-    parts: {
+    parts: byId({
       legs: {
         name: '脚（格納庫と発進甲板）',
         text: '左右に伸びた脚の中は、小型の探査艇の格納庫という設定です。上の甲板の光る線は、探査艇を押し出す発進レール（カタパルト）。本物の空母も、短い甲板で飛行機を飛ばすためにカタパルトを使います。',
@@ -84,13 +85,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
         name: '翼と尾翼',
         text: '宇宙には空気がないので、本当は翼は要りません。この船では、熱を逃がす放熱板と、大気のある星に近づくときの安定のための板、という設定です。',
       },
-    },
+    }),
   },
   sorakaze: {
     name: 'ソラカゼ',
     kind: '光帆の連絡船',
     blurb: '6枚の細長い帆をゆっくり回し、太陽の光に押されて進む小さな船。身軽でよく曲がります。',
-    parts: {
+    parts: byId({
       blades: {
         name: '光の帆',
         text: '光は、当たったものをほんの少し押します。うすい鏡の帆でその力を集めて進みます。2010年、日本の「イカロス」が、太陽の光の力で宇宙を進んだ初めての宇宙船になりました。イカロスの帆の厚さは0.0075mm。',
@@ -108,13 +109,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
         name: 'イオンエンジン',
         text: '向きを変えたり、細かく速さを合わせたりする小さなエンジン。本物では「はやぶさ」や「はやぶさ2」がイオンエンジンで小惑星まで旅しました。',
       },
-    },
+    }),
   },
   hakobune: {
     name: 'ハコブネ',
     kind: '大型貨物船',
     blurb: '長い骨組みにコンテナをびっしり抱え、後ろの核融合ロケットで進む大きな貨物船。ゆっくり、どっしり曲がります。',
-    parts: {
+    parts: byId({
       cab: {
         name: '操縦区画',
         text: '乗組員が暮らし、船を動かす区画。前の黄色と黒の帯は、ほかの船や基地とつながるドッキング口の目印です。',
@@ -135,13 +136,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
         name: '磁気ノズル',
         text: 'とても熱いガス（プラズマ）は、どんな金属も溶かします。そこで、輪の形の電磁石が作る磁場で、プラズマに触れずに後ろへ吹き出します。',
       },
-    },
+    }),
   },
   meguri: {
     name: 'メグリ',
     kind: '回転リングの探査船',
     blurb: '輪に並べた10個のモジュールが回り、遠心力で床に重さを作る長旅の船。2機の着陸艇を積んでいます。',
-    parts: {
+    parts: byId({
       ring: {
         name: '回るリング',
         text: '直径約90mの輪が13.5秒で1回まわると、外側の床で地球と同じ重さ（1G）を感じます。回る乗り物の外側へ押しつけられる力（遠心力）を、重力のかわりに使う考え方です。長く無重力でいると骨や筋肉が弱るので、本物の宇宙でも研究されています。',
@@ -160,13 +161,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
       },
       cab: { name: '操縦区画', text: '軸の前の、回らない区画。船を操縦する部屋と、前のドッキング口があります。' },
       engines: { name: '主機と放熱板', text: '後ろの3つの噴射口で進み、左右の板でエンジンの熱を宇宙へ逃がします。' },
-    },
+    }),
   },
   amatsu: {
     name: 'アマツカゼ',
     kind: '宇宙航行船',
     blurb: '海を行く大きな船の姿のまま宇宙へ出た観測船。白銀の船体に臙脂の船底、ひさしが重なる細い艦橋、船尾の大きな噴射口。甲板には大砲のかわりに真鍮色の天文台があります。',
-    parts: {
+    parts: byId({
       hull: {
         name: '船体',
         text: '海の船と同じ形の船体。宇宙では水も空気もないので、本当はこの形でなくても進めます。この船は、海に降りて浮かび、港で点検できるように作られた、という設定です。船底の赤は、海の船が貝や海藻をつきにくくする塗料の色と同じです。',
@@ -191,13 +192,13 @@ export const shipsJa: Record<string, ShipSpecText> = {
         name: '主噴射口',
         text: '船尾の大きな噴射口がひとつと、左右に小さな補助の噴射口。大きな噴射口で進み、小さいほうで向きや速さを細かく合わせます。',
       },
-    },
+    }),
   },
   arcadia: {
     name: 'アルカディア',
     kind: '機動母艦',
     blurb: '全長1,200mの大きな母艦。前に突き出た2本の舳先のあいだが発進路で、着陸船を送り出せます（L キーか「発進」ボタン）。白い装甲に赤い船底、多段の艦橋。',
-    parts: {
+    parts: byId({
       prongs: {
         name: '2本の舳先と発進路',
         text: '前へ長く突き出た2本の舳先のあいだが、着陸船や小型艇の発進路です。床のレールで加速して、青い誘導灯に沿って前へ飛び出します。本物の空母も、カタパルトで飛行機を短い距離で加速させます。',
@@ -218,6 +219,10 @@ export const shipsJa: Record<string, ShipSpecText> = {
         name: '主機関',
         text: '船尾の暗い覆いの中に大きな噴射口が4つ、下に補助の噴射口が2つ。大きな船ほど重いので、たくさんの噴射口でいっしょに押します。',
       },
-    },
+    }),
   },
-}
+} satisfies Record<string, ShipText>
+
+// 英語の ships.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type ShipsJa = typeof texts
+export const shipsJa: Record<string, ShipText> = byId(texts)

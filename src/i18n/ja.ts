@@ -1,3 +1,4 @@
+import type { Framing } from '../state/mission'
 import { approachJa } from './approach.ja'
 import { beamGaugeJa } from './beamGauge.ja'
 import { blackHoleJa } from './blackHole.ja'
@@ -10,6 +11,7 @@ import { contextLostJa } from './contextLost.ja'
 import { cubeJa } from './cube.ja'
 import { deepSpaceJa } from './deepSpace.ja'
 import { eclipsePanelJa } from './eclipsePanel.ja'
+import { ephemerisJa } from './ephemeris.ja'
 import { evaJa } from './eva.ja'
 import { evaViewJa } from './evaView.ja'
 import { exoplanetJa } from './exoplanet.ja'
@@ -26,6 +28,7 @@ import { observePanelJa } from './observePanel.ja'
 import { photoNoteJa } from './photoNote.ja'
 import { probePanelJa } from './probePanel.ja'
 import { probeSceneJa } from './probeScene.ja'
+import { quizJa } from './quiz.ja'
 import { quizPanelJa } from './quizPanel.ja'
 import { raceJa } from './race.ja'
 import { racePanelJa } from './racePanel.ja'
@@ -46,6 +49,8 @@ import { sizeCompareJa } from './sizeCompare.ja'
 import { spaceDockJa } from './spaceDock.ja'
 import { stampBookJa } from './stampBook.ja'
 import { stampsJa } from './stamps.ja'
+import { stampGroupsJa } from './stampGroups.ja'
+import { stampTitlesJa } from './stampTitles.ja'
 import { stateLaunchJa } from './stateLaunch.ja'
 import { sunJa } from './sun.ja'
 import { surfaceViewJa } from './surfaceView.ja'
@@ -57,6 +62,8 @@ import { touchBarJa } from './touchBar.ja'
 import { newsJa } from './news.ja'
 import { touchControlsJa } from './touchControls.ja'
 import { apollo17Ja } from './apollo17.ja'
+import { rockCompJa } from './rockComp.ja'
+import { rockGroupsJa, rockGroupsWhereJa } from './rockGroups.ja'
 import { bodiesJa } from './bodies.ja'
 import { bridgePartsJa } from './bridgeParts.ja'
 import { compareItemsJa } from './compareItems.ja'
@@ -68,11 +75,15 @@ import { evaToolsJa } from './evaTools.ja'
 import { phaserFactsJa } from './phaserFacts.ja'
 import { poisJa } from './pois.ja'
 import { probesJa } from './probes.ja'
+import { rallyColorsJa } from './rallyColors.ja'
+import { rallyTracksJa } from './rallyTracks.ja'
 import { rockSamplesJa } from './rockSamples.ja'
 import { shipsJa } from './ships.ja'
+import { surfaceNotesJa } from './surfaceNotes.ja'
+import { surfaceSitesJa } from './surfaceSites.ja'
+import { surfaceSkyNotesJa } from './surfaceSkyNotes.ja'
 
 // 画面の文言（日本語）。ストーリーモードの短い文言はここに書く。ほかの画面の文言は画面ごとのファイル（navPanel.ja.ts など）にあり、ここに集める
-// まだ使う場所に t('日本語', 'English') と書いてある文言もある
 
 export const ja = {
   missionsButton: 'ストーリーモード（任務）',
@@ -108,6 +119,14 @@ export const ja = {
   chaptersIntro: 'あなたは船団の艦長です。船を選ぶと、その船の得意技を使う任務が始まります。SF モードにすると、SF 編の章も出てきます。',
   chaptersIntroSF: 'あなたは船団の艦長です。船を選ぶと、その船の得意技を使う任務が始まります。紫の SF の章は、空想の建造物が舞台です。',
   skill: '得意技',
+  /** 「見出し：中身」 */
+  labelled: (label: string, value: string) => `${label}：${value}`,
+  /** 一行に並べるものの間 */
+  gap: '　',
+  /** 名前を並べる：どれも（見つけた場所：フォボス・ダイモス） */
+  list: (items: readonly string[]) => items.join('・'),
+  /** 名前を並べる：どれか一つ（フォボス・ダイモス・プロテウスに着陸して） */
+  listOr: (items: readonly string[]) => items.join('・'),
   shipForChapter: (ship: string) => `この章では ${ship} に乗ります（任務を始めると乗り換えます）`,
   backToChapters: '章の一覧へ',
   chapterDone: 'この章の任務をすべて達成しました！ほかの船の章にも挑戦してみましょう。',
@@ -131,7 +150,7 @@ export const ja = {
     near: '少し離れて',
     hidden: 'ほかの天体のかげ',
     fast: 'もっとゆっくり',
-  } as Record<string, string>,
+  } satisfies Record<Framing, string>,
   approach: approachJa,
   beamGauge: beamGaugeJa,
   blackHole: blackHoleJa,
@@ -144,6 +163,7 @@ export const ja = {
   cube: cubeJa,
   deepSpace: deepSpaceJa,
   eclipsePanel: eclipsePanelJa,
+  ephemeris: ephemerisJa,
   eva: evaJa,
   evaView: evaViewJa,
   exoplanet: exoplanetJa,
@@ -160,6 +180,7 @@ export const ja = {
   photoNote: photoNoteJa,
   probePanel: probePanelJa,
   probeScene: probeSceneJa,
+  quiz: quizJa,
   quizPanel: quizPanelJa,
   race: raceJa,
   racePanel: racePanelJa,
@@ -180,6 +201,8 @@ export const ja = {
   spaceDock: spaceDockJa,
   stampBook: stampBookJa,
   stamps: stampsJa,
+  stampGroups: stampGroupsJa,
+  stampTitles: stampTitlesJa,
   stateLaunch: stateLaunchJa,
   sun: sunJa,
   surfaceView: surfaceViewJa,
@@ -202,6 +225,14 @@ export const ja = {
   phaserFacts: phaserFactsJa,
   pois: poisJa,
   probes: probesJa,
+  rallyColors: rallyColorsJa,
+  rallyTracks: rallyTracksJa,
   rockSamples: rockSamplesJa,
+  rockComp: rockCompJa,
+  rockGroups: rockGroupsJa,
+  rockGroupsWhere: rockGroupsWhereJa,
   ships: shipsJa,
+  surfaceNotes: surfaceNotesJa,
+  surfaceSites: surfaceSitesJa,
+  surfaceSkyNotes: surfaceSkyNotesJa,
 }

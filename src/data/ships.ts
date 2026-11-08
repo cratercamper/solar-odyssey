@@ -48,7 +48,7 @@ export type ShipSpec = {
 }
 
 /** ShipSpec の文言（日本語は src/i18n/ships.ja.ts、英語は ships.en.ts） */
-export type ShipSpecText = {
+export type ShipText = {
   name: string
   /** 船の種類 */
   kind: string

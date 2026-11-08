@@ -1,5 +1,6 @@
 import type { surfaceViewJa } from './surfaceView.ja'
 import type { Translation } from './translation'
+import { theEn } from './article'
 
 // The texts of components/surface/SurfaceView.tsx (English). Same keys as surfaceView.ja.ts
 
@@ -29,11 +30,11 @@ export const surfaceViewEn: Translation<typeof surfaceViewJa> = {
   recall: 'Recall',
   raceTrackTip: 'To the race track, rover ready to go',
   backToShip: 'Back to ship',
-  siteSuffix: (_siteJa: string, siteEn: string) => ` · ${siteEn}`,
-  descendingTo: (name: string) => `Descending to ${name}…`,
+  siteSuffix: (site: string) => ` · ${site}`,
+  descendingTo: (name: string) => `Descending to ${theEn(name)}…`,
   skip: 'Skip',
   liftOff: 'Lift-off! Heading back to the ship',
-  landedOn: (name: string) => `Landed on ${name}`,
+  landedOn: (name: string) => `Landed on ${theEn(name)}`,
   gravity: 'Gravity',
   temperature: 'Temp.',
   weightNote: (kg: string) => `Someone who weighs 30 kg on Earth would weigh ${kg} kg here`,
@@ -44,7 +45,10 @@ export const surfaceViewEn: Translation<typeof surfaceViewJa> = {
   viewLander: 'View the lander',
   standAndLook: 'Stand and look around',
   deployRover: 'Deploy the rover',
-  toRaceTrack: (_trackJa: string, trackEn: string) => `To the ${trackEn}`,
+  raceButton: (track: string) => track,
+  toRaceTrack: (track: string) => `To the ${track.toLowerCase()}`,
   takeOff: 'Take off',
   toApollo17: 'To the Apollo 17 site',
+  temp: (t: number) => `${t} °C`,
+  tempRange: (min: number, max: number) => `${min} to ${max} °C`,
 }

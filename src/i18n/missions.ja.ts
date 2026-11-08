@@ -1,9 +1,10 @@
 import type { ChapterText, MissionText } from '../data/missions'
+import { byId } from './translation'
 
 // ストーリーモードの文章（日本語）。語り手は船の航法AI「ナビ」、艦長はプレイヤー。
 // 数値は NASA などの公開データの概数。
 
-export const missionsJa: Record<string, MissionText> = {
+const missions = {
   'moon-supply': {
     title: '月の基地へ補給物資',
     client: '月面基地「しずかの海ステーション」',
@@ -1579,9 +1580,13 @@ export const missionsJa: Record<string, MissionText> = {
       },
     ],
   },
-}
+} satisfies Record<string, MissionText>
 
-export const chaptersJa: Record<string, ChapterText> = {
+// 英語の missions.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type MissionsJa = typeof missions
+export const missionsJa: Record<string, MissionText> = byId(missions)
+
+const chapters = {
   'sv01-real': {
     title: 'ソーラーボイジャーの章',
     skill: 'ビーム',
@@ -1654,4 +1659,8 @@ export const chaptersJa: Record<string, ChapterText> = {
     how: '任務ごとに、船団の6隻を乗りかえて進みます。',
     intro: 'ビーコンの信号の先にあった時空のゲート。6隻の得意技を合わせて、ゲートを開きます。',
   },
-}
+} satisfies Record<string, ChapterText>
+
+// 英語の chaptersEn（missions.en.ts）はこの型で調べる
+export type ChaptersJa = typeof chapters
+export const chaptersJa: Record<string, ChapterText> = byId(chapters)

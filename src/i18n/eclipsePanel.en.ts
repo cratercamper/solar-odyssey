@@ -3,9 +3,12 @@ import type { Translation } from './translation'
 
 // The texts of ui/EclipsePanel.tsx (English). Same keys as eclipsePanel.ja.ts
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 export const eclipsePanelEn: Translation<typeof eclipsePanelJa> = {
-  date: (d: number, _d2: number, d3: number, month: string) => `${month} ${d3}, ${d}`,
+  date: (year: number, month: number, day: number) => `${MONTHS[month - 1]} ${day}, ${year}`,
   dateTime: (ms: string, time: string) => `${ms} ${time} UTC`,
+  utcOffsetHours: 0,
   totalSolarEclipse: 'Total solar eclipse',
   annularSolarEclipse: 'Annular solar eclipse',
   partialSolarEclipse: 'Partial solar eclipse',

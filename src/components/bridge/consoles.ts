@@ -7,7 +7,6 @@ import { useStamps } from '../../state/stamps'
 import { STAMP_IDS } from '../../data/stamps'
 import { PLANETS } from '../../data/bodies'
 import { formatDate, simDate } from '../../data/ephemeris'
-import { getLang } from '../../i18n/lang'
 import { isTouchDevice } from '../../state/input'
 import { ui } from '../../i18n'
 
@@ -226,7 +225,7 @@ function bar(g: CanvasRenderingContext2D, s: number, x: number, y: number, w: nu
   g.fillRect(x + 2, y + 2, Math.max(0, Math.min(1, value)) * (w - 3), 9 * s - 3)
 }
 
-const fmt = (n: number, digits = 1) => (Number.isFinite(n) ? n.toLocaleString(getLang() === 'en' ? 'en-US' : 'ja-JP', { maximumFractionDigits: digits, minimumFractionDigits: digits }) : '—')
+const fmt = (n: number, digits = 1) => (Number.isFinite(n) ? n.toLocaleString(ui().consoles.numberLocale, { maximumFractionDigits: digits, minimumFractionDigits: digits }) : '—')
 
 /** 自機から見た向き（右が +x、上が +y、前が -z） */
 function local(p: THREE.Vector3) {

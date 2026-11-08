@@ -1,9 +1,9 @@
-import type { deepSpaceImagesJa } from './deepSpaceImages.ja'
+import type { DeepSpaceImagesJa } from './deepSpaceImages.ja'
 import type { Translation } from './translation'
 
 // The texts of data/deepSpace.ts (English). Same keys as deepSpaceImages.ja.ts
 
-export const deepSpaceImagesEn: Translation<typeof deepSpaceImagesJa> = {
+export const deepSpaceImagesEn: Translation<DeepSpaceImagesJa> = {
   'hubble-andromeda': {
     name: 'Andromeda Galaxy',
     kind: 'Galaxy (our Milky Way’s neighbor)',

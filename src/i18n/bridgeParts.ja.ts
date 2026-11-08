@@ -1,8 +1,9 @@
 import type { BridgePartText } from '../data/bridgeParts'
+import { byId } from './translation'
 
 // data/bridgeParts.ts の文言（日本語）
 
-export const bridgePartsJa: Record<string, BridgePartText> = {
+const texts = {
   captain: {
     name: '艦長席',
     text: '船の進む先を決める人の席。部屋の真ん中の一段低い所にあり、窓も、まわりのどの席もよく見えます。ひじ掛けに小さな操作盤があります。',
@@ -44,4 +45,8 @@ export const bridgePartsJa: Record<string, BridgePartText> = {
     name: '昇降機と銘板',
     text: '左右の扉は、船の中を上下に移動する昇降機。左の扉の横の銘板には、この船の名前「SV-01 ソーラーボイジャー（探査船）」が刻まれています。',
   },
-}
+} satisfies Record<string, BridgePartText>
+
+// 英語の bridgeParts.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type BridgePartsJa = typeof texts
+export const bridgePartsJa: Record<string, BridgePartText> = byId(texts)

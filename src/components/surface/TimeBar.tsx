@@ -1,10 +1,11 @@
 import type { SurfaceDef } from '../../data/surfaces'
-import { t, useLang } from '../../i18n/lang'
+import { useLang } from '../../i18n/lang'
 import { useMemo } from 'react'
 import { dayHours, useSkyClock, type TimeRate } from './skyClock'
 import { PROFILE_N, dayProfile, sampleAt, type DayProfile } from './dayProfile'
 import { WEATHER_BODIES, useWeather, type WeatherMode } from './weather'
 import { ui } from '../../i18n'
+import type { timeBarJa } from '../../i18n/timeBar.ja'
 
 // 地表の時計：現地の時刻と、時間の速さ（止める・1 秒で 1 時間・1 日を 1 分で）。
 // 月では「地球から見た今の月」の小窓も出す。月面の昼と夜は、地球から見た月の満ち欠けと同じ周期で巡る。
@@ -65,7 +66,7 @@ const LUX_TOP = Math.log10(1e6)
 /** 明るさの数字と、身近なたとえ（ルクス） */
 function luxText(lx: number) {
   const value =
-    lx >= 10000 ? ui().timeBar.luxLarge(Math.round(lx / 10000), Math.round(lx / 1000)) :
+    lx >= 10000 ? ui().timeBar.luxLarge(lx) :
     lx >= 10 ? ui().timeBar.luxValue(Math.round(lx)) :
     lx >= 0.1 ? ui().timeBar.luxValue(lx.toFixed(1)) : '0'
   const like =
@@ -114,7 +115,7 @@ function DayGraph({ p, clock, extraLux, dim = 1 }: { p: DayProfile; clock: numbe
   return (
     <div className="day-graph">
       <div className="day-now">
-        <span className="temp-chip">{ui().timeBar.ground} <b>{Math.round(temp)}℃</b></span>
+        <span className="temp-chip">{ui().timeBar.ground} <b>{ui().timeBar.degrees(Math.round(temp))}</b></span>
         <span className="lux-chip">
           {ui().timeBar.light} <b>{L.value}</b>
           {L.unit}
@@ -129,8 +130,8 @@ function DayGraph({ p, clock, extraLux, dim = 1 }: { p: DayProfile; clock: numbe
         <path d={tempPath} fill="none" stroke="#ff6a4a" strokeWidth="2" strokeLinejoin="round" />
         <line x1={now} x2={now} y1={0} y2={GH} stroke="#fff" strokeWidth="1.2" />
         <circle cx={now} cy={ty(temp)} r="3.2" fill="#ff6a4a" stroke="#fff" strokeWidth="1" />
-        <text x={2} y={9} className="g-label">{`${p.max}℃`}</text>
-        <text x={2} y={GH - 2} className="g-label">{`${p.min}℃`}</text>
+        <text x={2} y={9} className="g-label">{ui().timeBar.degrees(p.max)}</text>
+        <text x={2} y={GH - 2} className="g-label">{ui().timeBar.degrees(p.min)}</text>
         {[0, 6, 12, 18, 24].map((h) => (
           <text key={h} x={Math.min(GW - 8, Math.max(0, (h / 24) * GW - 4))} y={GH + 10} className="g-label">
             {h}
@@ -146,17 +147,17 @@ function DayGraph({ p, clock, extraLux, dim = 1 }: { p: DayProfile; clock: numbe
   )
 }
 
-const RATES: { r: TimeRate; ja: string; en: string }[] = [
-  { r: 0, ja: '止める', en: 'Pause' },
-  { r: 0.1, ja: '1秒=6分', en: '1 s = 6 min' },
-  { r: 'day', ja: '1日を1分で', en: '1 day / min' },
+const RATES: { r: TimeRate; key: keyof typeof timeBarJa.rate }[] = [
+  { r: 0, key: 'pause' },
+  { r: 0.1, key: 'sixMinutes' },
+  { r: 'day', key: 'dayPerMinute' },
 ]
 
 /** 時刻へ飛ぶボタン（現地の時刻）。夕方は日の入りの少し前 */
-const JUMPS = [
-  { at: 12, ja: '昼', en: 'Noon' },
-  { at: 17.4, ja: '夕方', en: 'Sunset' },
-  { at: 0, ja: '夜', en: 'Night' },
+const JUMPS: { at: number; key: keyof typeof timeBarJa.jump }[] = [
+  { at: 12, key: 'noon' },
+  { at: 17.4, key: 'sunset' },
+  { at: 0, key: 'night' },
 ]
 
 /** 現地の時刻 at まで時間を先へ進める（戻しはしない：天気や満ち欠けも同じ流れのまま） */
@@ -167,31 +168,27 @@ function jumpTo(id: string, clock: number, at: number) {
   useSkyClock.setState({ seek: c.hours + (ahead / 24) * Math.abs(dayHours(id)) })
 }
 
-/** 天体ごとの天気の呼び方：ボタン（自動・荒れ・おだやか）と、今の様子（強い・弱い・おだやか） */
-const WORDS: Record<string, { btn: [string, string][]; now: [string, string][] }> = {
-  mars: { btn: [['自動', 'Auto'], ['砂嵐', 'Storm'], ['晴れ', 'Clear']], now: [['砂嵐', 'Dust storm'], ['砂ぼこり', 'Dusty'], ['晴れ', 'Clear']] },
-  earth: { btn: [['自動', 'Auto'], ['砂嵐', 'Sandstorm'], ['晴れ', 'Clear']], now: [['砂嵐', 'Sandstorm'], ['風が強い', 'Windy'], ['晴れ', 'Clear']] },
-  titan: { btn: [['自動', 'Auto'], ['雨', 'Rain'], ['やむ', 'Stop']], now: [['メタンの雨', 'Methane rain'], ['霧雨', 'Drizzle'], ['もや', 'Hazy']] },
-}
+/** 天気の呼び方（timeBar.weatherButton / weatherNow）がある天体。ほかは火星の呼び方 */
+type WeatherBody = keyof typeof timeBarJa.weatherButton
+const weatherBody = (id: string): WeatherBody => (id in ui().timeBar.weatherButton ? (id as WeatherBody) : 'mars')
 const MODE_KEYS: WeatherMode[] = ['auto', 'storm', 'clear']
 
 /** 天気（火星）：自動で移り変わる。砂嵐を呼んだり、晴れにしたりもできる */
 function WeatherRow({ id }: { id: string }) {
-  const W = WORDS[id] ?? WORDS.mars
+  const b = weatherBody(id)
   const mode = useWeather((w) => w.mode)
   const setMode = useWeather((w) => w.setMode)
   const storm = useWeather((w) => w.storm)
-  const [ja, en] = W.now[storm > 0.6 ? 0 : storm > 0.2 ? 1 : 2]
-  const now = t(ja, en)
+  const now = ui().timeBar.weatherNow[b][storm > 0.6 ? 'strong' : storm > 0.2 ? 'weak' : 'calm']
   return (
     <div className="weather-row">
       <span className="muted small">
         {ui().timeBar.weather} <b>{now}</b>
       </span>
       <div className="time-rates">
-        {MODE_KEYS.map((m, i) => (
+        {MODE_KEYS.map((m) => (
           <button key={m} className={mode === m ? 'active' : ''} onClick={() => setMode(m)}>
-            {t(W.btn[i][0], W.btn[i][1])}
+            {ui().timeBar.weatherButton[b][m]}
           </button>
         ))}
       </div>
@@ -223,14 +220,14 @@ export function TimeBar({ def }: { def: SurfaceDef }) {
       <div className="time-rates">
         {RATES.map((x) => (
           <button key={String(x.r)} className={rate === x.r ? 'active' : ''} onClick={() => setRate(x.r)}>
-            {t(x.ja, x.en)}
+            {ui().timeBar.rate[x.key]}
           </button>
         ))}
       </div>
       <div className="time-rates time-jump">
         {JUMPS.map((j) => (
-          <button key={j.ja} onClick={() => jumpTo(def.id, clock, j.at)}>
-            {t(j.ja, j.en)}
+          <button key={j.key} onClick={() => jumpTo(def.id, clock, j.at)}>
+            {ui().timeBar.jump[j.key]}
           </button>
         ))}
       </div>

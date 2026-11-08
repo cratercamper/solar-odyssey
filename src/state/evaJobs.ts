@@ -30,7 +30,7 @@ export type JobDef = {
 }
 
 /** JobDef の文言（日本語は src/i18n/evaJobs.ja.ts、英語は evaJobs.en.ts） */
-export type JobDefText = {
+export type JobText = {
   name: string
   steps: JobStepText[]
   note: string

@@ -1,8 +1,9 @@
 import type { PoiText } from '../components/surface/pois'
+import { byId } from './translation'
 
 // components/surface/pois.ts の文言（日本語）
 
-export const poisJa: Record<string, PoiText> = {
+const texts = {
   'mars-buttes': { name: '地層の丘' },
   'mars-boulders': { name: '岩塊の野' },
   'mars-dunes': { name: '黒い砂丘' },
@@ -46,4 +47,8 @@ export const poisJa: Record<string, PoiText> = {
   'pluto-chaos': { name: '氷の山塊' },
   'charon-scarp': { name: '谷の崖' },
   'charon-crater': { name: '大クレーター' },
-}
+} satisfies Record<string, PoiText>
+
+// 英語の pois.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type PoisJa = typeof texts
+export const poisJa: Record<string, PoiText> = byId(texts)

@@ -29,8 +29,8 @@ export const evaViewJa = {
   reelingIn: '命綱を巻き取って、船内へもどります',
   keysHint: 'W A S D 移動・R/F 上下・ドラッグ／矢印 向き・Z/C 横回転・X ブレーキ・E 作業・1〜5 ツール・V 見方',
   swappingTools: 'ツールを付け替え中…',
-  workingWithTool: (toolName: string, _toolName2: string) => `${toolName}で作業中`,
-  useTool: (toolName: string, _toolName2: string) => `${toolName}を使う`,
+  workingWithTool: (toolName: string) => `${toolName}で作業中`,
+  useTool: (toolName: string) => `${toolName}を使う`,
   tetherFull: '命綱がいっぱいです',
   tetherRange: (TETHER_M: number) => `エアロックから ${TETHER_M} m までしか離れられません`,
   outOfGas: 'ガスが空です。ゆっくりしか動けません',
@@ -42,4 +42,8 @@ export const evaViewJa = {
   autoBrakeOn: '自動ブレーキ ON',
   autoBrakeOff: '自動ブレーキ OFF',
   recall: '回収して船にもどる',
+  /** 作業リストの、まだの作業の印 */
+  pendingMark: '・',
+  /** 作業記録の行の区切り */
+  sep: ' ・ ',
 }

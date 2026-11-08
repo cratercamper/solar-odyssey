@@ -1,8 +1,9 @@
 import type { RockSampleText } from '../data/rockSamples'
+import { byId } from './translation'
 
 // data/rockSamples.ts の文言（日本語）
 
-export const rockSamplesJa: Record<string, RockSampleText> = {
+const texts = {
   mudstone: {
     name: '泥岩（でいがん）',
     note: '細かい泥が水の底にたまって固まった岩。キュリオシティはゲール・クレーターでこうした岩を見つけ、昔ここに湖があったことを確かめました。',
@@ -76,4 +77,8 @@ export const rockSamplesJa: Record<string, RockSampleText> = {
     name: '表面の岩',
     note: 'いん石の衝突で砕けた岩のかけら。表面は宇宙からの放射線で少しずつ色が変わっていきます。',
   },
-}
+} satisfies Record<string, RockSampleText>
+
+// 英語の rockSamples.en.ts はこの型（id つき）で調べる：id のつづりちがいは型エラー
+export type RockSamplesJa = typeof texts
+export const rockSamplesJa: Record<string, RockSampleText> = byId(texts)

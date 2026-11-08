@@ -1,4 +1,5 @@
 import { PLANETS } from './bodies'
+import type { SurfaceSitesJa } from '../i18n/surfaceSites.ja'
 
 // 着陸できる天体（地表のある惑星・衛星・冥王星とカロン）の、地表の景色の設定。
 // 色や地形は探査機の写真をもとにした「それらしい」作り。空に浮かぶ母惑星の見かけの大きさは、
@@ -69,11 +70,9 @@ export type SurfaceDef = {
   radiusKm: number
   skyBody?: SkyBody
   extras?: ('plumes' | 'volcano' | 'geysers' | 'clouds')[]
-  note: [string, string]
-  skyNote?: [string, string]
 }
 
-type Base = Omit<SurfaceDef, 'id' | 'au' | 'radiusKm' | 'skyBody' | 'note' | 'gravity' | 'temp'>
+type Base = Omit<SurfaceDef, 'id' | 'au' | 'radiusKm' | 'skyBody' | 'gravity' | 'temp'>
 
 const airless = (ground: string, ground2: string, rock: string, relief: Partial<Relief> = {}, extra: Partial<Base> = {}): Base => ({
   ground,
@@ -162,51 +161,6 @@ const PHYS: Record<string, [number, [number, number]]> = {
   pluto: [0.063, [-240, -218]], charon: [0.0294, [-240, -215]],
 }
 
-const NOTES: Record<string, [string, string]> = {
-  mercury: ['昼は約430℃、夜は約−170℃。大気がほとんど無いので、熱が逃げてしまいます。', 'About 430 °C by day and −170 °C at night: with almost no air, the heat escapes.'],
-  venus: ['気圧は地球の約90倍、気温は約460℃。厚い雲で太陽は見えず、昼でもオレンジ色の薄暗さです。', 'The air is 90 times thicker than Earth’s and about 460 °C. Thick clouds hide the Sun.'],
-  earth: ['わたしたちの星。青い空は、空気が太陽の青い光を散らしているからです。', 'Our home. The sky is blue because air scatters the Sun’s blue light.'],
-  moon: ['重力は地球の約6分の1。風が無いので、アポロの宇宙飛行士の足あとは今も残っています。', 'Gravity is about 1/6 of Earth’s. With no wind, the Apollo footprints are still there.'],
-  mars: ['空は昼は黄土色、夕方は青くなります。細かい砂ぼこりが光を散らすからです。', 'The sky is butterscotch by day and turns blue at sunset, because of fine dust in the air.'],
-  phobos: ['火星にとても近く、いつか火星に落ちるか、くだけて輪になると考えられています。', 'So close to Mars that it will one day crash into it or break up into a ring.'],
-  deimos: ['重力がとても弱く、思い切りジャンプすると宇宙へ飛んでいってしまうほどです。', 'Gravity is so weak that a hard jump could send you off into space.'],
-  io: ['太陽系でいちばん火山が活発な星。硫黄の噴煙が数百 km の高さまで上がります。', 'The most volcanic world in the Solar System. Sulfur plumes rise hundreds of km high.'],
-  europa: ['氷の下に、地球の海より多い水の海があると考えられています。茶色の筋は氷の割れ目です。', 'Under the ice there may be more water than in all of Earth’s oceans. The brown lines are cracks.'],
-  ganymede: ['太陽系でいちばん大きな衛星で、水星より大きいくらい。自分の磁場を持っています。', 'The largest moon in the Solar System, bigger than Mercury, with its own magnetic field.'],
-  callisto: ['太陽系でいちばんクレーターだらけの星のひとつ。40億年ほとんど変わっていません。', 'One of the most cratered worlds. Its surface has barely changed in 4 billion years.'],
-  mimas: ['自分の大きさの3分の1もある巨大なクレーター「ハーシェル」があります。', 'It has a giant crater, Herschel, a third as wide as the moon itself.'],
-  enceladus: ['南極から氷の粒の噴水が宇宙へ吹き出し、土星の E 環になっています。', 'Fountains of ice grains spray from its south pole and feed Saturn’s E ring.'],
-  tethys: ['ほとんど水の氷でできた星。長さ2000 km の大峡谷があります。', 'Made almost entirely of water ice, with a canyon 2,000 km long.'],
-  dione: ['明るい氷の崖の筋が、何百 km も続いています。', 'Bright cliffs of ice run for hundreds of kilometres.'],
-  rhea: ['土星で2番目に大きな衛星。古いクレーターにおおわれています。', 'Saturn’s second largest moon, covered in old craters.'],
-  titan: ['地球より厚い大気があり、メタンの雨が降り、川や湖があります。地面の丸い石は水の氷です。', 'Its air is thicker than Earth’s. Methane rain fills rivers and lakes; the round pebbles are water ice.'],
-  iapetus: ['半分が雪のように白く、半分が炭のように黒い、ふしぎな2色の星です。', 'One half is white as snow and the other dark as coal: a two-toned moon.'],
-  miranda: ['高さ約20 km の崖「ヴェローナ断崖」があります。落ちたら10分以上かかります。', 'It has Verona Rupes, a cliff about 20 km high. A fall would take over 10 minutes.'],
-  ariel: ['天王星の衛星でいちばん明るく、若い地表を持っています。', 'The brightest of Uranus’s moons, with a young surface.'],
-  umbriel: ['天王星の衛星でいちばん暗い星。古いクレーターだらけです。', 'The darkest of Uranus’s moons, covered in old craters.'],
-  titania: ['天王星でいちばん大きな衛星。長い谷が地表を走っています。', 'Uranus’s largest moon, crossed by long valleys.'],
-  oberon: ['天王星の衛星でいちばん外側を回る、古いクレーターの星です。', 'The outermost large moon of Uranus, old and cratered.'],
-  proteus: ['とても暗く、丸くなりきれなかったくらいの大きさの星です。', 'Very dark, and only just too small to pull itself into a ball.'],
-  triton: ['海王星と逆向きに回る衛星。窒素の間欠泉が黒い煙を高さ8 km まで吹き上げます。', 'It orbits Neptune backwards. Nitrogen geysers shoot dark plumes 8 km high.'],
-  pluto: ['窒素の氷の平原と、水の氷の山があります。空には青いもやの層が重なっています。', 'Plains of nitrogen ice and mountains of water ice, under layers of blue haze.'],
-  charon: ['冥王星といつも同じ面を向け合っています。北極は赤茶色です。', 'Charon and Pluto always show each other the same face. Its north pole is reddish.'],
-}
-
-const SKY_NOTES: Record<string, [string, string]> = {
-  moon: ['地球は空のほぼ同じ場所にとどまり、満ち欠けしながら回ります。', 'Earth stays in almost the same spot in the sky, going through phases.'],
-  io: ['木星が空の大きな部分を占めています。満月の約40倍の大きさです。', 'Jupiter fills a huge part of the sky: about 40 times wider than the full Moon looks from Earth.'],
-  europa: ['木星が満月の約20倍の大きさに見えます。', 'Jupiter looks about 20 times wider than the full Moon.'],
-  phobos: ['火星が空の大きな部分を占めています。', 'Mars fills a huge part of the sky.'],
-  mimas: ['衛星は土星の赤道の上を回るので、輪はほとんど真横から見えて、細い線になります。', 'The moons orbit over Saturn’s equator, so the rings are seen edge-on as a thin line.'],
-  enceladus: ['輪はほとんど真横から見えて、細い線になります。', 'The rings are seen almost edge-on, as a thin line.'],
-  iapetus: ['軌道が傾いているので、ここからは土星の輪が開いて見えます。', 'Its tilted orbit lets you see Saturn’s rings open.'],
-  titan: ['もやが厚くて、土星も太陽もぼんやりした明るさにしか見えません。', 'The haze is so thick that Saturn and the Sun are only a dim glow.'],
-  venus: ['雲が厚くて、太陽はどこにあるのかわかりません。', 'The clouds are so thick you cannot tell where the Sun is.'],
-  pluto: ['空にはカロンが、いつも同じ場所に浮かんでいます。', 'Charon hangs in the same place in the sky, always.'],
-  charon: ['冥王星が空のいつも同じ場所に浮かんでいます。', 'Pluto hangs in the same place in Charon’s sky, always.'],
-  earth: ['お昼すぎに東の空から月が昇り、夜には明るく輝きます。', 'The Moon rises in the east in the afternoon and shines brightly at night.'],
-}
-
 const SATURN_MOON_TILT: Record<string, number> = { iapetus: 15 }
 
 const deg = (rad: number) => (rad * 180) / Math.PI
@@ -243,8 +197,6 @@ function build(): Map<string, SurfaceDef> {
         gravity: phys[0],
         temp: phys[1],
         skyBody: e.sky,
-        note: NOTES[e.id] ?? ['', ''],
-        skyNote: SKY_NOTES[e.id],
       })
     }
   }
@@ -255,28 +207,19 @@ export const SURFACES = build()
 
 export const surfaceFor = (id: string) => SURFACES.get(id) ?? null
 
+type Site = { body: string; dem: string; range?: number; look?: { ground?: string; ground2?: string; ev?: number; groundRough?: number } }
 /** 別の着陸地点。dem：本物の地形の地図（public/terrain/ の名前） */
 /** range：ローバーで走れる範囲（正方形の半分の幅、m）。書いていなければ wideGround.ts の SITE_RANGE */
-export const SITES: Record<string, { body: string; dem: string; name: [string, string]; note: [string, string]; range?: number; look?: { ground?: string; ground2?: string; ev?: number; groundRough?: number } }> = {
+export const SITES: Record<string, Site> = {
   coprates: {
     body: 'mars',
     dem: 'mars_coprates',
-    name: ['マリネリス峡谷', 'Valles Marineris'],
-    note: [
-      'マリネリス峡谷のコプラテス谷の底。峡谷は長さ約4000 km、深さは最大約7 km。南にそびえる壁は、ここから8 km も上まで続いています。',
-      'The floor of Coprates Chasma in Valles Marineris. The canyon is about 4,000 km long and up to about 7 km deep. The wall rising to the south climbs 8 km above you.',
-    ],
   },
   taurus: {
     body: 'moon',
     dem: 'moon_taurus',
     // アポロ17号の観測点2（西南西へ 7.2 km）まで走れるように。地形の地図（near）は 16 km 四方
     range: 7000,
-    name: ['タウルス・リットロウ谷', 'Taurus-Littrow valley'],
-    note: [
-      'アポロ17号（1972年）が降りた谷。両側に高さ2 kmをこえる山（北マシフ・南マシフ）がそびえます。人が月を歩いた最後の場所で、宇宙飛行士は月面車でこの谷を走りました。光の柱をめざしてローバーで走ると、2人が残した物や観測点（アポロ17号の史跡）を訪ねられます。',
-      'The valley where Apollo 17 landed in 1972, between mountains (the North and South Massifs) rising over 2 km. It is the last place people walked on the Moon, and the astronauts drove their lunar rover through this valley. Follow the light beams with the rover to visit what they left behind and the stations where they stopped.',
-    ],
   },
   conamara: {
     body: 'europa',
@@ -284,13 +227,9 @@ export const SITES: Record<string, { body: string; dem: string; name: [string, s
     // 若い氷の帯：ふつうのエウロパの地面より少し白く。白い地面が日を照り返してまぶしすぎないよう、
     // 露出を下げ、表面はざらざら（霜）にして、太陽の向こう側の大きな照り返しを抑える
     look: { ground: '#dcd8d0', ground2: '#c9c1b3', ev: -0.7, groundRough: 0.92 },
-    name: ['コナマラ・カオスのそばの氷の尾根', 'Ice ridge near Conamara Chaos'],
-    note: [
-      'エウロパの大きな「二重尾根」の真ん中の溝。両側の尾根は高さ約100 m。氷の地面はとてもすべりやすく、北西には氷の板がばらばらに割れて傾いた「カオス地形」が広がります。エウロパには細かい高さの測定データがないので、この地形はガリレオ探査機の写真をもとに作った想像図です。',
-      'The central trough of one of Europa’s big double ridges, with crests about 100 m high on both sides. The ice is very slippery. To the north-west lies chaos terrain, where the ice crust broke into tilted rafts. Europa has no detailed height measurements, so this landscape is a reconstruction based on Galileo spacecraft photos.',
-    ],
   },
-}
+  // id は src/i18n/surfaceSites.ja.ts と同じ：文言のない着陸地点（文言だけのものも）は型エラー
+} satisfies Record<keyof SurfaceSitesJa, Site>
 
 const siteCache = new Map<string, SurfaceDef>()
 /** 着陸地点つきの天体の設定（site が無ければ surfaceFor と同じ） */
@@ -301,7 +240,7 @@ export function siteDef(id: string, site: string | null | undefined): SurfaceDef
   let d = siteCache.get(key)
   if (!d) {
     // 峡谷の壁（南へ 15 km、高さ 8 km）が霞に消えないよう、もやは少しうすめ
-    d = { ...base, ...SITES[site].look, site, note: SITES[site].note, haze: base.haze * 0.6 }
+    d = { ...base, ...SITES[site].look, site, haze: base.haze * 0.6 }
     siteCache.set(key, d)
   }
   return d

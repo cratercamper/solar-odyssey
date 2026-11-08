@@ -8,7 +8,7 @@ import { bodyInfo, engage } from './flight'
 import { useStore } from './store'
 import { closeProbes } from './probes'
 import { getLang } from '../i18n/lang'
-import { uiEn, uiJa } from '../i18n'
+import { ui, uiEn, uiJa } from '../i18n'
 
 // 連続クイズ：航海日誌のクイズと、天体のデータから作る「くらべる」問題を混ぜて10問続けて出す。
 // まちがえた天体は、終わったあとにワープして見に行ける
@@ -91,107 +91,76 @@ function shuffleChoices(q: QuizQuestion): QuizQuestion {
 
 const num = (v: number) => (v >= 100 ? Math.round(v).toLocaleString('en-US') : String(Number(v.toPrecision(2))))
 
-/** 時間を、日か時間のわかりやすい方で */
-const duration = (hours: number) => (hours >= 72 ? `約${num(hours / 24)}日` : `約${num(hours)}時間`)
-const durationEn = (hours: number) => (hours >= 72 ? `about ${num(hours / 24)} days` : `about ${num(hours)} hours`)
+/** 問題を作る言語の辞書（問題は両方の言語で作る：uiJa と uiEn） */
+type Words = typeof uiJa
 
-const lightTime = (au: number) => {
+/** 時間を、日か時間のわかりやすい方で */
+const duration = (w: Words, hours: number) => (hours >= 72 ? w.quiz.aboutDays(num(hours / 24)) : w.quiz.aboutHours(num(hours)))
+
+/** 太陽の光が届く時間 */
+const lightTime = (w: Words, au: number) => {
   const minutes = Math.round(au * 8.317)
-  return minutes < 60 ? `約${minutes}分` : `約${Math.floor(minutes / 60)}時間${minutes % 60 ? `${minutes % 60}分` : ''}`
-}
-const lightTimeEn = (au: number) => {
-  const minutes = Math.round(au * 8.317)
-  return minutes < 60 ? `about ${minutes} minutes` : `about ${Math.floor(minutes / 60)} h ${minutes % 60 ? `${minutes % 60} min` : ''}`.trim()
+  return minutes < 60 ? w.quiz.aboutMinutes(minutes) : w.quiz.aboutHoursMinutes(Math.floor(minutes / 60), minutes % 60)
 }
 
 const MAJOR = PLANETS.filter((p) => !p.dwarf)
 const WITH_MOONS = PLANETS.filter((p) => p.moons.length > 0)
 
-/** 天体のデータから作る「くらべる」問題。答えの天体を bodyId にする */
+/** 天体のデータから作る「くらべる」問題。答えの天体を bodyId にする。text(w) が一つの言語の問題文 */
 const MAKERS: (() => QuizQuestion)[] = [
   () => {
     const three = shuffle(MAJOR).slice(0, 3)
     const top = three.reduce((a, b) => (b.radiusKm > a.radiusKm ? b : a))
-    return {
-      bodyId: top.id,
-      question: 'この中で、いちばん大きい惑星は？',
-      choices: three.map((p) => uiJa.bodies[p.id].name),
-      answer: three.indexOf(top),
-      explanation: `${uiJa.bodies[top.id].name}の直径は約${num(top.radiusKm * 2)}km。地球の約${num(top.radiusKm / 6371)}倍です。`,
-      en: {
-        question: 'Which of these planets is the biggest?',
-        choices: three.map((p) => uiEn.bodies[p.id].name),
-        explanation: `${uiEn.bodies[top.id].name} is about ${num(top.radiusKm * 2)} km across, about ${num(top.radiusKm / 6371)} times Earth.`,
-      },
-    }
+    const text = (w: Words): QuizText => ({
+      question: w.quiz.biggest.question,
+      choices: three.map((p) => w.bodies[p.id].name),
+      explanation: w.quiz.biggest.explanation(w.bodies[top.id].name, num(top.radiusKm * 2), num(top.radiusKm / 6371)),
+    })
+    return { bodyId: top.id, ...text(uiJa), answer: three.indexOf(top), en: text(uiEn) }
   },
   () => {
     const three = shuffle(MAJOR).slice(0, 3)
     const top = three.reduce((a, b) => (b.distanceAu > a.distanceAu ? b : a))
-    return {
-      bodyId: top.id,
-      question: 'この中で、太陽からいちばん遠い惑星は？',
-      choices: three.map((p) => uiJa.bodies[p.id].name),
-      answer: three.indexOf(top),
-      explanation: `${uiJa.bodies[top.id].name}は太陽から地球の約${num(top.distanceAu)}倍の距離にあり、太陽の光が届くのに${lightTime(top.distanceAu)}かかります。`,
-      en: {
-        question: 'Which of these planets is farthest from the Sun?',
-        choices: three.map((p) => uiEn.bodies[p.id].name),
-        explanation: `${uiEn.bodies[top.id].name} is about ${num(top.distanceAu)} times as far from the Sun as Earth, and sunlight takes ${lightTimeEn(top.distanceAu)} to get there.`,
-      },
-    }
+    const text = (w: Words): QuizText => ({
+      question: w.quiz.farthest.question,
+      choices: three.map((p) => w.bodies[p.id].name),
+      explanation: w.quiz.farthest.explanation(w.bodies[top.id].name, num(top.distanceAu), lightTime(w, top.distanceAu)),
+    })
+    return { bodyId: top.id, ...text(uiJa), answer: three.indexOf(top), en: text(uiEn) }
   },
   () => {
     const three = shuffle(MAJOR).slice(0, 3)
     const top = three.reduce((a, b) => (b.orbitDays > a.orbitDays ? b : a))
     const years = top.orbitDays / 365.25
-    return {
-      bodyId: top.id,
-      question: 'この中で、太陽のまわりを1周するのにいちばん時間がかかる惑星は？',
-      choices: three.map((p) => uiJa.bodies[p.id].name),
-      answer: three.indexOf(top),
-      explanation: `${uiJa.bodies[top.id].name}の1年（太陽を1周する時間）は${years >= 1 ? `約${num(years)}年` : `約${num(top.orbitDays)}日`}。太陽から遠いほど、ゆっくり大回りします。`,
-      en: {
-        question: 'Which of these planets takes the longest to go around the Sun once?',
-        choices: three.map((p) => uiEn.bodies[p.id].name),
-        explanation: `A year on ${uiEn.bodies[top.id].name} (one trip around the Sun) is ${years >= 1 ? `about ${num(years)} years` : `about ${num(top.orbitDays)} days`}. The farther from the Sun, the slower and wider the loop.`,
-      },
-    }
+    const text = (w: Words): QuizText => ({
+      question: w.quiz.longestYear.question,
+      choices: three.map((p) => w.bodies[p.id].name),
+      explanation: w.quiz.longestYear.explanation(w.bodies[top.id].name, years >= 1 ? w.quiz.aboutYears(num(years)) : w.quiz.aboutDays(num(top.orbitDays))),
+    })
+    return { bodyId: top.id, ...text(uiJa), answer: three.indexOf(top), en: text(uiEn) }
   },
   () => {
     const three = shuffle(MAJOR).slice(0, 3)
     const spin = (p: Planet) => Math.abs(p.rotationHours)
     const top = three.reduce((a, b) => (spin(b) < spin(a) ? b : a))
-    return {
-      bodyId: top.id,
-      question: 'この中で、1回の自転（1日）がいちばん短い惑星は？',
-      choices: three.map((p) => uiJa.bodies[p.id].name),
-      answer: three.indexOf(top),
-      explanation: `${uiJa.bodies[top.id].name}は${duration(spin(top))}で1回自転します。木星や土星のような大きなガスの惑星は、とても速く回っています。`,
-      en: {
-        question: 'Which of these planets has the shortest day (one spin)?',
-        choices: three.map((p) => uiEn.bodies[p.id].name),
-        explanation: `${uiEn.bodies[top.id].name} spins once in ${durationEn(spin(top))}. Big gas planets like Jupiter and Saturn spin very fast.`,
-      },
-    }
+    const text = (w: Words): QuizText => ({
+      question: w.quiz.shortestDay.question,
+      choices: three.map((p) => w.bodies[p.id].name),
+      explanation: w.quiz.shortestDay.explanation(w.bodies[top.id].name, duration(w, spin(top))),
+    })
+    return { bodyId: top.id, ...text(uiJa), answer: three.indexOf(top), en: text(uiEn) }
   },
   () => {
     const parent = shuffle(WITH_MOONS)[0]
     const moon = shuffle(parent.moons)[0]
     const others = shuffle(WITH_MOONS.filter((p) => p !== parent)).slice(0, 2)
     const choices = shuffle([parent, ...others])
-    return {
-      bodyId: moon.id,
-      question: `${uiJa.bodies[moon.id].name}は、どの天体のまわりを回る衛星？`,
-      choices: choices.map((p) => uiJa.bodies[p.id].name),
-      answer: choices.indexOf(parent),
-      explanation: `${uiJa.bodies[moon.id].name}は${uiJa.bodies[parent.id].name}の衛星で、${duration(Math.abs(moon.orbitDays) * 24)}で${uiJa.bodies[parent.id].name}を1周します${moon.orbitDays < 0 ? '（ほかの衛星と逆向き）' : ''}。`,
-      en: {
-        question: `Which world does ${uiEn.bodies[moon.id].name} orbit?`,
-        choices: choices.map((p) => uiEn.bodies[p.id].name),
-        explanation: `${uiEn.bodies[moon.id].name} is a moon of ${uiEn.bodies[parent.id].name} and goes around it once in ${durationEn(Math.abs(moon.orbitDays) * 24)}${moon.orbitDays < 0 ? ' (the opposite way to the other moons)' : ''}.`,
-      },
-    }
+    const text = (w: Words): QuizText => ({
+      question: w.quiz.moonOf.question(w.bodies[moon.id].name),
+      choices: choices.map((p) => w.bodies[p.id].name),
+      explanation: w.quiz.moonOf.explanation(w.bodies[moon.id].name, w.bodies[parent.id].name, duration(w, Math.abs(moon.orbitDays) * 24), moon.orbitDays < 0),
+    })
+    return { bodyId: moon.id, ...text(uiJa), answer: choices.indexOf(parent), en: text(uiEn) }
   },
 ]
 
@@ -262,11 +231,11 @@ export function nextQuestion() {
 
 /** 点数に応じた称号 */
 export function quizTitle(score: number) {
-  const en = getLang() === 'en'
-  if (score >= QUIZ_LENGTH) return en ? 'Solar System Master' : '太陽系マスター'
-  if (score >= 8) return en ? 'Veteran Navigator' : 'ベテラン航海士'
-  if (score >= 5) return en ? 'Skilled Navigator' : '一人前の航海士'
-  return en ? 'Navigator in Training' : '見習い航海士'
+  const title = ui().quiz.title
+  if (score >= QUIZ_LENGTH) return title.master
+  if (score >= 8) return title.veteran
+  if (score >= 5) return title.skilled
+  return title.trainee
 }
 
 /** まちがえた天体へワープする（クイズを閉じて目標に設定し、ワープを始める） */

@@ -1,9 +1,8 @@
 // 峡谷レースのゴースト：前に走った記録を、半透明のローバーとしていっしょに走らせる。
 // ここは記録・再生・保存だけ（three.js も React も使わない）。描くのは components/surface/RallyGhost.tsx。
 //
-// 時計：レースの時刻 = 走り出し（phase が 'run' になった時刻、state/rally.ts の setRallyPhase の since）からの秒。
-// Rally.tsx のタイマーはその数マイクロ秒前の performance.now() から数えるので、ずれは 1 ミリ秒よりずっと小さい
-// （最高速でも 2 cm 未満）。記録のタイムは、レースの結果そのもの。
+// 時計：レースの時刻 = state/rally.ts の rallyClock.t（走り出してから、ゲームが進めた時間）。
+// Rally.tsx のタイマーと同じ時計なので、遅いパソコン（20 fps 未満）でもずれない。記録のタイムは、レースの結果そのもの。
 
 /** 1 秒あたりの記録の数（レースの時刻で） */
 export const GHOST_HZ = 10

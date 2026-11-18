@@ -36,7 +36,7 @@ export const sfEn: Translation<typeof sfJa> = {
   dockFound: 'This is the Amano-Minato Orbital Dock, a ring-and-cross base about 5 km across. A large ship fits whole inside the big dock at the front, and a new ship is being built on the open slipway at the back.\n(I for the ship’s log)',
   elevatorFound: 'This is the space elevator station. A cable rises from a base on the ocean at the equator, and climbers slowly ride up and down.\n(I for the ship’s log)',
   fleetFound: 'This is the migrant fleet. Under the clear domes on their backs, whole towns and forests ride along. The lead ship is the flagship; the small ones are supply ships.\n(I for the ship’s log)',
-  colonyInside: 'You are inside the colony. There is land above your head too. The spin pushes everything outward, and that push works like gravity on the inner ground.',
+  colonyInside: 'You are inside the colony. There is land above your head too. The spin pushes everything outward, and that push works like gravity on the inner ground.\n(Press J to go down and walk.)',
   solarPlantFound: 'The Solar Mirror Power Station comes into view. About 3,800 mirrors gather sunlight onto one spot, turn it into electricity and beam it to Earth.\n(I for the ship’s log)',
   sailLauncherFound: 'The Light-Sail Launcher comes into view. It uses a laser to send stamp-sized probes off toward the stars.\n(I for the ship’s log)',
   sfModeOn: 'SF mode: imaginary ships and structures appear on top of the real solar system.',

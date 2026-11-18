@@ -4,7 +4,7 @@ import { Html, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { ui } from '../../i18n'
 import { ARM_STOW, applyPose, deployPose, type Rig } from './Rover'
-import { rallyNow, useRally } from '../../state/rally'
+import { rallyClock, useRally } from '../../state/rally'
 import { roverPose } from '../../state/rover'
 import { GhostRecorder, ghostAt, loadGhost, saveGhost, type GhostPose, type GhostRun } from '../../state/rallyGhost'
 import { courseOf, goldRun, ranksAbove, resultsOf, type RallyResult } from '../../state/rallyHiscore'
@@ -127,7 +127,7 @@ export function RallyGhost({ track }: { track: string }) {
       s.recording = true
       time = 0
     } else if (r.phase === 'run') {
-      time = rallyNow() - r.since
+      time = rallyClock.t
       if (s.recording) s.rec.frame(time, me())
     } else if (r.phase === 'done' && r.result) {
       if (s.recording) {
@@ -141,7 +141,7 @@ export function RallyGhost({ track }: { track: string }) {
           own.hasLast = false // 新しいゴーストはゴールに現れる。コースを飛びこえた分は車輪を回さない
         }
       }
-      time = r.result.time + (rallyNow() - r.since)
+      time = rallyClock.t
     } else s.recording = false
 
     // 金色のゴースト：表か自分のゴーストが変わったときだけ選びなおす

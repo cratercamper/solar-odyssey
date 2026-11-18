@@ -13,6 +13,7 @@ import { useStore } from '../../state/store'
 import { COLONY_LENGTH as L, COLONY_PORT as PORT, COLONY_RADIUS as R, COLONY_SPIN_SECONDS, COLONY_ZOOM, SF_TEXT } from '../../data/sf'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
+import { colonyWalk } from '../../state/walk'
 
 const H = L / 2
 const CAP = 0.03
@@ -80,6 +81,7 @@ export function Colony({ id, name, position = [0, 0, 0], primary = false, phase 
       colliders.delete(collide)
       slowZones.delete(slow)
       ports.delete(port)
+      if (colonyWalk.inside?.id === id) colonyWalk.inside = null
     }
     // collide は state の ref だけを読む
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +132,7 @@ export function Colony({ id, name, position = [0, 0, 0], primary = false, phase 
       // ワープなどで遠くへ出たら、外にいることにする
       if (r > R * 1.5 || Math.abs(y) > H + 0.3 || (y < -H - 0.01 && r < PORT)) {
         s.inside = false
+        if (colonyWalk.inside?.id === id) colonyWalk.inside = null
         return
       }
       if (r > INNER) {
@@ -157,6 +160,7 @@ export function Colony({ id, name, position = [0, 0, 0], primary = false, phase 
         if (r < PORT * 0.9) {
           if (y > -H) {
             s.inside = true
+            colonyWalk.inside = { id, name }
             useStore.getState().showToast(SF_TEXT.colonyInside())
           }
         } else {

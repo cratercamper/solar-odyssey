@@ -90,6 +90,7 @@ export function ShipModel({
   shipName = 'SOLAR VOYAGER',
   tint,
   floods = true,
+  env = true,
 }: {
   unitScale?: number | (() => number)
   registry?: string
@@ -97,6 +98,8 @@ export function ShipModel({
   tint?: string
   /** 船体を照らす投光器。何隻も並べるときは消して、光の数を増やしすぎない（スマホで描けなくなる） */
   floods?: boolean
+  /** 宇宙の場面の映りこみ（環境マップ）を使う。別の Canvas（船外活動）に置くときは false */
+  env?: boolean
 }) {
   const root = useRef<THREE.Group>(null!)
 
@@ -206,7 +209,7 @@ export function ShipModel({
       name: nameTexture(`${registry}  ${shipName}`),
     }
   }, [registry, shipName, tint])
-  useSpaceEnvOn(useMemo(() => [parts.saucerMat, parts.secondaryMat, parts.nacelleMat, parts.bridgeMat, parts.trimMat, parts.deflectorRimMat, parts.bussardGlass], [parts]))
+  useSpaceEnvOn(useMemo(() => (!env ? [] : [parts.saucerMat, parts.secondaryMat, parts.nacelleMat, parts.bridgeMat, parts.trimMat, parts.deflectorRimMat, parts.bussardGlass]), [parts, env]))
 
   // 発光部（ワープ時に強める・明滅させる）
   const bussards = useRef<THREE.MeshBasicMaterial[]>([])

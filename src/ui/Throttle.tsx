@@ -1,3 +1,4 @@
+import { evaActive } from '../state/eva'
 import { useEffect } from 'react'
 import { useStore } from '../state/store'
 import { THROTTLE_STEPS } from '../state/throttle'
@@ -35,7 +36,7 @@ export function useThrottleWheel() {
     let pausedUntil = 0
     const onWheel = (e: WheelEvent) => {
       const s = useStore.getState()
-      if (s.mode !== 'flight' || s.scope || raceActive()) return
+      if (s.mode !== 'flight' || s.scope || raceActive() || evaActive()) return
       if (!(e.target instanceof HTMLCanvasElement) && !document.pointerLockElement) return
       const now = performance.now()
       if (now < pausedUntil) return

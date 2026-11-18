@@ -17,7 +17,7 @@ export const ROVER_TOP = 60 / 3.6
  * （見た目だけ・コメントだけの変更では増やさない）。レースのハイスコア表・ゴースト・ゲームに入っている記録は、
  * 同じ版で走ったものだけを使う（state/rallyHiscore.ts の courseOf）。だから版が同じなら、どのバージョンのゲームでも使える
  */
-export const DRIVE_VERSION = 1
+export const DRIVE_VERSION = 7
 
 type RoverState = {
   phase: RoverPhase
@@ -45,6 +45,8 @@ type RoverState = {
   /** いちばん近い、まだ採っていない岩（距離 m と、ローバーの正面から右回りの角度、近くの見どころの id（pois.ts）） */
   next: { dist: number; rel: number; where?: string | null } | null
   setView: (v: RoverView) => void
+  /** マウスを固定して運転しているか（PC） */
+  mouse: boolean
 }
 
 export const roverNow = () => performance.now() / 1000
@@ -53,6 +55,7 @@ export const useRover = create<RoverState>((set) => ({
   phase: 'none',
   since: 0,
   view: 'chase',
+  mouse: false,
   kmh: 0,
   hud: { hdg: 0, pitch: 0, roll: 0, dist: 0, air: false, fuel: 1, x: 0, z: 0 },
   edge: false,
@@ -87,7 +90,7 @@ export function recallRover() {
 export const setRoverPhase = (phase: RoverPhase) => useRover.setState({ phase, since: roverNow() })
 
 /** 運転の入力（キーボードと画面のボタンの両方から書き込む）。-1..1 */
-export const roverInput = { throttle: 0, steer: 0, jump: false, sample: false, reset: false }
+export const roverInput = { throttle: 0, steer: 0, jump: false, sample: false, reset: false, jumpPower: 1 }
 const keys = new Set<string>()
 
 function fromKeys() {
@@ -99,7 +102,179 @@ function fromKeys() {
   roverInput.steer = r - l
 }
 
-const DRIVE_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyV', 'KeyE', 'KeyR'])
+const DRIVE_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyV', 'KeyE', 'KeyR', 'KeyC'])
+
+// ---- マウスで運転（PC、cratercamper さんの案 2026-11-12） ----
+// 3D の画面をクリックするとマウスを固定（宇宙船・船外活動と同じ）。左右に動かすとハンドルが切れ、離すと少しずつまっすぐに戻る。
+// ホイールで巡航の速さ（5 km/h ずつ）を決めると、アクセルを押さなくてもその速さで走る（右手だけで運転できる）。
+// 右クリックでジャンプ、左クリックで採集（E）。Esc かホイールのクリックで固定をはずす。
+// キーボードの ◀▶・▲▼ を押しているあいだは、キーのほうが勝つ。▼（ブレーキ）を押すと巡航は止まり、C でさっきの速さにもどる
+// 2026-11-13（cratercamper さん）：マウスだけで空中から降りられるように。
+//   地上：右クリックで小さなジャンプ、右ボタンを押し続けるほど大きく（1 秒で 100%）。離したときに跳ぶ
+//   空中：右ボタンを押しているあいだ ▼ と同じく下へ噴射。ホイールを手前に回すと少しのあいだ下へ噴射。どちらも巡航は止めない
+//   ホイールで巡航の速さが変わるのは、地上にいるときだけ
+
+/** 巡航の速さの刻み（km/h） */
+export const CRUISE_STEP = 5
+/** マウスの動き（px）あたりのハンドルの切れ（-1..1） */
+const MOUSE_STEER = 0.0045
+/** 手を止めたとき、ハンドルがまっすぐに戻る速さ（1 秒あたり） */
+const MOUSE_CENTER = 0.9
+
+/** マウス運転の状態（steer は毎フレーム Rover が読む。cruise は km/h、0 は巡航なし） */
+export const roverMouse = { locked: false, steer: 0, lastMove: 0, chargeAt: 0, sinkHold: false, sinkUntil: 0 }
+
+/** 右ボタンで跳ぶ力をためきる時間（ms）と、いちばん小さいジャンプの力 */
+const CHARGE_MS = 1000
+const JUMP_MIN = 0.45
+/** 空中でホイールを手前に 1 回まわしたときの、下への噴射の長さ（ms） */
+const SINK_PULSE_MS = 350
+
+/** 右ボタンでためているジャンプの力（0..1）。ためていなければ -1 */
+export function jumpCharge() {
+  const m = roverMouse
+  if (!m.chargeAt) return -1
+  return Math.min(1, (performance.now() - m.chargeAt) / CHARGE_MS)
+}
+
+/**
+ * マウスで空中から降りる強さ（0..1、Rover が空中で毎フレーム読む）。
+ * 地上でジャンプをためたまま宙に出た（崖から落ちた）ときは、そのまま下への噴射に切り替える
+ */
+export function mouseSink() {
+  const m = roverMouse
+  if (!m.locked) return 0
+  if (m.chargeAt) {
+    m.chargeAt = 0
+    m.sinkHold = true
+  }
+  if (m.sinkHold) return 1
+  return performance.now() < m.sinkUntil ? 0.6 : 0
+}
+export const useRoverCruise = create<{ cruise: number; last: number }>(() => ({ cruise: 0, last: 0 }))
+
+const setCruise = (kmh: number) => {
+  const cruise = Math.max(0, Math.min(Math.round(ROVER_TOP * 3.6), kmh))
+  useRoverCruise.setState((c) => ({ cruise, last: cruise > 0 ? cruise : c.last }))
+}
+
+/** 巡航を止める（速さは覚えておいて、C でもどせる） */
+export const stopCruise = () => useRoverCruise.setState({ cruise: 0 })
+/** C：さっきの巡航の速さにもどす（巡航中なら止める） */
+export const toggleCruise = () => {
+  const { cruise, last } = useRoverCruise.getState()
+  if (cruise > 0) stopCruise()
+  else if (last > 0) setCruise(last)
+}
+
+/**
+ * Rover が毎フレーム読む、運転の入力：キーボード・画面のボタン（roverInput）に、マウスのハンドルと巡航を足したもの。
+ * speed はローバーの今の速さ（m/s）
+ */
+export function driveInput(speed: number, dt: number): { steer: number; throttle: number } {
+  const m = roverMouse
+  if (m.locked && performance.now() - m.lastMove > 80) m.steer -= Math.sign(m.steer) * Math.min(Math.abs(m.steer), MOUSE_CENTER * dt)
+  const steer = roverInput.steer !== 0 ? roverInput.steer : m.locked ? m.steer : 0
+  let throttle = roverInput.throttle
+  if (throttle < 0 && useRoverCruise.getState().cruise > 0) stopCruise()
+  const cruise = useRoverCruise.getState().cruise / 3.6
+  if (throttle === 0 && cruise > 0) {
+    // 巡航：決めた速さより遅ければアクセル、速すぎればアクセルを離す（坂を下って速すぎるときだけ、軽くブレーキ）
+    const dv = cruise - speed
+    throttle = dv > 0.15 ? Math.min(1, dv / 1.5 + 0.25) : dv < -2.5 ? -0.4 : 0
+  }
+  return { steer, throttle }
+}
+
+/** マウスの固定をはずす */
+export const releaseRoverMouse = () => {
+  if (document.pointerLockElement) document.exitPointerLock()
+}
+
+/**
+ * マウスで運転するための、3D の画面（canvas）のイベント。運転中（drive）だけ効く。
+ * 固定していないときのホイールとドラッグは、今までどおり（カメラ）
+ */
+export function bindRoverMouse(el: HTMLElement) {
+  const driving = () => useRover.getState().phase === 'drive'
+  const lockChange = () => {
+    roverMouse.locked = document.pointerLockElement === el
+    roverMouse.steer = 0
+    roverMouse.chargeAt = 0
+    roverMouse.sinkHold = false
+    useRover.setState({ mouse: roverMouse.locked })
+  }
+  const down = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse' || !driving()) return
+    if (!roverMouse.locked) {
+      if (e.button === 0) void el.requestPointerLock?.()
+      return
+    }
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    if (e.button === 0) roverInput.sample = true
+    else if (e.button === 2) {
+      // 地上ならジャンプをためはじめ、空中なら下へ噴射
+      if (roverPose.grounded) roverMouse.chargeAt = performance.now()
+      else roverMouse.sinkHold = true
+    } else if (e.button === 1) releaseRoverMouse()
+  }
+  const up = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse' || e.button !== 2) return
+    const m = roverMouse
+    if (m.chargeAt && driving()) {
+      roverInput.jumpPower = JUMP_MIN + (1 - JUMP_MIN) * Math.max(0, jumpCharge())
+      roverInput.jump = true
+    }
+    m.chargeAt = 0
+    m.sinkHold = false
+  }
+  const move = (e: PointerEvent) => {
+    if (!roverMouse.locked) return
+    e.stopImmediatePropagation()
+    roverMouse.steer = Math.max(-1, Math.min(1, roverMouse.steer + e.movementX * MOUSE_STEER))
+    if (e.movementX !== 0) roverMouse.lastMove = performance.now()
+  }
+  const wheel = (e: WheelEvent) => {
+    if (!roverMouse.locked || !driving()) return
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    if (!roverPose.grounded) {
+      // 空中：手前に回すと少しのあいだ下へ噴射（巡航の速さは変えない）
+      if (e.deltaY > 0) roverMouse.sinkUntil = performance.now() + SINK_PULSE_MS
+      return
+    }
+    const { cruise } = useRoverCruise.getState()
+    setCruise(cruise + (e.deltaY < 0 ? CRUISE_STEP : -CRUISE_STEP))
+  }
+  const menu = (e: Event) => {
+    if (roverMouse.locked) e.preventDefault()
+  }
+  // 運転をやめたら固定をはずす
+  const unsub = useRover.subscribe((r, prev) => {
+    if (r.phase !== prev.phase && r.phase !== 'drive') {
+      releaseRoverMouse()
+      stopCruise()
+    }
+  })
+  document.addEventListener('pointerlockchange', lockChange)
+  el.addEventListener('pointerdown', down, true)
+  el.addEventListener('pointermove', move, true)
+  el.addEventListener('pointerup', up, true)
+  el.addEventListener('wheel', wheel, { capture: true, passive: false })
+  el.addEventListener('contextmenu', menu)
+  return () => {
+    unsub()
+    document.removeEventListener('pointerlockchange', lockChange)
+    el.removeEventListener('pointerdown', down, true)
+    el.removeEventListener('pointermove', move, true)
+    el.removeEventListener('pointerup', up, true)
+    el.removeEventListener('wheel', wheel, true)
+    el.removeEventListener('contextmenu', menu)
+    if (document.pointerLockElement === el) document.exitPointerLock()
+    roverMouse.locked = false
+  }
+}
 
 /** キーボード：WASD／矢印で走る、スペースでジャンプ、V で見方を切り替え */
 export function bindRoverKeys() {
@@ -122,10 +297,16 @@ export function bindRoverKeys() {
       if (!e.repeat) roverInput.sample = true
       return
     }
+    if (e.code === 'KeyC') {
+      if (!e.repeat) toggleCruise()
+      return
+    }
     if (e.code === 'KeyV') {
       if (!e.repeat) useRover.setState({ view: useRover.getState().view === 'chase' ? 'cam' : 'chase' })
       return
     }
+    // ▼（ブレーキ）で巡航を止める
+    if (e.code === 'KeyS' || e.code === 'ArrowDown') stopCruise()
     keys.add(e.code)
     fromKeys()
   }
@@ -200,4 +381,4 @@ export const useSampleLog = create<{ log: Record<string, string[]>; add: (bodyId
 export const roverDebug: {
   /** 確認用のカメラ：ローバーから見た [前, 右, 上, 見る高さ]（m） */
   cam?: [number, number, number, number]
-  moveTo?: (site: number) => void; sites?: () => { x: number; z: number }[]; place?: (x: number, z: number, heading?: number) => void; rocks?: () => { x: number; z: number; r: number; h: number }[] } = {}
+  moveTo?: (site: number) => void; sites?: () => { x: number; z: number }[]; place?: (x: number, z: number, heading?: number) => void; rocks?: () => { x: number; z: number; r: number; h: number }[]; height?: (x: number, z: number) => number; drive?: () => Record<string, unknown> | null } = {}

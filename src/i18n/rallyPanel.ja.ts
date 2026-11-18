@@ -1,6 +1,9 @@
 // components/surface/RallyPanel.tsx の文言（日本語）
 
 export const rallyPanelJa = {
+  course: 'コース',
+  levelEasy: 'やさしい',
+  levelHard: '上級',
   roverColour: 'ローバーの色',
   best: '自己ベスト',
   start: 'スタート',

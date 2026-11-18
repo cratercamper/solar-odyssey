@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { blockedByCampaign } from './campaign'
 import { useStore } from './store'
 import { raceActive } from './race'
 import { demIdFor, siteDef, surfaceFor } from '../data/surfaces'
@@ -72,6 +73,8 @@ export const landed = (phase = useLanding.getState().phase) => phase !== 'idle'
 
 export function startLanding(bodyId = landableBody()) {
   if (!bodyId || !surfaceFor(bodyId) || landed()) return
+  // キャンペーン：まだ開いていない星には降りられない
+  if (blockedByCampaign(bodyId)) return
   if (document.pointerLockElement) document.exitPointerLock()
   useLanding.setState({ bodyId, site: null, view: 'eye', ready: false })
   recallRover()

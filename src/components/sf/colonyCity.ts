@@ -361,7 +361,7 @@ function standing(angle: number, s: number, y: number, w: number, h: number, d: 
   return out.multiplyMatrices(basis, scaleM.makeScale(w * M, h * M, d * M))
 }
 
-type Instances = { matrix: THREE.InstancedBufferAttribute; color: THREE.InstancedBufferAttribute; count: number }
+export type Instances = { matrix: THREE.InstancedBufferAttribute; color: THREE.InstancedBufferAttribute; count: number }
 let buildingSet: Instances | null = null
 let treeSet: Instances | null = null
 
@@ -400,12 +400,17 @@ export function buildingInstances(): Instances {
 
 export function treeInstances(): Instances {
   if (treeSet) return treeSet
+  treeSet = treeInstancesWhere(() => true)
+  return treeSet
+}
+
+/** 木の配置のうち、keepTree が true のものだけ（コロニーの中を歩く場面で、近くの木を別の形で描くとき）。共有しない */
+export function treeInstancesWhere(keepTree: (k: number, t: Tree) => boolean): Instances {
   const keep = density()
   const rand = seeded(8)
   const list: (Tree & { angle: number })[] = []
-  for (let k = 0; k < 3; k++) for (const t of cityPlan(k).trees) if (rand() < keep) list.push({ ...t, angle: stripCenter(k) })
-  treeSet = instances(list, (t, m) => standing(t.angle, t.s, t.y, t.h * 0.8, t.h, t.h * 0.8, m), (t) => t.color)
-  return treeSet
+  for (let k = 0; k < 3; k++) for (const t of cityPlan(k).trees) if (rand() < keep && keepTree(k, t)) list.push({ ...t, angle: stripCenter(k) })
+  return instances(list, (t, m) => standing(t.angle, t.s, t.y, t.h * 0.8, t.h, t.h * 0.8, m), (t) => t.color)
 }
 
 let boxGeo: THREE.BoxGeometry | null = null

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { launchRover, roverActive } from './rover'
 import { goToSite, useLanding } from './landing'
-import { TRACKS } from '../data/rallyTracks'
+import { TRACKS, tracksAt } from '../data/rallyTracks'
 import { coursePrint } from './rallyGhost'
 import type { RallyColorsJa } from '../i18n/rallyColors.ja'
 
@@ -58,15 +58,48 @@ type RallyState = {
   chase: { caught: number[]; escaped: number[]; at: number; last: number } | null
   /** ミニマップ用：コンピューターのローバーの位置（色の番号, x, z） */
   bots: { c: number; x: number; z: number }[]
+  /** レース場ごとに選んだコース（着陸地点の名前 → TRACKS の名前）。コースがひとつのレース場には無い */
+  picked: Record<string, string>
 }
 
-/** 自己ベストはレース場ごと。コースを作り直したら（門の数も変わる）別の名前にして、前のベストと比べない */
+/** そのレース場で今選んでいるコース（TRACKS の名前）。選んでいなければ、いちばんやさしいコース */
+export function trackAt(site: string, picked = useRally.getState().picked): string {
+  const list = tracksAt(site)
+  const p = picked[site]
+  return p && list.includes(p) ? p : (list[0] ?? site)
+}
+
+/** 今いるレース場の、今選んでいるコース（React から：選び直すと書き換わる） */
+export const useRallyTrack = (site: string | null | undefined) => useRally((r) => (site && tracksAt(site).length ? trackAt(site, r.picked) : null))
+
+/** 自己ベストはコースごと。コースを作り直したら（門の数も変わる）別の名前にして、前のベストと比べない */
 const bestKey = () => {
-  const site = useLanding.getState().site ?? 'coprates'
-  const tr = TRACKS[site]
-  return `solar-voyager:rally-best:${site}${tr ? `:${coursePrint(tr.line)}` : ''}`
+  const track = trackAt(useLanding.getState().site ?? 'coprates')
+  const tr = TRACKS[track]
+  return `solar-voyager:rally-best:${track}${tr ? `:${coursePrint(tr.line)}` : ''}`
 }
 const COLOR_KEY = 'solar-voyager:rally-color'
+const PICK_KEY = 'solar-voyager:rally-course'
+
+function loadPicked(): Record<string, string> {
+  try {
+    const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}')
+    return v && typeof v === 'object' ? v : {}
+  } catch {
+    return {}
+  }
+}
+
+/** レース場のコースを選ぶ（スタート前だけ） */
+export function pickRallyTrack(site: string, track: string) {
+  const picked = { ...useRally.getState().picked, [site]: track }
+  useRally.setState({ picked })
+  try {
+    localStorage.setItem(PICK_KEY, JSON.stringify(picked))
+  } catch {
+    // 保存できなくても遊べる
+  }
+}
 
 export type RallyBest = { time: number; splits: number[] }
 
@@ -98,6 +131,14 @@ function loadColor() {
 
 export const rallyNow = () => performance.now() / 1000
 
+/**
+ * レースの時計（秒）：走り出してから、ゲームが進めた時間の合計。
+ * 1 フレームの歩みは 0.05 s まで（Rally.tsx・Rover.tsx の dt の上限）なので、20 fps を下回るとレースはゆっくり進む。
+ * 時計もそれに合わせて進むので、遅いパソコンでもタイムは走った分だけになる（壁の時計ではない）。
+ * Rally.tsx が毎フレーム進め、ゴールのあとも進み続ける（ゴーストが走りの終わりまで走るため）。
+ */
+export const rallyClock = { t: 0 }
+
 export const useRally = create<RallyState>(() => ({
   phase: 'off',
   since: 0,
@@ -112,6 +153,7 @@ export const useRally = create<RallyState>(() => ({
   lost: false,
   chase: null,
   bots: [],
+  picked: loadPicked(),
 }))
 
 export const setRallyPhase = (phase: RallyPhase) => useRally.setState({ phase, since: rallyNow() })

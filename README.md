@@ -68,6 +68,7 @@ It started as a learning toy made for a 10-year-old, and it keeps growing.
 | Warp | Enter |
 | Autopilot | G |
 | View your ship (viewing mode) | V |
+| Hide all text and buttons (for screenshots) / show them again | Shift+F12, or the faint button at the top right |
 
 On phones and tablets, use the stick at the bottom left to move, drag the screen to look around, and the buttons at the bottom right to rise, sink, roll and fire the beam.
 

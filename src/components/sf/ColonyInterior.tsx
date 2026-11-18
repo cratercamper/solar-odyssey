@@ -138,7 +138,8 @@ const camLocal = new THREE.Vector3()
 const trainScale = new THREE.Matrix4()
 const Z = new THREE.Vector3(0, 0, 1)
 
-export function ColonyInterior() {
+/** trees = false：木を描かない（コロニーの中を歩く場面は、木を自分で描く） */
+export function ColonyInterior({ trees = true }: { trees?: boolean }) {
   const group = useRef<THREE.Group>(null!)
   const meshes = useMemo(() => {
     const buildings = sharedInstancedMesh(buildingGeometry(), buildingMaterial, buildingInstances())
@@ -206,7 +207,7 @@ export function ColonyInterior() {
   return (
     <group ref={group}>
       <primitive object={meshes.buildings} />
-      <primitive object={meshes.trees} />
+      {trees && <primitive object={meshes.trees} />}
       <primitive object={meshes.trains} />
       <primitive object={meshes.cars} />
       <mesh geometry={meshes.infra} material={infraMaterial} />

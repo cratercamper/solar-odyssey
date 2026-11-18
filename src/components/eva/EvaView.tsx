@@ -8,6 +8,8 @@ import { useShip } from '../../data/ships'
 import {
   DEPLOY_SEC,
   EVA_FADE,
+  EVA_SPEEDS,
+  RETURN_SEC,
   EVA_TOOLS,
   LAUNCH_SEC,
   RECALL_SEC,
@@ -17,10 +19,14 @@ import {
   evaInput,
   evaNow,
   evaScene,
+  evaRecall,
   pickTool,
-  recallEva,
+  setTouchBoost,
+  stepEvaSpeed,
   useEva,
 } from '../../state/eva'
+import { isTouchDevice } from '../../state/input'
+import { shipCol } from './shipCollider'
 import { EvaWorld } from './EvaWorld'
 import { EvaJobs } from './EvaJobs'
 import { JOBS, JOB_TYPES, rackRt, useEvaJobs, useEvaLog } from '../../state/evaJobs'
@@ -39,13 +45,16 @@ const EvaCanvas = memo(function EvaCanvas() {
   const level = useLevel()
   const spec = useShip()
   const tint = useMemo(() => new THREE.Color(spec.swatch[0]), [spec])
+  // 母船のまわりでは修理の依頼を出さない。奥行きの対数（logarithmicDepthBuffer）は使わない：
+  // 手前の面が消えて船の中が透けることがあったので、代わりにカメラの near を少し遠くして精度を保つ（Tsumugi.tsx）
+  const [free] = useState(() => evaSite.id === 'ship')
   return (
-    <Canvas shadows="percentage" dpr={Math.min(dprFor(level), 1.75)} gl={{ alpha: false }} camera={{ fov: 62, near: 0.05, far: 12000, position: [2.4, 1.7, 3.3] }}>
+    <Canvas shadows="percentage" dpr={Math.min(dprFor(level), 1.75)} gl={{ alpha: false }} camera={{ fov: 62, near: 0.05, far: free ? 40000 : 12000, position: [2.4, 1.7, 3.3] }}>
       <color attach="background" args={['#000']} />
       <Suspense fallback={null}>
         <EvaWorld spec={spec} />
         <Tsumugi shipTint={tint} />
-        <EvaJobs />
+        {!free && <EvaJobs />}
       </Suspense>
       <QualityGovernor />
     </Canvas>
@@ -124,23 +133,40 @@ function EvaHud() {
   const hud = useEva((e) => e.hud)
   const taut = useEva((e) => e.taut)
   const assist = useEva((e) => e.assist)
+  const speed = useEva((e) => e.speed)
+  const range = useEva((e) => e.range)
   const left = Math.max(0, TETHER_M - hud.dist)
+  const free = evaSite.id === 'ship'
   return (
     <div className="eva-hud">
       <div className="eva-badge">EVR-1 TSUMUGI</div>
       <div className="eva-site">{ui().evaSites[evaSite.id]}</div>
       <div className="eh-speed">
-        {hud.speed.toFixed(2)}
+        {hud.speed.toFixed(hud.speed < 10 ? 2 : 1)}
         <small> m/s</small>
-      </div>
-      <div className="eh-row">
-        <span className="eh-k">{ui().evaView.tether}</span>
-        <Bar v={(left / TETHER_M) * 100} warn={taut || left < 5} />
-        <span className="eh-v">
-          {left.toFixed(0)}
-          <small> m</small>
+        <span className="eh-level">
+          {ui().evaView.speedLevel(speed + 1, EVA_SPEEDS.length)} · {EVA_SPEEDS[speed]} m/s
         </span>
       </div>
+      {free ? (
+        <div className="eh-row">
+          <span className="eh-k">{ui().evaView.fromShip}</span>
+          <Bar v={Math.max(0, 1 - range.d / Math.max(1, shipCol.limit)) * 100} warn={range.warn} />
+          <span className="eh-v">
+            {range.d >= 1000 ? (range.d / 1000).toFixed(2) : range.d.toFixed(0)}
+            <small>{range.d >= 1000 ? ' km' : ' m'}</small>
+          </span>
+        </div>
+      ) : (
+        <div className="eh-row">
+          <span className="eh-k">{ui().evaView.tether}</span>
+          <Bar v={(left / TETHER_M) * 100} warn={taut || left < 5} />
+          <span className="eh-v">
+            {left.toFixed(0)}
+            <small> m</small>
+          </span>
+        </div>
+      )}
       <div className="eh-row">
         <span className="eh-k">{ui().evaView.gas}</span>
         <Bar v={hud.gas} warn={hud.gas < 15} />
@@ -164,6 +190,53 @@ function EvaHud() {
 }
 
 /** ミニマップ：真上から見た外壁の帯、エアロック、命綱の届く円、ツムギの位置と向き */
+/** 母船のまわりのミニマップ：真上から見た船の形、エアロック、警告・限界の線、ツムギの位置と向き */
+function ShipMap() {
+  useLang()
+  const hud = useEva((e) => e.hud)
+  const range = useEva((e) => e.range)
+  const sil = shipCol.sil
+  const b = shipCol.box
+  // 活動範囲の外へ出たら、自分が地図に入るように広げる
+  const lim = Math.max(shipCol.limit, range.d * 1.15 + 10)
+  const x0 = b.min.x - lim
+  const z0 = b.min.z - lim
+  const w = b.max.x - b.min.x + lim * 2
+  const h = b.max.z - b.min.z + lim * 2
+  const S = Math.max(w, h)
+  const cx = x0 + w / 2
+  const cz = z0 + h / 2
+  const vb = `${cx - S / 2} ${cz - S / 2} ${S} ${S}`
+  const k = S / 150 // 地図の 1 px が何 m か
+  const ring = (d: number) => (
+    <rect x={b.min.x - d} y={b.min.z - d} width={b.max.x - b.min.x + d * 2} height={b.max.z - b.min.z + d * 2} rx={d} ry={d} />
+  )
+  return (
+    <div className={`eva-map${range.edge ? ' edge' : ''}`}>
+      <svg viewBox={vb} aria-label={ui().evaView.minimap}>
+        {sil && (
+          <g className="m-hull">
+            {sil.rows.map(([j, i, n], idx) => (
+              <rect key={idx} x={sil.x0 + i * sil.cell} y={sil.z0 + j * sil.cell} width={n * sil.cell + 0.1} height={sil.cell + 0.1} />
+            ))}
+          </g>
+        )}
+        <g className="m-warn" style={{ strokeWidth: k * 0.8 }}>
+          {ring(shipCol.warn)}
+        </g>
+        <g className="m-range" style={{ strokeWidth: k, strokeDasharray: `${k * 3} ${k * 2}` }}>
+          {ring(shipCol.limit)}
+        </g>
+        <rect x={-k * 3} y={-k * 3} width={k * 6} height={k * 6} className="m-lock" />
+        <g transform={`translate(${hud.x} ${hud.z}) rotate(${hud.hdg}) scale(${k * 1.6})`}>
+          <path d="M 0 -4.2 L 2.8 3 L 0 1.6 L -2.8 3 Z" className="m-bot" />
+        </g>
+      </svg>
+      <span className="m-fwd">{ui().evaView.bow} ▲</span>
+    </div>
+  )
+}
+
 function EvaMap() {
   useLang()
   const hud = useEva((e) => e.hud)
@@ -340,21 +413,24 @@ function EvaPanel() {
   const working = useEva((e) => e.working)
   const swapping = useEva((e) => e.swapping)
   const gas = useEva((e) => e.hud.gas)
+  const speed = useEva((e) => e.speed)
   useEffect(() => bindEvaKeys(), [])
   const fly = phase === 'fly'
+  const free = evaSite.id === 'ship'
   const toolName = ui().evaTools[tool]
   return (
     <div className="surface-ui eva-ui">
       {phase === 'launch' && <div className="surface-caption">{ui().evaView.openingAirlock}</div>}
       {phase === 'deploy' && <div className="surface-caption">{ui().evaView.tsumugiBooting}</div>}
-      {phase === 'recall' && <div className="surface-caption">{ui().evaView.reelingIn}</div>}
+      {phase === 'recall' && <div className="surface-caption">{free ? ui().evaView.backAboard : ui().evaView.reelingIn}</div>}
       {fly && (
         <>
           <div className="surface-hint eva-hint">
-            {ui().evaView.keysHint}
+            {free ? ui().evaView.freeKeysHint : ui().evaView.keysHint}
+            <PointerHint />
           </div>
           <EvaHud />
-          <EvaMap />
+          {free ? <ShipMap /> : <EvaMap />}
           <JobPanel />
           <JobCard />
           <ToolBar />
@@ -369,7 +445,7 @@ function EvaPanel() {
               </button>
             )}
           </div>
-          {taut && (
+          {!free && taut && (
             <div className="rover-edge">
               {ui().evaView.tetherFull}
               <small>{ui().evaView.tetherRange(TETHER_M)}</small>
@@ -380,9 +456,15 @@ function EvaPanel() {
           <div className="eva-pad">
             <button {...holdProps(() => (evaInput.padUp = 1), () => (evaInput.padUp = 0))}>{ui().evaView.up}</button>
             <button {...holdProps(() => (evaInput.padUp = -1), () => (evaInput.padUp = 0))}>{ui().evaView.down}</button>
-            <button className="go" {...holdProps(() => (evaInput.work = true), () => (evaInput.work = false))}>
-              {ui().evaView.use}
-            </button>
+            {free ? (
+              <button className="go boost" {...holdProps(() => setTouchBoost(true), () => setTouchBoost(false))}>
+                {ui().evaView.boost}
+              </button>
+            ) : (
+              <button className="go" {...holdProps(() => (evaInput.work = true), () => (evaInput.work = false))}>
+                {ui().evaView.use}
+              </button>
+            )}
           </div>
         </>
       )}
@@ -395,16 +477,40 @@ function EvaPanel() {
             <button className={`secondary${assist ? ' on' : ''}`} onClick={() => useEva.setState({ assist: !assist })}>
               {assist ? ui().evaView.autoBrakeOn : ui().evaView.autoBrakeOff}
             </button>
+            <span className="eva-speed-btns">
+              <button className="secondary" onClick={() => stepEvaSpeed(-1)} disabled={speed === 0} aria-label={ui().evaView.slower}>
+                −
+              </button>
+              <span className="esb-label">
+                <span className="esb-word">{ui().evaView.speedWord} </span>
+                {EVA_SPEEDS[speed]} m/s
+              </span>
+              <button className="secondary" onClick={() => stepEvaSpeed(1)} disabled={speed === EVA_SPEEDS.length - 1} aria-label={ui().evaView.faster}>
+                ＋
+              </button>
+            </span>
           </>
         )}
         {(fly || phase === 'deploy') && (
-          <button className="primary" onClick={recallEva}>
+          <button className="primary" onClick={() => evaRecall.request()}>
             {ui().evaView.recall}
+            {!isTouchDevice() && <kbd>K</kbd>}
           </button>
         )}
       </div>
     </div>
   )
+}
+
+/** マウスを固定しているか（PC の案内） */
+function PointerHint() {
+  const [locked, setLocked] = useState(!!document.pointerLockElement)
+  useEffect(() => {
+    const on = () => setLocked(!!document.pointerLockElement)
+    document.addEventListener('pointerlockchange', on)
+    return () => document.removeEventListener('pointerlockchange', on)
+  }, [])
+  return <span className={`eva-lock${locked ? ' on' : ''}`}>{locked ? ui().evaView.mouseLocked : ui().evaView.clickToLock}</span>
 }
 
 /** 画面をなぞって向きを変える（マウスでも指でも） */
@@ -413,6 +519,11 @@ function useLookDrag() {
   return {
     onPointerDown: (e: RPointerEvent) => {
       if (useEva.getState().phase !== 'fly') return
+      // PC：画面（3D の絵）をクリックすると、マウスを固定して、動かすだけで向きを変えられる
+      if (e.pointerType === 'mouse' && e.target instanceof HTMLCanvasElement && !document.pointerLockElement && !isTouchDevice()) {
+        void e.target.requestPointerLock?.()
+        return
+      }
       last.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
     },
     onPointerMove: (e: RPointerEvent) => {
@@ -450,6 +561,7 @@ export function EvaView() {
   let curtain = 0
   if (phase === 'fadeIn') curtain = Math.min(1, T / EVA_FADE)
   else if (phase === 'launch') curtain = Math.max(0, 1 - T / EVA_FADE)
+  else if (phase === 'return') curtain = T < RETURN_SEC / 2 ? T / (RETURN_SEC / 2) : Math.max(0, 1 - (T - RETURN_SEC / 2) / (RETURN_SEC / 2))
   else if (phase === 'recall') curtain = Math.max(0, (T - RECALL_SEC) / EVA_FADE)
   else if (phase === 'fadeOut') curtain = Math.max(0, 1 - T / EVA_FADE)
   void LAUNCH_SEC

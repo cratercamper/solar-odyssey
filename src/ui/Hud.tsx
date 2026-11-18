@@ -11,6 +11,7 @@ import { isTouchDevice } from '../state/input'
 import { launchLander, useLaunchBusy } from '../state/launch'
 import { useLang } from '../i18n/lang'
 import { landableBody, landed, startLanding } from '../state/landing'
+import { startWalk, walkActive, walkableColony } from '../state/walk'
 import { useMission } from '../state/mission'
 import { toggleObserve } from '../state/observe'
 import { canStartEva, evaActive, startEva } from '../state/eva'
@@ -22,7 +23,7 @@ export function useGlobalKeys() {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.repeat) return
       // 着陸しているあいだは、宇宙の操作を受けつけない
-      if (landed() || evaActive()) return
+      if (landed() || evaActive() || walkActive()) return
       const s = useStore.getState()
       // 望遠鏡の写真を見ているあいだは、T と Esc（閉じる）だけ
       if (s.scope) {
@@ -54,7 +55,8 @@ export function useGlobalKeys() {
         return
       }
       if (e.code === 'KeyJ') {
-        if (landableBody()) startLanding()
+        if (walkableColony()) startWalk()
+        else if (landableBody()) startLanding()
         return
       }
       if (e.code === 'KeyM') s.setMode(s.mode === 'map' ? 'flight' : 'map')
@@ -94,8 +96,17 @@ function LandPrompt() {
     setLift(Math.round(window.innerHeight - top + 10))
   })
   const id = landableBody()
-  if (!id) return null
+  const colony = walkableColony()
+  if (!id && !colony) return null
   if (missionPhase === 'chapters' || missionPhase === 'list' || missionPhase === 'briefing' || missionPhase === 'debrief') return null
+  // コロニーの中では「降りて歩く」
+  if (colony)
+    return (
+      <button className="land-prompt" style={lift !== null && !isTouchDevice() ? { bottom: Math.max(118, lift) } : undefined} onClick={startWalk}>
+        {ui().walk.walkTo(colony.name())} <kbd>J</kbd>
+      </button>
+    )
+  if (!id) return null
   const name = bodyInfo(id)?.name ?? id
   return (
     <button className="land-prompt" style={lift !== null && !isTouchDevice() ? { bottom: Math.max(118, lift) } : undefined} onClick={() => startLanding(id)}>
@@ -284,6 +295,11 @@ export function Hud() {
           {mode === 'flight' && shipId === 'arcadia' && (
             <button className="launch-button" onClick={launchLander} disabled={launching || warpPhase !== 'idle'}>
               {ui().hud.launchLander} <kbd>L</kbd>
+            </button>
+          )}
+          {mode === 'flight' && cameraMode !== 'bridge' && (
+            <button className="eva-button" onClick={() => canStartEva(landed()) && startEva()} disabled={warpPhase !== 'idle' || raceActive()}>
+              {ui().hud.spacewalk} <kbd>K</kbd>
             </button>
           )}
           {mode === 'flight' && (

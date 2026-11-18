@@ -3,6 +3,7 @@ import type { SurfaceDef } from '../../data/surfaces'
 import { detailAt, heightAt, type Dem } from './dem'
 import { poisFor, poiWeight, type Poi } from './pois'
 import { FORM_KINDS, FORM_ROCK_TILE, formPalette, formRelief, formRocks, formTint } from './poiForms'
+import { TRACKS, tracksAt } from '../../data/rallyTracks'
 
 // 地表の地形：なだらかな起伏・クレーター・砂丘・遠くの山並み・天体の丸み（小さな星ほど地平線が近い）。
 // 立つ場所（原点）と着陸船の場所は平らにならす。
@@ -69,6 +70,22 @@ const smooth = (e0: number, e1: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
+/**
+ * 場所ごとに荒れ具合の変わる地面（月・エウロパ）。全体に同じでこぼこを足すと単調でつまらないので、
+ * 数百 m ごとに「ほぼ平ら」「少しでこぼこ」「荒れた所」が入れかわる。でこぼこの細かさも場所でちがう。
+ * レース場のコースの上（ZONE_LANE の内側）は、少しでこぼこまでにおさえる（走りやすく）
+ */
+const ZONE_BODIES = new Set(['moon', 'europa'])
+/** レース場ごとの、すべてのコースの線（やさしいコースと上級のコースの両方を平らにする） */
+const raceLines = (site: string) => tracksAt(site).map((id) => TRACKS[id].line)
+/**
+ * レースのコースの上（線からこの距離 m まで）は、ほぼ平らにする（どの星でも、最初のレースは走りやすく）。
+ * その外 ZONE_LANE_FADE m で元の地面にもどる。でこぼこや荒れた所は、ふつうの着陸地点で楽しむ
+ */
+const ZONE_LANE = 14
+const ZONE_LANE_FADE = 18
+const LANE_CELL = 25
+
 const DUNE_SAND = new THREE.Color('#4a3a32')
 const BOULDER_GROUND = new THREE.Color('#5a4232')
 const BUTTE_LIGHT = new THREE.Color('#b8957a')
@@ -93,12 +110,41 @@ export class Terrain {
   private lakes: { p: Poi; level: number }[] = []
   /** 火星以外の見どころ（poiForms.ts の地形） */
   private formPois: Poi[] = []
+  /** 荒れ具合の変わる地面か（月・エウロパ）と、レース場のコースの点（LANE_CELL m のます目に分けたもの） */
+  private zoned: boolean
+  private lane: Map<string, [number, number][]> | null = null
 
   constructor(readonly def: SurfaceDef, dem: Dem | null = null) {
     this.seed = idSeed(def.id)
     // 別の着陸地点（峡谷レース場）には、見どころを置かない（本物の地形そのものを走る）
     this.pois = def.site ? [] : poisFor(def.id)
     this.formPois = this.pois.filter((p) => FORM_KINDS.has(p.kind))
+    this.zoned = ZONE_BODIES.has(def.id)
+    if (this.zoned) {
+      const qs: number[] = []
+      for (let x = -900; x <= 900; x += 45) for (let z = -900; z <= 900; z += 45) qs.push(this.zoneQ(x, z))
+      qs.sort((p, q) => p - q)
+      this.zoneCut = [qs[Math.floor(qs.length * 0.35)], qs[Math.floor(qs.length * 0.75)]]
+    }
+    const lines = def.site ? raceLines(def.site) : []
+    if (lines.length) {
+      const lane = new Map<string, [number, number][]>()
+      // 10 m ごとの点のあいだを 2.5 m ごとに埋める（線までの距離を点までの距離で測れるように）
+      for (const line of lines) for (let i = 0; i < line.length - 1; i++) {
+        const [ax, az] = line[i]
+        const [bx, bz] = line[i + 1]
+        const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 2.5))
+        for (let k = 0; k < n; k++) {
+          const px = ax + ((bx - ax) * k) / n
+          const pz = az + ((bz - az) * k) / n
+          const key = `${Math.floor(px / LANE_CELL)},${Math.floor(pz / LANE_CELL)}`
+          const list = lane.get(key)
+          if (list) list.push([px, pz])
+          else lane.set(key, [[px, pz]])
+        }
+      }
+      this.lane = lane
+    }
     this.pois.forEach((p, i) => {
       if (p.kind !== 'buttes') return
       const rnd = seeded(this.seed + 300 + i)
@@ -196,10 +242,14 @@ export class Terrain {
     if (this.dem) {
       // 本物の地形 ＋ 地図より細かい足もとのでこぼこ
       let real = heightAt(this.dem.near, x, z) ?? heightAt(this.dem.far, x, z) ?? 0
-      if (this.dem.detail) real += detailAt(this.dem.detail, x, z)
+      // レースのコースの上では、本物の地形の細かいでこぼこをならす（大きな地形の形はそのまま）
+      const lw = this.lane && this.def.id === 'mars' ? this.laneW(x, z) : 0
+      if (lw > 0) real += (this.nearSmooth(x, z) - real) * 0.75 * lw
+      if (this.dem.detail) real += detailAt(this.dem.detail, x, z) * (1 - 0.7 * lw)
       if (this.def.id === 'mars' && !this.def.site) real += this.marsRelief(x, z)
       if (this.pois.length) real += this.poiRelief(x, z)
       let h = real + (fbm(x / 22, z / 22, s + 50, 3) - 0.5) * 0.5 + (fbm(x / 5, z / 5, s + 51, 2) - 0.5) * 0.15
+      if (this.zoned) h += this.zoneRelief(x, z, 1)
       if (raw) return { h, ejecta: 0, crack: 0 }
       const a = 1 - smooth(4, 12, Math.hypot(x, z))
       const b = 1 - smooth(14, 30, Math.hypot(x - LANDER_POS.x, z - LANDER_POS.y))
@@ -208,7 +258,11 @@ export class Terrain {
       return { h, ejecta: 0, crack: 0 }
     }
     let h = (fbm(x / R.hillScale, z / R.hillScale, s) - 0.5) * 2 * R.hills
-    h += (fbm(x / 22, z / 22, s + 50, 3) - 0.5) * 0.9 // 足もとの細かいでこぼこ
+    if (this.zoned) {
+      // 足もとの細かいでこぼこは、場所ごとの荒れ具合で（見どころの中は、見どころの形をそのまま見せる）
+      const calmHere = this.formPois.length ? this.poiCalm(x, z) : 1
+      h += (fbm(x / 22, z / 22, s + 50, 3) - 0.5) * 0.5 + this.zoneRelief(x, z, calmHere)
+    } else h += (fbm(x / 22, z / 22, s + 50, 3) - 0.5) * 0.9 // 足もとの細かいでこぼこ
     // 見どころ（火星以外）の中では、ふつうのクレーターと砂丘を埋めて見どころの形を目立たせる（新しい地形が古い地形をおおった形）。
     // 見どころの外では calm = 1 で、これまでと同じ
     let calm = -1
@@ -262,6 +316,94 @@ export class Terrain {
     const base = a >= b ? this.baseEye : this.baseLander
     h = h * (1 - f) + base * f
     return { h, ejecta: ejecta * (1 - f), crack }
+  }
+
+  /**
+   * 荒れ具合の重み：flat（ほぼ平ら）・bumpy（少しでこぼこ）・rough（荒れた所）。足すと 1。
+   * 数百 m の大きさのむらで決める。レース場のコースの上（lane = true のとき）は、ほぼ平らにする
+   */
+  zoneMix(x: number, z: number, lane = true) {
+    const q = this.zoneQ(x, z)
+    const [a, b] = this.zoneCut
+    let rough = smooth(b - 0.035, b + 0.035, q)
+    const notFlat = smooth(a - 0.035, a + 0.035, q)
+    let bumpy = notFlat - rough
+    if (lane && this.lane && notFlat > 0) {
+      // コースの上：荒れた所はなくし、少しでこぼこも 2 割だけ残す（ほぼ平ら）
+      const w = this.laneW(x, z)
+      bumpy *= 1 - 0.8 * w
+      rough *= 1 - w
+    }
+    return { flat: 1 - bumpy - rough, bumpy, rough }
+  }
+
+  private zoneQ(x: number, z: number) {
+    return fbm(x / 340 + 17, z / 340 - 5, this.seed + 140, 3)
+  }
+
+  /** 荒れ具合のむらの境目：走れる範囲のうち、およそ 35 % がほぼ平ら・40 % が少しでこぼこ・25 % が荒れた所になるように */
+  private zoneCut: [number, number] = [0.45, 0.58]
+
+  /** レースのコースの上か（1：コースの上〜0：コースから離れた所） */
+  private laneW(x: number, z: number) {
+    return 1 - smooth(ZONE_LANE, ZONE_LANE + ZONE_LANE_FADE, this.laneDist(x, z))
+  }
+
+  /** 地図の高さを、まわり ±9 m でならしたもの（コースの上の細かい起伏を消すため） */
+  private nearSmooth(x: number, z: number) {
+    const m = this.dem!.near
+    const at = (px: number, pz: number) => heightAt(m, px, pz) ?? heightAt(this.dem!.far, px, pz) ?? 0
+    const r = 9
+    return (at(x, z) * 2 + at(x + r, z) + at(x - r, z) + at(x, z + r) + at(x, z - r)) / 6
+  }
+
+  /** コースの線までの距離（m、遠ければ大きな数） */
+  private laneDist(x: number, z: number) {
+    const cx = Math.floor(x / LANE_CELL)
+    const cz = Math.floor(z / LANE_CELL)
+    let best = 1e9
+    for (let gx = cx - 1; gx <= cx + 1; gx++) {
+      for (let gz = cz - 1; gz <= cz + 1; gz++) {
+        for (const [px, pz] of this.lane?.get(`${gx},${gz}`) ?? []) {
+          const d = (px - x) ** 2 + (pz - z) ** 2
+          if (d < best) best = d
+        }
+      }
+    }
+    return Math.sqrt(best)
+  }
+
+  /**
+   * 荒れ具合に合わせたでこぼこ（m）。w は全体の強さ（見どころの中では小さく）。
+   *  少しでこぼこ … 波長 7〜16 m のなだらかなこぶ（高さ ±0.5 m ほど）。こぶの大きさは場所でちがう
+   *  荒れた所   … 月はクレーターの縁の噴出物のような、とがったこぶの重なり（±1.5 m ほど）。
+   *                エウロパは割れて少しずれた氷の板（カオス地形）の、段のある地面
+   */
+  private zoneRelief(x: number, z: number, w: number) {
+    if (w <= 0.01 || this.noZone) return 0
+    const s = this.seed
+    const m = this.zoneMix(x, z)
+    let h = 0
+    if (m.bumpy > 0.01) {
+      // こぶの細かさは場所でちがう（7〜16 m）
+      const sc = 7 + 9 * fbm(x / 500, z / 500, s + 141, 2)
+      h += (fbm(x / sc, z / sc, s + 142, 3) - 0.5) * 2.6 * m.bumpy
+    }
+    if (m.rough > 0.01) {
+      if (this.def.id === 'europa') {
+        // 氷の板：大きなむらを段にして、板どうしの高さを少しずらす（段はなめらかに）
+        const u = fbm(x / 26, z / 26, s + 143, 3) * 6
+        const fl = Math.floor(u)
+        const step = (fl + smooth(0.4, 0.6, u - fl)) / 6
+        h += ((step - 0.5) * 4 + (fbm(x / 6, z / 6, s + 144, 2) - 0.5) * 1.2) * m.rough
+      } else {
+        // とがったこぶ（尾根の形のノイズ）を 2 つの大きさで重ねる
+        const r1 = 1 - Math.abs(fbm(x / 18, z / 18, s + 143, 3) * 2 - 1)
+        const r2 = 1 - Math.abs(fbm(x / 7, z / 7, s + 144, 2) * 2 - 1)
+        h += ((r1 * r1 - 0.45) * 2.8 + (r2 * r2 - 0.45) * 0.9) * m.rough
+      }
+    }
+    return h * w
   }
 
   /**
@@ -374,6 +516,21 @@ export class Terrain {
   }
 
   /** 丸みを含めた高さ：遠いほど地平線の下へ沈む（r² / 2R） */
+  private noZone = false
+
+  /**
+   * ミニマップ用の高さ：場所ごとのでこぼこ（zoneRelief）を除く。細かいこぶまで入れると、
+   * 等高線が小さな輪だらけになって読みにくく、描くのもとても重くなる
+   */
+  mapHeight(x: number, z: number) {
+    this.noZone = true
+    try {
+      return this.height(x, z)
+    } finally {
+      this.noZone = false
+    }
+  }
+
   height(x: number, z: number) {
     const r2 = x * x + z * z
     return this.sample(x, z).h - r2 / (2 * this.radiusM)
@@ -722,7 +879,13 @@ export class Terrain {
       if (tries % 40 === 0) yield
       const [x, z] = pick()
       const pr = this.pois.length ? this.poiRocks(x, z) : null
-      const more = pr?.more ?? 1
+      let more = pr?.more ?? 1
+      if (this.zoned) {
+        // 平らな所は岩が少なく、荒れた所は多い（レースのコースの上は、地面を平らにしても岩の数はこれまでどおり。岩を跳びこすのがレースのこつ）
+        const m = this.zoneMix(x, z, false)
+        const w = this.lane ? this.laneW(x, z) : 0
+        more *= 0.45 * m.flat + m.bumpy + (2.2 - 1.2 * w) * m.rough
+      }
       if (this.flat(x, z) > 0.3) continue
       if (more <= 0.02) {
         rnd()

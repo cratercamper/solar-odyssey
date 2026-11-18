@@ -11,6 +11,8 @@ import { openProbes, useProbes } from '../state/probes'
 import { sim } from '../state/registry'
 import { formatDate, simDate, SIM_SECONDS_PER_HOUR } from '../data/ephemeris'
 import { closeMissions, openMissions, useMission } from '../state/mission'
+import { openCampaign, useCampaign } from '../state/campaign'
+import { CAMPAIGN_STAGES } from '../data/campaign'
 import { closeEclipses, openEclipses, useEclipse } from '../state/eclipse'
 import { openStamps, useStamps } from '../state/stamps'
 import { openRocks, useRockBook } from '../state/rockBook'
@@ -27,7 +29,8 @@ import { isTouchDevice } from '../state/input'
 import { useTouchUI } from '../state/touchUI'
 import { ThrottleMeter } from './Throttle'
 import { toggleObserve, useObserve } from '../state/observe'
-import { startEva } from '../state/eva'
+import { startEva, startRepairEva } from '../state/eva'
+import { startWalkDirect } from '../state/walk'
 
 const fmtDistance = (d: number | null) => (d === null ? '—' : d < 10 ? d.toFixed(1) : Math.round(d).toString())
 
@@ -315,6 +318,8 @@ export function NavPanel() {
   const stampCount = useStamps((b) => NATURAL.filter((id) => id in b.stamps).length)
   const missionPhase = useMission((m) => m.phase)
   const onMission = missionPhase === 'active'
+  const campaignOn = useCampaign((c) => c.active)
+  const campaignStage = useCampaign((c) => c.stage)
   const lang = useLang()
   if (s.mode === 'gallery') return null
   const sf = s.settings.world === 'sf'
@@ -420,6 +425,9 @@ export function NavPanel() {
       <button className={`secondary mission-start${missionPhase !== 'closed' ? ' on' : ''}`} onClick={() => (pick(), missionPhase !== 'active' && closeEclipses(), openMissions())} disabled={racing}>
         {ui().missionsButton}
       </button>
+      <button className={`secondary campaign-open mission-start${campaignOn ? ' on' : ''}`} onClick={() => (pick(), closeEclipses(), openCampaign())} disabled={racing || onMission}>
+        {campaignOn && campaignStage < CAMPAIGN_STAGES.length ? ui().campaign.navButtonActive(campaignStage + 1, CAMPAIGN_STAGES.length) : ui().campaign.navButton}
+      </button>
       <button className="secondary race-start" onClick={startRace} disabled={busy || onMission}>
         {ui().navPanel.race}
       </button>
@@ -429,6 +437,14 @@ export function NavPanel() {
       <button className="secondary eva-start" onClick={() => (pick(), closeEclipses(), startEva())} disabled={busy || racing || s.mode !== 'flight'}>
         {ui().navPanel.spacewalk} <kbd>K</kbd>
       </button>
+      <button className="secondary eva-start repair" onClick={() => (pick(), closeEclipses(), startRepairEva())} disabled={busy || racing || s.mode !== 'flight'}>
+        {ui().navPanel.spacewalkRepair}
+      </button>
+      {sf && (
+        <button className="secondary walk-start" onClick={() => (pick(), closeEclipses(), startWalkDirect())} disabled={busy || racing || s.mode !== 'flight'}>
+          {ui().navPanel.walkPark}
+        </button>
+      )}
       <button className={`secondary stamp-start${stampsOpen ? ' on' : ''}`} onClick={() => (pick(), openStamps())}>
         {ui().navPanel.stampBook} <span className="muted">{stampCount}/{NATURAL.length}</span>
       </button>

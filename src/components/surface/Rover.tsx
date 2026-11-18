@@ -1,3 +1,4 @@
+import { campaignSample } from '../../state/campaign'
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
@@ -10,7 +11,7 @@ import { lowMemory, useLevel } from '../../state/quality'
 import { MAP_KEYS, shrinkTexture } from './shrinkTexture'
 import { useLanding } from '../../state/landing'
 import { isWide, roverRangeFor, wideNow } from './wideGround'
-import { DEPLOY_SEC, ROVER_RANGE, ROVER_TOP, roverCtl, roverFocus, roverInput, roverDebug, roverNow, roverPose, roverQuick, setRoverPhase, useRover, useSampleLog } from '../../state/rover'
+import { DEPLOY_SEC, ROVER_RANGE, ROVER_TOP, driveInput, mouseSink, roverCtl, roverFocus, roverInput, roverDebug, roverNow, roverPose, roverQuick, setRoverPhase, useRover, useSampleLog } from '../../state/rover'
 import { PAINT_PARTS, paintUniforms, withPaint } from './paint'
 import { samplesFor, type RockSample } from '../../data/rockSamples'
 import { rockSpots } from '../../data/rockSpots'
@@ -30,11 +31,30 @@ const D = Math.PI / 180
 const WHEEL_R = 0.2
 /** アクセルオフの減速（m/s²）：どの星でも効く最低限の抵抗と、速さに比例するギアの抵抗（1/s） */
 const ROLL_BASE = 0.8
-/** 空中の姿勢制御：横への加速度（m/s²）、向きを変える速さ（rad/s）、下へ押す加速度の下限（m/s²）、噴射剤が持つ時間（秒） */
-const AIR_SIDE = 5
-const AIR_YAW = 0.8
+/**
+ * 空中の姿勢制御：横への加速度（m/s²）、向きを変える速さ（rad/s）、下へ押す加速度の下限（m/s²）、噴射剤が持つ時間（秒）。
+ * 小さなガス噴射なので、横へはほんの少ししか動けない。向きを変えても進む向きはそのまま（着地してタイヤで曲がる）。
+ * 地面で曲がるより空中のほうがよく曲がる、ということがないように
+ */
+const AIR_SIDE = 1.2
+const AIR_YAW = 0.45
 const AIR_DOWN_MIN = 6
 const AIR_FUEL_SEC = 2.5
+/**
+ * 自分で跳ぶ（ジャンプボタン）と、サスペンションのけりに加えて噴射剤も少し使う（満タンの 4 割）。
+ * 跳んだあとは空中で曲がれる分が減るので、いつ跳ぶか考えるようになる。残りが少ないと、跳ぶ高さも少し低い
+ */
+const JUMP_FUEL = 0.4
+/**
+ * 噴射剤の終わり際（cratercamper さんの案）：◀▶ の横噴射は、残りが AIR_RESERVE + AIR_FADE から AIR_RESERVE まで
+ * だんだん弱まって止まる（ぷつっと切れない）。最後の AIR_RESERVE は ▼（下へ押して着地）だけに取っておく
+ */
+const AIR_FADE = 0.3
+const AIR_RESERVE = 0.12
+const smooth01 = (v: number) => {
+  const t = Math.min(1, Math.max(0, v))
+  return t * t * (3 - 2 * t)
+}
 const ROLL_GEAR = 0.35
 /** 地面の転がり抵抗係数。ふかふかの砂ほど車輪が沈んで大きい（舗装路はおよそ 0.015） */
 const SOIL_DRAG: Record<string, number> = {
@@ -503,6 +523,11 @@ type Drive = {
   /** 最後に乗り上げた岩と、そこからの時間（同じ岩で何度も跳ねないように） */
   bumpRock: number
   bumpT: number
+  /**
+   * 地面から離れるときに、上への速さをそのままにする。いまの上への速さが、ジャンプか小さな岩で跳ねたものか、
+   * すでに一度向きをかえたもののとき。地面が上への速さを決めたとき（ふれて、地面の上がる速さが車体の上への速さ以上）に false にもどる
+   */
+  keepVy: boolean
   /** 岩に乗り上げている高さ（m）。0 は地面の上 */
   onRock: number
   /** 空中の噴射剤（0〜1）。地面にいると回復する */
@@ -511,6 +536,8 @@ type Drive = {
   thrust: number
   thrustSide: number
   thrustDown: number
+  /** 空中で ▼（下へ押す噴射）を使った。着地しても、ボタンを離すまではブレーキにしない */
+  downHeld: boolean
   /** 横すべりの速さ（m/s、右へ +） */
   slip: number
   /** タイヤが車体を横へ押す加速度（m/s²、右へ +）。車体の傾きに使う */
@@ -529,6 +556,75 @@ const DONE = 2.8
 const ARM_REACH = [0, 30, -62, -86].map((v) => v * D)
 
 const PROPS = { cam: new THREE.Vector3(), look: new THREE.Vector3(), fwd: new THREE.Vector3(), tmp: new THREE.Vector3(), q: new THREE.Quaternion() }
+
+// ---- 噴射剤の残りを、車体の後ろの灯で見せる（cratercamper さん 2026-11-13：画面の計器より自然で、Shift+F12 でも見える） ----
+// 後ろの面の上のほうに、左右対称の細い光の線を 2 本。真ん中から外へ向かって、残りの量だけ伸びる。
+// 青 → 残りが少ないと橙 → ▼ だけの残り（AIR_RESERVE）で赤。空になると赤く点滅。満タンで地面にいるあいだは、ほのかに灯るだけ
+/** 模型の座標（静止の姿勢）での、後ろの面の上の線の位置（模型の Body：x ±0.37、y 0.38〜1.005、後ろの面 z 0.78） */
+const RCS_BAR = { y: 0.93, z: 0.783, inner: 0.07, outer: 0.34, h: 0.04 }
+const RCS_BLUE = new THREE.Color(0.35, 1.6, 2.4)
+const RCS_AMBER = new THREE.Color(2.4, 1.3, 0.25)
+const RCS_RED = new THREE.Color(2.6, 0.3, 0.15)
+
+class RcsLights {
+  group = new THREE.Group()
+  private base: THREE.MeshBasicMaterial
+  private glow: THREE.MeshBasicMaterial
+  private bars: THREE.Mesh[] = []
+  private geo = new THREE.BoxGeometry(1, 1, 1)
+  private dim = 0.25
+  constructor() {
+    this.group.name = 'rcs-lights'
+    this.base = new THREE.MeshBasicMaterial({ color: '#0b0f14' })
+    this.glow = new THREE.MeshBasicMaterial({ color: RCS_BLUE.clone(), toneMapped: false })
+    const len = RCS_BAR.outer - RCS_BAR.inner
+    for (const side of [-1, 1]) {
+      // 消えているところも見えるよう、黒いみぞ
+      const slot = new THREE.Mesh(this.geo, this.base)
+      slot.scale.set(len + 0.02, RCS_BAR.h + 0.02, 0.01)
+      slot.position.set(side * (RCS_BAR.inner + len / 2), RCS_BAR.y, RCS_BAR.z)
+      const bar = new THREE.Mesh(this.geo, this.glow)
+      bar.position.set(0, RCS_BAR.y, RCS_BAR.z + 0.004)
+      bar.userData.side = side
+      for (const m of [slot, bar]) {
+        m.castShadow = false
+        m.receiveShadow = false
+        this.group.add(m)
+      }
+      this.bars.push(bar)
+    }
+  }
+  /** fuel 0..1。air：宙にいる。thrust：いま噴いている（0..1） */
+  update(fuel: number, air: boolean, thrust: number, t: number, dt: number) {
+    const len = RCS_BAR.outer - RCS_BAR.inner
+    const l = Math.max(0.004, len * fuel)
+    for (const b of this.bars) {
+      const side = b.userData.side as number
+      b.scale.set(l, RCS_BAR.h, 0.012)
+      b.position.x = side * (RCS_BAR.inner + l / 2)
+      b.visible = fuel > 0.003
+    }
+    const c = this.glow.color
+    if (fuel <= AIR_RESERVE) c.copy(RCS_RED)
+    else if (fuel < 0.42) c.copy(RCS_AMBER).lerp(RCS_BLUE, smooth01((fuel - 0.3) / 0.12))
+    else c.copy(RCS_BLUE)
+    // 満タンで地面にいるときは控えめに。使っている・減っているときは明るく、噴くとさらに少し明るく
+    const want = air || fuel < 0.99 ? 1 : 0.25
+    this.dim += (want - this.dim) * Math.min(1, dt * 4)
+    let k = this.dim * (1 + 0.35 * thrust)
+    if (fuel <= AIR_RESERVE && air && Math.sin(t * 14) < 0) k *= 0.35
+    c.multiplyScalar(k)
+    if (fuel <= 0.003) {
+      // 空：みぞだけが赤く点滅
+      this.base.color.setRGB(Math.sin(t * 8) > 0 && air ? 0.6 : 0.05, 0.02, 0.02)
+    } else this.base.color.set('#0b0f14')
+  }
+  dispose() {
+    this.geo.dispose()
+    this.base.dispose()
+    this.glow.dispose()
+  }
+}
 
 export function Rover({
   terrain,
@@ -605,7 +701,14 @@ export function Rover({
       arm: [get('ArmYaw'), get('ArmUpper'), get('ArmFore'), get('ArmHand')],
     }
     for (const w of Object.values(rig.wheels)) w.rotation.order = 'YXZ'
-    return { model, rig, owned, paint }
+    // 噴射剤の灯：車体（Body）に付けて、沈み込み・傾きに一緒に動かす。静止の姿勢での模型の座標から、車体の座標へ
+    const rcs = new RcsLights()
+    model.updateMatrixWorld(true)
+    const toBody = new THREE.Matrix4().copy(rig.body.matrixWorld).invert().multiply(model.matrixWorld)
+    rcs.group.applyMatrix4(toBody)
+    rig.body.add(rcs.group)
+    owned.push(rcs)
+    return { model, rig, owned, paint, rcs }
   }, [scene, prepare])
   useEffect(() => () => built.owned.forEach((m) => m.dispose()), [built])
 
@@ -730,6 +833,8 @@ export function Rover({
       if (st.current) Object.assign(st.current, { x, z, y: meshHeight(terrain, x, z), vy: 0, speed: 0, slip: 0, heading: heading ?? st.current.heading })
     }
     roverDebug.rocks = () => [...bodiesNow().values()].flat().map(({ x, z, r, h }) => ({ x, z, r, h }))
+    roverDebug.height = (x, z) => terrain.height(x, z)
+    roverDebug.drive = () => (st.current ? { ...st.current } : null)
     // レース：スタートの列・直前の門へ置く（止まった状態で、地面の上に）
     roverCtl.place = (x, z, heading) => {
       const d = st.current
@@ -743,6 +848,8 @@ export function Rover({
       roverDebug.sites = undefined
       roverDebug.place = undefined
       roverDebug.rocks = undefined
+      roverDebug.height = undefined
+      roverDebug.drive = undefined
     }
   }, [sites, staticBodies, terrain])
   useEffect(() => {
@@ -773,11 +880,13 @@ export function Rover({
       edgeT: -9,
       bumpRock: -1,
       bumpT: 9,
+      keepVy: false,
       onRock: 0,
       fuel: 1,
       thrust: 0,
       thrustSide: 0,
       thrustDown: 0,
+      downHeld: false,
       slip: 0,
       aLat: 0,
       sway: new Sway(),
@@ -839,10 +948,14 @@ export function Rover({
         inp.jump = false
       }
       const busy = s.sampleT >= 0 || locked
-      const steerTarget = busy ? 0 : inp.steer
+      // キーボード・ボタンに、マウスのハンドルと巡航を足したもの（state/rover.ts の driveInput）
+      const di = driveInput(s.speed, dt)
+      const steerTarget = busy ? 0 : di.steer
       s.steer += (steerTarget - s.steer) * Math.min(1, dt * 6)
       if (s.grounded) {
-        const th = busy ? 0 : inp.throttle
+        // 空中で ▼ を押したまま着地したときは、離すまでブレーキにしない（下へ押す噴射のつもりで押しているので）
+        if (inp.throttle >= 0) s.downHeld = false
+        const th = busy || (s.downHeld && inp.throttle < 0) ? 0 : di.throttle
         if (busy) {
           s.speed *= 1 - Math.min(1, dt * 8)
           s.slip *= 1 - Math.min(1, dt * 8)
@@ -887,8 +1000,13 @@ export function Rover({
         s.speed = Math.sign(s.speed) * Math.sqrt(Math.max(0, vt * vt - s.slip * s.slip))
         if (inp.jump && !busy) {
           // ぴょーん（重力の弱い星ほど高く、長く飛ぶ）
-          s.vy = 3.2 + Math.abs(s.speed) * 0.08
+          // 右ボタンを押した長さで、小さなジャンプから大きなジャンプまで（キーとボタンはいつも 100%）
+          const power = THREE.MathUtils.clamp(inp.jumpPower, 0.3, 1)
+          const kick = (0.6 + 0.4 * Math.min(1, s.fuel / JUMP_FUEL)) * power
+          s.vy = (3.2 + Math.abs(s.speed) * 0.08) * kick
+          s.fuel = Math.max(0, s.fuel - JUMP_FUEL * power)
           s.grounded = false
+          s.keepVy = true
           s.squashV = -0.4
         }
       }
@@ -896,16 +1014,28 @@ export function Rover({
         s.aLat = 0
         // 空中の姿勢制御：小さな噴射で、◀▶ は横へ動きながら向きを変え、▼ は下へ押して早く着地する。
         // 噴射剤は 1 回のジャンプで 2.5 秒ぶん。地面にいると回復する（押しっぱなしで飛び続けられない）
-        const side = busy ? 0 : inp.steer
-        const down = !busy && inp.throttle < 0 ? 1 : 0
-        const on = s.fuel > 0 && (side !== 0 || down > 0)
+        // 横は終わり際に弱まり、最後のひと残り（AIR_RESERVE）は ▼ だけが使える
+        const sideK = smooth01((s.fuel - AIR_RESERVE) / AIR_FADE)
+        const downK = smooth01(s.fuel / 0.04)
+        const side = busy ? 0 : di.steer * sideK
+        // ▼ のほか、マウスだけでも降りられる（右ボタンを押し続ける・ホイールを手前に。巡航は止めない）
+        const down = busy ? 0 : inp.throttle < 0 ? downK : mouseSink() * downK
+        const on = s.fuel > 0 && (Math.abs(side) > 0.02 || down > 0)
         s.thrustSide = on ? side : 0
         s.thrustDown = on ? down : 0
+        if (down) s.downHeld = true
         if (on) {
           s.slip += side * AIR_SIDE * dt
-          s.heading -= side * AIR_YAW * dt
+          // 車体だけが回る。速度（地面に対する向き）は変わらないので、そのぶんは横すべりになり、着地でタイヤが受け止める
+          const dh = side * AIR_YAW * dt
+          s.heading -= dh
+          const cs = Math.cos(dh)
+          const sn = Math.sin(dh)
+          const fw = s.speed * cs + s.slip * sn
+          s.slip = s.slip * cs - s.speed * sn
+          s.speed = fw
           s.vy -= down * Math.max(AIR_DOWN_MIN, g * 2) * dt
-          s.fuel = Math.max(0, s.fuel - dt / AIR_FUEL_SEC)
+          s.fuel = Math.max(0, s.fuel - (dt / AIR_FUEL_SEC) * Math.max(Math.abs(side), down))
         }
       }
       if (s.grounded) s.fuel = Math.min(1, s.fuel + dt * 0.6)
@@ -915,6 +1045,7 @@ export function Rover({
         s.thrustDown = 0
       }
       inp.jump = false
+      inp.jumpPower = 1
       const tanP = Math.tan(s.pitch)
       const tanR = Math.tan(s.roll)
       const prevBase = meshHeight(terrain, s.x, s.z)
@@ -980,6 +1111,9 @@ export function Rover({
       if (s.y <= ground) {
         const impact = Math.max(0, groundVy - s.vy)
         s.y = ground
+        // 地面の上がる速さが車体の上への速さ以上なら、上への速さは地面が決める（岩に乗り上げるぶんは groundVy に入らないので、
+        // ジャンプで上がっていく途中に岩の横にふれただけでは、ジャンプの速さのまま）
+        if (Math.min(groundVy, 9) >= s.vy) s.keepVy = false
         s.vy = Math.max(s.vy, Math.min(groundVy, 9))
         if (wasAir && impact > 1.2) {
           // 着地：脚がぐっと縮んで、車体が沈む（強く落ちるほど深く）
@@ -993,6 +1127,17 @@ export function Rover({
         s.vy = Math.min(s.vy, 0)
         s.grounded = true
       } else s.grounded = s.y - ground < 0.03
+      // 地面から離れた瞬間：上への速さが地面の決めたものなら（keepVy でない）、速さの向き（上と水平の割合）はそのままで、
+      // 大きさを離れる前の水平の速さ（前への速さと横すべり）にそろえる。坂で上へ動いていたぶんを、宙へ飛び出すときに足さない。
+      // 地面の上を走っているあいだは何も変えない。向きをかえるのは、地面がまた上への速さを決めるまでに一度だけ
+      if (!wasAir && !s.grounded && !s.keepVy && s.vy > 0) {
+        const h = Math.hypot(s.speed, s.slip)
+        const scale = h / Math.hypot(h, s.vy)
+        s.speed *= scale
+        s.slip *= scale
+        s.vy *= scale
+        s.keepVy = true
+      }
       // 岩に登るぶん、少し遅くなる。乗っているあいだも、車輪が空回りして遅くなる
       if (s.grounded && lift > prevLift) s.speed *= 1 - Math.min(0.1, (lift - prevLift) * 0.3)
       s.onRock = s.grounded ? lift : 0
@@ -1000,19 +1145,26 @@ export function Rover({
       // 地面の傾き（6 つの車輪の下の高さ。岩に乗っていれば、岩の上の高さ）
       const sideX = -fwd.z
       const sideZ = fwd.x
-      if (s.grounded) {
-        // wheelH は、いま測った rockLift の車輪の下の高さ
+      {
+        // wheelH は、いま測った rockLift の車輪の下の高さ（宙にいても、真下の地面の傾きがわかる）
         const hF = (wheelH[0] + wheelH[1]) / 2
         const hB = (wheelH[4] + wheelH[5]) / 2
         const hR = (wheelH[1] + wheelH[3] + wheelH[5]) / 3
         const hL = (wheelH[0] + wheelH[2] + wheelH[4]) / 3
-        const k = Math.min(1, dt * 14)
-        s.pitch += (Math.atan2(hF - hB, 1.44) - s.pitch) * k
-        s.roll += (Math.atan2(hR - hL, 1.0) - s.roll) * k
-      } else {
-        // 宙では少しずつ水平に
-        s.pitch += (Math.min(0.25, Math.max(-0.35, s.vy * 0.04)) - s.pitch) * Math.min(1, dt * 1.2)
-        s.roll *= 1 - Math.min(1, dt * 1.5)
+        const slopeP = Math.atan2(hF - hB, 1.44)
+        const slopeR = Math.atan2(hR - hL, 1.0)
+        if (s.grounded) {
+          const k = Math.min(1, dt * 14)
+          s.pitch += (slopeP - s.pitch) * k
+          s.roll += (slopeR - s.roll) * k
+        } else {
+          // 宙：地面のすぐ上（斜面を横切るときの小さな浮き）なら斜面の傾きのまま。高く飛んだときだけ、少しずつ水平に
+          // （cratercamper さん 2026-11-13：斜面で一瞬浮くたびに水平へもどろうとして、かくっと揺れていた）
+          const w = THREE.MathUtils.smoothstep(s.y - ground, 0.4, 2.5)
+          const airP = Math.min(0.25, Math.max(-0.35, s.vy * 0.04))
+          s.pitch += (THREE.MathUtils.lerp(slopeP, airP, w) - s.pitch) * Math.min(1, dt * THREE.MathUtils.lerp(8, 1.2, w))
+          s.roll += (slopeR * (1 - w) - s.roll) * Math.min(1, dt * THREE.MathUtils.lerp(8, 1.5, w))
+        }
       }
       // 小さな岩：車輪が乗り上げると、ぴょんと跳ねる（速いほど、岩が高いほど高く。でも飛び上がるほどではない）。かたむきも少し
       // 丘として登る岩（CLIMB_ROCK より高い）は、車輪が触れたときに車体が少し沈んで、ことんと揺れるだけ
@@ -1037,6 +1189,7 @@ export function Rover({
             if (kick < 0.25) continue
             s.vy = Math.max(s.vy, kick)
             s.grounded = false
+            s.keepVy = true
             s.roll += sd * 2 * Math.min(0.35, r.h * 0.9) * (1 - Math.abs(wf))
             s.pitch += Math.sign(wf) * Math.min(0.3, r.h * 0.7) * Math.sign(s.speed)
             s.squashV = Math.min(s.squashV, -0.3 - r.h)
@@ -1117,6 +1270,7 @@ export function Rover({
           near = -1
           if (next === s.sampleIdx) next = -1
           useSampleLog.getState().add(def.id, site.kind.id)
+          campaignSample(def.id)
           useRover.setState({ result: site.kind.id })
           s.sampleT = -1
           s.sampleIdx = -1
@@ -1199,6 +1353,8 @@ export function Rover({
     else s.sway.reset()
 
     applyPose(rig, pose, s.squash, s.sway.pitch, s.sway.roll)
+    built.rcs.group.visible = phase === 'drive'
+    if (phase === 'drive') built.rcs.update(s.fuel, !s.grounded, s.thrust, roverNow(), dt)
     grp.position.set(s.x, s.y, s.z)
     grp.rotation.set(s.pitch, s.heading, s.roll, 'YXZ')
     for (const k of Object.keys(rig.wheels)) {

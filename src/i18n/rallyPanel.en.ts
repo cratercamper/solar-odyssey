@@ -4,6 +4,9 @@ import type { Translation } from './translation'
 // The texts of components/surface/RallyPanel.tsx (English). Same keys as rallyPanel.ja.ts
 
 export const rallyPanelEn: Translation<typeof rallyPanelJa> = {
+  course: 'Course',
+  levelEasy: 'Easy',
+  levelHard: 'Hard',
   roverColour: 'Rover colour',
   best: 'Best',
   start: 'Start',

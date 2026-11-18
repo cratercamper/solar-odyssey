@@ -10,6 +10,7 @@ import { useOptionalTexture } from '../../hooks/useOptionalTexture'
 import { bodies } from '../../state/registry'
 import { proximity } from '../../state/proximity'
 import { ship } from '../../state/flight'
+import { evaDebug } from '../../state/eva'
 import { lowMemory, useQuality } from '../../state/quality'
 import type { ShipSpec } from '../../data/ships'
 import { uiEn } from '../../i18n'
@@ -17,6 +18,8 @@ import { AIRLOCK, HULL_HALF, HULL_R, evaSite, hullNormal, hullPoint } from './hu
 import { focus, hatchState } from './Tsumugi'
 import { hullTextures } from './hullTex'
 import { ArcadiaDeck, DockUnderside } from './EvaSites'
+import { AirlockModule, EvaShip } from './EvaShip'
+import { shipCol } from './shipCollider'
 
 // 船外の場面のまわり：乗っている船の外壁（パネル・手すり・エアロック・船の名前・アンテナ・放熱板・窓）、
 // 星空、太陽、そばの惑星。向きは宇宙の場面で船が向いていた向きのまま（船の座標で描く）。
@@ -254,7 +257,7 @@ function Airlock({ spec }: { spec: ShipSpec }) {
   const door = useRef<THREE.Mesh>(null)
   const lamps = useRef<THREE.MeshBasicMaterial>(null)
   useFrame(({ clock }) => {
-    const h = hatchState.get()
+    const h = evaDebug.hatch ?? hatchState.get()
     if (door.current) door.current.position.z = AIRLOCK.z + h * (S + 0.1)
     if (lamps.current) {
       const blink = Math.sin(clock.elapsedTime * 6) > 0
@@ -279,13 +282,15 @@ function Airlock({ spec }: { spec: ShipSpec }) {
         </mesh>
       ))}
       {/* 穴の中：壁と床（中の明かりで照らす） */}
-      <mesh position={[0, -0.7, 0]}>
-        <boxGeometry args={[S, 1.4, S]} />
+      {/* 小屋の内壁（EvaShip の AirlockModule、穴の縁がちょうど S）と同じ面にならないよう、ほんの少し内側に */}
+      <mesh position={[0, -0.71, 0]}>
+        <boxGeometry args={[S - 0.03, 1.4, S - 0.03]} />
         <meshStandardMaterial color="#3a4048" roughness={0.7} metalness={0.3} side={THREE.BackSide} />
       </mesh>
       <pointLight position={[0, -0.9, 0]} intensity={1.6} distance={3} color="#cfe2ff" />
       {/* ハッチ（開くと前へすべる） */}
-      <mesh ref={door} position={[0, 0.03, 0]} castShadow receiveShadow>
+      {/* 下の面を小屋の屋根（y=0）から浮かせる：開いて屋根の上へすべったとき、同じ面でちらつかないように */}
+      <mesh ref={door} position={[0, 0.045, 0]} castShadow receiveShadow>
         <boxGeometry args={[S - 0.02, 0.06, S - 0.02]} />
         <meshStandardMaterial color="#c9ccd2" roughness={0.5} metalness={0.4} />
       </mesh>
@@ -381,10 +386,16 @@ function SunLight({ dir }: { dir: THREE.Vector3 }) {
   const light = useRef<THREE.DirectionalLight>(null)
   // 影の大きさは出たときに決めて変えない（画質の切り替えで影の地図を作り直すと、影を受ける材質が描けなくなることがある）
   const [size] = useState(() => (!lowMemory() && useQuality.getState().level === 'high' ? 2048 : 1024))
+  // 母船のまわりでは、船の影にツムギが入るように、光を船の向こうから当てる（影の地図の奥行きを船の大きさに）
+  const reach = evaSite.id === 'ship' ? Math.max(60, shipCol.L * 1.2 + 50) : 40
   useFrame(() => {
     const l = light.current
     if (!l) return
-    l.position.copy(focus).addScaledVector(dir, 40)
+    if (l.shadow.camera.far !== reach * 2 + 50) {
+      l.shadow.camera.far = reach * 2 + 50
+      l.shadow.camera.updateProjectionMatrix()
+    }
+    l.position.copy(focus).addScaledVector(dir, reach)
     l.target.position.copy(focus)
     l.target.updateMatrixWorld()
   })
@@ -408,6 +419,15 @@ function SunLight({ dir }: { dir: THREE.Vector3 }) {
   )
 }
 
+/** 星空・太陽・惑星はカメラについてくる（母船のまわりを何百 m 飛んでも、遠くの景色はずれない） */
+function Distant({ children }: { children: React.ReactNode }) {
+  const g = useRef<THREE.Group>(null)
+  useFrame(({ camera }) => {
+    g.current?.position.copy(camera.position)
+  })
+  return <group ref={g}>{children}</group>
+}
+
 export function EvaWorld({ spec }: { spec: ShipSpec }) {
   // 数 cm の部品（ボルト・札など）は影を落とさない（影のための描画を減らす）
   useTrimShadows(0.08)
@@ -415,18 +435,27 @@ export function EvaWorld({ spec }: { spec: ShipSpec }) {
   const planetLight = out.planet ? new THREE.Color(out.planet.id === 'earth' ? '#7fa8e0' : out.planet.color) : null
   return (
     <>
-      <group quaternion={out.inv}>
-        <Sky />
-      </group>
-      <SunGlow dir={out.sun} />
+      <Distant>
+        <group quaternion={out.inv}>
+          <Sky follow={false} />
+        </group>
+        <SunGlow dir={out.sun} />
+        {out.planet && <Planet p={out.planet} sun={out.sun} />}
+      </Distant>
       <SunLight dir={out.sun} />
       {/* 船の中から漏れる明かりのような、ごく弱い光（影の側が真っ黒にならないように） */}
       <ambientLight intensity={0.14} />
       <hemisphereLight args={['#9fb6d8', '#262018', 0.3]} />
       {out.planet && planetLight && (
         <>
-          <Planet p={out.planet} sun={out.sun} />
           <directionalLight position={out.planet.dir.clone().multiplyScalar(50)} intensity={0.25 + Math.min(0.6, out.planet.ang)} color={planetLight} />
+        </>
+      )}
+      {evaSite.id === 'ship' && (
+        <>
+          <EvaShip spec={spec} />
+          <AirlockModule color={spec.swatch[2] ?? '#d9472b'} />
+          <Airlock spec={spec} />
         </>
       )}
       {evaSite.id === 'hull' && <Hull spec={spec} />}

@@ -20,6 +20,7 @@ async function start() {
   if (started) return
   started = true
   const c = audio()
+  if (!c) return
   const ogg = new Audio().canPlayType('audio/ogg; codecs="vorbis"') !== ''
   const url = `${import.meta.env.BASE_URL}music/bgm-loop.${ogg ? 'ogg' : 'mp3'}`
   try {
@@ -55,6 +56,8 @@ export function setupMusic() {
   useStore.subscribe((s, prev) => {
     if (s.settings === prev.settings) return
     if (s.settings.music && !started) void start()
-    if (gain) gain.gain.setTargetAtTime(level(), audio().currentTime, 0.2)
+    if (!gain) return
+    const c = audio()
+    if (c) gain.gain.setTargetAtTime(level(), c.currentTime, 0.2)
   })
 }

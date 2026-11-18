@@ -1,0 +1,412 @@
+{
+  "_about": "Style sheet for the colony park people made with MPFB 2 (MakeHuman, CC0). mpfb_gen.py turns it into people with a fixed seed; shrink_vrm_textures.py applies hairRgb/skin tweaks.",
+  "seed": 2611,
+  "race": {
+    "asian": 0.5,
+    "caucasian": 0.3,
+    "african": 0.2,
+    "dominant": [
+      0.65,
+      0.95
+    ]
+  },
+  "face": {
+    "targets": [
+      "nose/nose-scale-horiz",
+      "nose/nose-scale-vert",
+      "nose/nose-point-width",
+      "nose/nose-hump",
+      "nose/nose-nostrils-width",
+      "mouth/mouth-scale-horiz",
+      "mouth/mouth-upperlip-volume",
+      "mouth/mouth-lowerlip-volume",
+      "mouth/mouth-angles",
+      "chin/chin-width",
+      "chin/chin-prominent",
+      "chin/chin-height",
+      "head/head-fat",
+      "head/head-scale-horiz",
+      "eyes/eye-scale",
+      "eyes/eye-height2",
+      "eyes/eye-trans",
+      "eyes/eye-epicanthus",
+      "cheek/cheek-bones",
+      "cheek/cheek-volume",
+      "eyebrows/eyebrows-trans"
+    ],
+    "headShapes": [
+      "head-oval",
+      "head-round",
+      "head-square",
+      "head-rectangular",
+      "head-diamond"
+    ],
+    "headShapeMax": 0.5
+  },
+  "classes": {
+    "child": {
+      "count": 4,
+      "years": [
+        6,
+        10
+      ],
+      "muscle": [
+        0.4,
+        0.55
+      ],
+      "weight": [
+        0.35,
+        0.6
+      ],
+      "faceMax": 0.25,
+      "heightM": "0.76 + 0.062 * years",
+      "hair": {
+        "female": [
+          "ponytail01",
+          "braid01",
+          "bob01",
+          "bob02",
+          "long01"
+        ],
+        "male": [
+          "short01",
+          "short02",
+          "short03",
+          "short04"
+        ]
+      },
+      "clothes": {
+        "female": [
+          "female_casualsuit01",
+          "female_casualsuit02"
+        ],
+        "male": [
+          "male_casualsuit01",
+          "male_casualsuit02",
+          "male_casualsuit04",
+          "male_casualsuit05"
+        ]
+      },
+      "shoes": [
+        "shoes01",
+        "shoes02",
+        "shoes05",
+        "shoes06"
+      ],
+      "hairRgb": {
+        "asian": [
+          "black",
+          "darkbrown"
+        ],
+        "caucasian": [
+          "brown",
+          "blonde",
+          "auburn",
+          "darkbrown"
+        ],
+        "african": [
+          "black"
+        ]
+      }
+    },
+    "adult": {
+      "count": 5,
+      "age": [
+        0.38,
+        0.62
+      ],
+      "muscle": [
+        0.35,
+        0.7
+      ],
+      "weight": [
+        0.35,
+        0.7
+      ],
+      "height": [
+        0.3,
+        0.68
+      ],
+      "proportions": [
+        0.4,
+        0.7
+      ],
+      "faceMax": 0.4,
+      "hair": {
+        "female": [
+          "bob01",
+          "bob02",
+          "braid01",
+          "long01",
+          "ponytail01",
+          "short04"
+        ],
+        "male": [
+          "short01",
+          "short02",
+          "short03",
+          "short04"
+        ],
+        "africanMale": [
+          "afro01",
+          "short01"
+        ]
+      },
+      "clothes": {
+        "female": [
+          "female_casualsuit01",
+          "female_casualsuit02",
+          "female_elegantsuit01",
+          "female_sportsuit01"
+        ],
+        "male": [
+          "male_casualsuit01",
+          "male_casualsuit02",
+          "male_casualsuit03",
+          "male_casualsuit04",
+          "male_casualsuit05",
+          "male_casualsuit06",
+          "male_elegantsuit01",
+          "male_worksuit01"
+        ]
+      },
+      "shoes": [
+        "shoes01",
+        "shoes02",
+        "shoes03",
+        "shoes04",
+        "shoes05",
+        "shoes06"
+      ],
+      "hairRgb": {
+        "asian": [
+          "black",
+          "darkbrown",
+          "brown"
+        ],
+        "caucasian": [
+          "brown",
+          "blonde",
+          "auburn",
+          "darkbrown"
+        ],
+        "african": [
+          "black",
+          "darkbrown"
+        ]
+      }
+    },
+    "elder": {
+      "count": 3,
+      "age": [
+        0.8,
+        0.95
+      ],
+      "muscle": [
+        0.3,
+        0.5
+      ],
+      "weight": [
+        0.4,
+        0.75
+      ],
+      "height": [
+        0.25,
+        0.55
+      ],
+      "proportions": [
+        0.4,
+        0.6
+      ],
+      "faceMax": 0.4,
+      "hair": {
+        "female": [
+          "bob01",
+          "bob02",
+          "short04"
+        ],
+        "male": [
+          "short01",
+          "short02",
+          "short03"
+        ]
+      },
+      "clothes": {
+        "female": [
+          "female_elegantsuit01",
+          "female_casualsuit02",
+          "female_casualsuit01"
+        ],
+        "male": [
+          "male_elegantsuit01",
+          "male_casualsuit06",
+          "male_casualsuit03",
+          "male_casualsuit01"
+        ]
+      },
+      "hat": {
+        "male": [
+          "fedora01"
+        ],
+        "chance": 0.35
+      },
+      "shoes": [
+        "shoes01",
+        "shoes03",
+        "shoes04"
+      ],
+      "hairRgb": {
+        "asian": [
+          "grey",
+          "white",
+          "salt"
+        ],
+        "caucasian": [
+          "grey",
+          "white",
+          "salt"
+        ],
+        "african": [
+          "grey",
+          "salt"
+        ]
+      }
+    }
+  },
+  "hairColors": {
+    "black": [
+      0.05,
+      0.045,
+      0.04
+    ],
+    "darkbrown": [
+      0.14,
+      0.09,
+      0.06
+    ],
+    "brown": [
+      0.28,
+      0.18,
+      0.1
+    ],
+    "blonde": [
+      0.62,
+      0.5,
+      0.3
+    ],
+    "auburn": [
+      0.36,
+      0.15,
+      0.07
+    ],
+    "grey": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "white": [
+      0.8,
+      0.79,
+      0.76
+    ],
+    "salt": [
+      0.36,
+      0.34,
+      0.32
+    ]
+  },
+  "eyes": {
+    "asian": [
+      "brown"
+    ],
+    "african": [
+      "brown"
+    ],
+    "caucasian": [
+      "brown",
+      "brownlight",
+      "blue",
+      "green",
+      "bluegreen",
+      "grey"
+    ]
+  },
+  "budget": {
+    "bodyDecimate": 0.6,
+    "shoesDecimate": 0.3,
+    "clothMaxTris": 6000,
+    "eyes": "low-poly",
+    "texMax": 1024
+  },
+  "skinTweak": {
+    "saturation": 0.85,
+    "brightness": 1.06
+  },
+  "shirtColors": {
+    "navy": [
+      0.12,
+      0.18,
+      0.35
+    ],
+    "forest": [
+      0.14,
+      0.32,
+      0.2
+    ],
+    "mustard": [
+      0.72,
+      0.55,
+      0.16
+    ],
+    "terracotta": [
+      0.66,
+      0.3,
+      0.2
+    ],
+    "slate": [
+      0.35,
+      0.42,
+      0.5
+    ],
+    "burgundy": [
+      0.45,
+      0.12,
+      0.16
+    ],
+    "cream": [
+      0.85,
+      0.82,
+      0.72
+    ],
+    "teal": [
+      0.12,
+      0.4,
+      0.42
+    ],
+    "olive": [
+      0.4,
+      0.42,
+      0.2
+    ],
+    "coral": [
+      0.85,
+      0.45,
+      0.38
+    ],
+    "sky": [
+      0.45,
+      0.62,
+      0.8
+    ],
+    "charcoal": [
+      0.22,
+      0.22,
+      0.24
+    ],
+    "lilac": [
+      0.6,
+      0.5,
+      0.7
+    ]
+  }
+}

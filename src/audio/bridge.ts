@@ -30,6 +30,7 @@ function loopNoise(c: AudioContext) {
 export function setBridgeAmbience(on: boolean) {
   if (on === !!nodes) return
   const c = audio()
+  if (!c) return
   if (!on && nodes) {
     nodes.gain.gain.setTargetAtTime(0, c.currentTime, 0.4)
     const n = nodes
@@ -89,6 +90,7 @@ export function chirp(count = 2 + Math.floor(Math.random() * 3), loud = 1) {
   const v = volume() * CHIRP * loud
   if (v === 0) return
   const c = audio()
+  if (!c) return
   let at = c.currentTime + 0.02
   for (let i = 0; i < count; i++) {
     const o = c.createOscillator()

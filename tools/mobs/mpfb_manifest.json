@@ -1,0 +1,1918 @@
+{
+ "child_1": {
+  "id": "child_1",
+  "cls": "child",
+  "sex": "female",
+  "race": "asian",
+  "years": 8.4,
+  "targetHeight": 1.278,
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.138,
+   "muscle": 0.486,
+   "weight": 0.506,
+   "proportions": 0.5,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.735,
+    "caucasian": 0.168,
+    "african": 0.097
+   }
+  },
+  "hair": "long01",
+  "hairColor": "black",
+  "hairRgb": [
+   0.05,
+   0.045,
+   0.04
+  ],
+  "clothes": [
+   "female_casualsuit02",
+   "shoes06"
+  ],
+  "skin": "young_asian_female",
+  "eyes": "brown",
+  "eyebrows": "eyebrow008",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-decr",
+    "value": 0.21
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.083
+   },
+   {
+    "target": "nose-point-width-incr",
+    "value": 0.234
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.1
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.2
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.197
+   },
+   {
+    "target": "mouth-upperlip-volume-incr",
+    "value": 0.059
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.034
+   },
+   {
+    "target": "mouth-angles-up",
+    "value": 0.157
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.006
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.176
+   },
+   {
+    "target": "chin-height-incr",
+    "value": 0.019
+   },
+   {
+    "target": "head-fat-incr",
+    "value": 0.231
+   },
+   {
+    "target": "head-scale-horiz-decr",
+    "value": 0.088
+   },
+   {
+    "target": "l-eye-scale-incr",
+    "value": 0.238
+   },
+   {
+    "target": "r-eye-scale-incr",
+    "value": 0.238
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.15
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.15
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.145
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.145
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.088
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.088
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.198
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.198
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.022
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.022
+   },
+   {
+    "target": "eyebrows-trans-down",
+    "value": 0.225
+   },
+   {
+    "target": "head-oval",
+    "value": 0.191
+   }
+  ],
+  "tris": 22559,
+  "heightM": 1.278,
+  "file": "mpfb_child_1",
+  "bytes": 14284920,
+  "shirtColor": "olive",
+  "shirtRgb": [
+   0.4,
+   0.42,
+   0.2
+  ]
+ },
+ "child_2": {
+  "id": "child_2",
+  "cls": "child",
+  "sex": "male",
+  "race": "asian",
+  "years": 9.5,
+  "targetHeight": 1.349,
+  "phenotype": {
+   "gender": 1.0,
+   "age": 0.159,
+   "muscle": 0.477,
+   "weight": 0.401,
+   "proportions": 0.5,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.861,
+    "caucasian": 0.133,
+    "african": 0.006
+   }
+  },
+  "hair": "short04",
+  "hairColor": "darkbrown",
+  "hairRgb": [
+   0.14,
+   0.09,
+   0.06
+  ],
+  "clothes": [
+   "male_casualsuit02",
+   "shoes05"
+  ],
+  "skin": "young_asian_male",
+  "eyes": "brown",
+  "eyebrows": "eyebrow008",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-decr",
+    "value": 0.162
+   },
+   {
+    "target": "nose-scale-vert-incr",
+    "value": 0.021
+   },
+   {
+    "target": "nose-point-width-incr",
+    "value": 0.19
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.246
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.159
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.156
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.056
+   },
+   {
+    "target": "mouth-lowerlip-volume-incr",
+    "value": 0.095
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.097
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.133
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.125
+   },
+   {
+    "target": "chin-height-incr",
+    "value": 0.13
+   },
+   {
+    "target": "head-fat-incr",
+    "value": 0.122
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.201
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.063
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.063
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.194
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.194
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.229
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.229
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.2
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.2
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.054
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.054
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.24
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.24
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.035
+   },
+   {
+    "target": "head-square",
+    "value": 0.136
+   }
+  ],
+  "tris": 16309,
+  "heightM": 1.349,
+  "file": "mpfb_child_2",
+  "bytes": 11716428,
+  "shirtColor": "navy",
+  "shirtRgb": [
+   0.12,
+   0.18,
+   0.35
+  ]
+ },
+ "child_3": {
+  "id": "child_3",
+  "cls": "child",
+  "sex": "female",
+  "race": "caucasian",
+  "years": 6.7,
+  "targetHeight": 1.175,
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.107,
+   "muscle": 0.419,
+   "weight": 0.454,
+   "proportions": 0.5,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "caucasian": 0.717,
+    "asian": 0.26,
+    "african": 0.022
+   }
+  },
+  "hair": "braid01",
+  "hairColor": "brown",
+  "hairRgb": [
+   0.28,
+   0.18,
+   0.1
+  ],
+  "clothes": [
+   "female_casualsuit01",
+   "shoes02"
+  ],
+  "skin": "young_caucasian_female",
+  "eyes": "brown",
+  "eyebrows": "eyebrow004",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-decr",
+    "value": 0.198
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.099
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.189
+   },
+   {
+    "target": "nose-hump-decr",
+    "value": 0.222
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.083
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.111
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.151
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.247
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.182
+   },
+   {
+    "target": "chin-width-incr",
+    "value": 0.17
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.165
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.063
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.221
+   },
+   {
+    "target": "head-scale-horiz-decr",
+    "value": 0.238
+   },
+   {
+    "target": "l-eye-scale-incr",
+    "value": 0.185
+   },
+   {
+    "target": "r-eye-scale-incr",
+    "value": 0.185
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.062
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.062
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.081
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.081
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.028
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.028
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.136
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.136
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.029
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.029
+   },
+   {
+    "target": "eyebrows-trans-down",
+    "value": 0.131
+   },
+   {
+    "target": "head-oval",
+    "value": 0.125
+   }
+  ],
+  "tris": 21610,
+  "heightM": 1.175,
+  "file": "mpfb_child_3",
+  "bytes": 12972732,
+  "shirtColor": "charcoal",
+  "shirtRgb": [
+   0.22,
+   0.22,
+   0.24
+  ]
+ },
+ "child_4": {
+  "id": "child_4",
+  "cls": "child",
+  "sex": "male",
+  "race": "african",
+  "years": 8.6,
+  "targetHeight": 1.295,
+  "phenotype": {
+   "gender": 1.0,
+   "age": 0.143,
+   "muscle": 0.401,
+   "weight": 0.435,
+   "proportions": 0.5,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "african": 0.939,
+    "asian": 0.051,
+    "caucasian": 0.01
+   }
+  },
+  "hair": "short02",
+  "hairColor": "black",
+  "hairRgb": [
+   0.05,
+   0.045,
+   0.04
+  ],
+  "clothes": [
+   "male_casualsuit01",
+   "shoes01"
+  ],
+  "skin": "young_african_male",
+  "eyes": "brown",
+  "eyebrows": "eyebrow006",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-decr",
+    "value": 0.022
+   },
+   {
+    "target": "nose-scale-vert-incr",
+    "value": 0.193
+   },
+   {
+    "target": "nose-point-width-incr",
+    "value": 0.085
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.223
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.045
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.187
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.144
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.077
+   },
+   {
+    "target": "mouth-angles-up",
+    "value": 0.113
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.171
+   },
+   {
+    "target": "chin-prominent-decr",
+    "value": 0.207
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.056
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.049
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.12
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.128
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.128
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.167
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.167
+   },
+   {
+    "target": "l-eye-trans-down",
+    "value": 0.067
+   },
+   {
+    "target": "r-eye-trans-down",
+    "value": 0.067
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.121
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.121
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.181
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.181
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.231
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.231
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.05
+   },
+   {
+    "target": "head-rectangular",
+    "value": 0.298
+   }
+  ],
+  "tris": 20370,
+  "heightM": 1.295,
+  "file": "mpfb_child_4",
+  "bytes": 14860692,
+  "shirtColor": "slate",
+  "shirtRgb": [
+   0.35,
+   0.42,
+   0.5
+  ]
+ },
+ "adult_1": {
+  "id": "adult_1",
+  "cls": "adult",
+  "sex": "female",
+  "race": "caucasian",
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.417,
+   "muscle": 0.694,
+   "weight": 0.598,
+   "proportions": 0.654,
+   "height": 0.58,
+   "cupsize": 0.585,
+   "firmness": 0.5,
+   "race": {
+    "caucasian": 0.827,
+    "asian": 0.11,
+    "african": 0.063
+   }
+  },
+  "hair": "bob01",
+  "hairColor": "blonde",
+  "hairRgb": [
+   0.62,
+   0.5,
+   0.3
+  ],
+  "clothes": [
+   "female_elegantsuit01",
+   "shoes04"
+  ],
+  "skin": "young_caucasian_female",
+  "eyes": "grey",
+  "eyebrows": "eyebrow004",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.346
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.288
+   },
+   {
+    "target": "nose-point-width-incr",
+    "value": 0.286
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.13
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.362
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.305
+   },
+   {
+    "target": "mouth-upperlip-volume-incr",
+    "value": 0.002
+   },
+   {
+    "target": "mouth-lowerlip-volume-incr",
+    "value": 0.148
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.001
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.322
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.16
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.302
+   },
+   {
+    "target": "head-fat-incr",
+    "value": 0.018
+   },
+   {
+    "target": "head-scale-horiz-decr",
+    "value": 0.321
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.298
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.298
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.353
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.353
+   },
+   {
+    "target": "l-eye-trans-down",
+    "value": 0.085
+   },
+   {
+    "target": "r-eye-trans-down",
+    "value": 0.085
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.313
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.313
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.363
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.363
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.247
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.247
+   },
+   {
+    "target": "eyebrows-trans-down",
+    "value": 0.004
+   },
+   {
+    "target": "head-diamond",
+    "value": 0.333
+   }
+  ],
+  "tris": 24723,
+  "heightM": 1.619,
+  "file": "mpfb_adult_1",
+  "bytes": 13136960,
+  "shirtColor": "mustard",
+  "shirtRgb": [
+   0.72,
+   0.55,
+   0.16
+  ]
+ },
+ "adult_2": {
+  "id": "adult_2",
+  "cls": "adult",
+  "sex": "male",
+  "race": "african",
+  "phenotype": {
+   "gender": 1.0,
+   "age": 0.421,
+   "muscle": 0.379,
+   "weight": 0.674,
+   "proportions": 0.415,
+   "height": 0.649,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "african": 0.698,
+    "asian": 0.098,
+    "caucasian": 0.203
+   }
+  },
+  "hair": "afro01",
+  "hairColor": "darkbrown",
+  "hairRgb": [
+   0.14,
+   0.09,
+   0.06
+  ],
+  "clothes": [
+   "male_casualsuit04",
+   "shoes03"
+  ],
+  "skin": "young_african_male",
+  "eyes": "brown",
+  "eyebrows": "eyebrow003",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.222
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.217
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.395
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.395
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.341
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.15
+   },
+   {
+    "target": "mouth-upperlip-volume-incr",
+    "value": 0.256
+   },
+   {
+    "target": "mouth-lowerlip-volume-incr",
+    "value": 0.081
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.374
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.0
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.12
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.366
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.138
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.175
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.122
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.122
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.35
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.35
+   },
+   {
+    "target": "l-eye-trans-down",
+    "value": 0.121
+   },
+   {
+    "target": "r-eye-trans-down",
+    "value": 0.121
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.058
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.058
+   },
+   {
+    "target": "l-cheek-bones-incr",
+    "value": 0.127
+   },
+   {
+    "target": "r-cheek-bones-incr",
+    "value": 0.127
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.095
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.095
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.248
+   },
+   {
+    "target": "head-rectangular",
+    "value": 0.463
+   }
+  ],
+  "tris": 17753,
+  "heightM": 1.897,
+  "file": "mpfb_adult_2",
+  "bytes": 12356608,
+  "shirtColor": "forest",
+  "shirtRgb": [
+   0.14,
+   0.32,
+   0.2
+  ]
+ },
+ "adult_3": {
+  "id": "adult_3",
+  "cls": "adult",
+  "sex": "female",
+  "race": "asian",
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.545,
+   "muscle": 0.43,
+   "weight": 0.489,
+   "proportions": 0.584,
+   "height": 0.406,
+   "cupsize": 0.597,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.666,
+    "caucasian": 0.1,
+    "african": 0.233
+   }
+  },
+  "hair": "ponytail01",
+  "hairColor": "brown",
+  "hairRgb": [
+   0.28,
+   0.18,
+   0.1
+  ],
+  "clothes": [
+   "female_sportsuit01",
+   "shoes05"
+  ],
+  "skin": "middleage_asian_female",
+  "eyes": "brown",
+  "eyebrows": "eyebrow005",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.339
+   },
+   {
+    "target": "nose-scale-vert-incr",
+    "value": 0.272
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.047
+   },
+   {
+    "target": "nose-hump-decr",
+    "value": 0.076
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.087
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.01
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.382
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.045
+   },
+   {
+    "target": "mouth-angles-up",
+    "value": 0.206
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.006
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.215
+   },
+   {
+    "target": "chin-height-incr",
+    "value": 0.031
+   },
+   {
+    "target": "head-fat-incr",
+    "value": 0.034
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.076
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.295
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.295
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.06
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.06
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.051
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.051
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.303
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.303
+   },
+   {
+    "target": "l-cheek-bones-incr",
+    "value": 0.152
+   },
+   {
+    "target": "r-cheek-bones-incr",
+    "value": 0.152
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.245
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.245
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.398
+   },
+   {
+    "target": "head-rectangular",
+    "value": 0.459
+   }
+  ],
+  "tris": 21552,
+  "heightM": 1.494,
+  "file": "mpfb_adult_3",
+  "bytes": 12026508,
+  "shirtColor": "terracotta",
+  "shirtRgb": [
+   0.66,
+   0.3,
+   0.2
+  ]
+ },
+ "adult_4": {
+  "id": "adult_4",
+  "cls": "adult",
+  "sex": "male",
+  "race": "asian",
+  "phenotype": {
+   "gender": 1.0,
+   "age": 0.426,
+   "muscle": 0.599,
+   "weight": 0.443,
+   "proportions": 0.451,
+   "height": 0.354,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.932,
+    "caucasian": 0.023,
+    "african": 0.045
+   }
+  },
+  "hair": "short01",
+  "hairColor": "black",
+  "hairRgb": [
+   0.05,
+   0.045,
+   0.04
+  ],
+  "clothes": [
+   "male_casualsuit06",
+   "shoes01"
+  ],
+  "skin": "young_asian_male",
+  "eyes": "brown",
+  "eyebrows": "eyebrow006",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-decr",
+    "value": 0.39
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.083
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.167
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.255
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.237
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.359
+   },
+   {
+    "target": "mouth-upperlip-volume-incr",
+    "value": 0.337
+   },
+   {
+    "target": "mouth-lowerlip-volume-incr",
+    "value": 0.184
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.348
+   },
+   {
+    "target": "chin-width-incr",
+    "value": 0.038
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.166
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.079
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.349
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.331
+   },
+   {
+    "target": "l-eye-scale-incr",
+    "value": 0.062
+   },
+   {
+    "target": "r-eye-scale-incr",
+    "value": 0.062
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.195
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.195
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.281
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.281
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.309
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.309
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.333
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.333
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.107
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.107
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.384
+   },
+   {
+    "target": "head-oval",
+    "value": 0.325
+   }
+  ],
+  "tris": 21757,
+  "heightM": 1.491,
+  "file": "mpfb_adult_4",
+  "bytes": 10774928,
+  "shirtColor": "teal",
+  "shirtRgb": [
+   0.12,
+   0.4,
+   0.42
+  ]
+ },
+ "adult_5": {
+  "id": "adult_5",
+  "cls": "adult",
+  "sex": "female",
+  "race": "african",
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.518,
+   "muscle": 0.426,
+   "weight": 0.487,
+   "proportions": 0.519,
+   "height": 0.543,
+   "cupsize": 0.49,
+   "firmness": 0.5,
+   "race": {
+    "african": 0.687,
+    "asian": 0.149,
+    "caucasian": 0.164
+   }
+  },
+  "hair": "bob02",
+  "hairColor": "black",
+  "hairRgb": [
+   0.05,
+   0.045,
+   0.04
+  ],
+  "clothes": [
+   "female_casualsuit02",
+   "shoes02"
+  ],
+  "skin": "middleage_african_female",
+  "eyes": "brown",
+  "eyebrows": "eyebrow012",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.31
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.038
+   },
+   {
+    "target": "nose-point-width-incr",
+    "value": 0.074
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.141
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.326
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.067
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.253
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.289
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.091
+   },
+   {
+    "target": "chin-width-incr",
+    "value": 0.278
+   },
+   {
+    "target": "chin-prominent-decr",
+    "value": 0.102
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.294
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.286
+   },
+   {
+    "target": "head-scale-horiz-decr",
+    "value": 0.23
+   },
+   {
+    "target": "l-eye-scale-incr",
+    "value": 0.035
+   },
+   {
+    "target": "r-eye-scale-incr",
+    "value": 0.035
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.369
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.369
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.135
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.135
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.317
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.317
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.311
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.311
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.328
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.328
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.198
+   },
+   {
+    "target": "head-oval",
+    "value": 0.236
+   }
+  ],
+  "tris": 20700,
+  "heightM": 1.683,
+  "file": "mpfb_adult_5",
+  "bytes": 14773012,
+  "shirtColor": "burgundy",
+  "shirtRgb": [
+   0.45,
+   0.12,
+   0.16
+  ]
+ },
+ "elder_1": {
+  "id": "elder_1",
+  "cls": "elder",
+  "sex": "female",
+  "race": "asian",
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.933,
+   "muscle": 0.365,
+   "weight": 0.649,
+   "proportions": 0.568,
+   "height": 0.461,
+   "cupsize": 0.516,
+   "firmness": 0.3,
+   "race": {
+    "asian": 0.813,
+    "caucasian": 0.137,
+    "african": 0.049
+   }
+  },
+  "hair": "bob02",
+  "hairColor": "white",
+  "hairRgb": [
+   0.8,
+   0.79,
+   0.76
+  ],
+  "clothes": [
+   "female_elegantsuit01",
+   "shoes01"
+  ],
+  "skin": "old_asian_female",
+  "eyes": "brown",
+  "eyebrows": "eyebrow006",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.362
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.326
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.095
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.327
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.119
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.294
+   },
+   {
+    "target": "mouth-upperlip-volume-incr",
+    "value": 0.182
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.017
+   },
+   {
+    "target": "mouth-angles-up",
+    "value": 0.169
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.238
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.23
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.396
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.326
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.088
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.024
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.024
+   },
+   {
+    "target": "l-eye-height2-decr",
+    "value": 0.213
+   },
+   {
+    "target": "r-eye-height2-decr",
+    "value": 0.213
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.021
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.021
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.054
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.054
+   },
+   {
+    "target": "l-cheek-bones-decr",
+    "value": 0.31
+   },
+   {
+    "target": "r-cheek-bones-decr",
+    "value": 0.31
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.02
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.02
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.15
+   },
+   {
+    "target": "head-diamond",
+    "value": 0.427
+   }
+  ],
+  "tris": 18498,
+  "heightM": 1.508,
+  "file": "mpfb_elder_1",
+  "bytes": 12903104,
+  "shirtColor": "coral",
+  "shirtRgb": [
+   0.85,
+   0.45,
+   0.38
+  ]
+ },
+ "elder_2": {
+  "id": "elder_2",
+  "cls": "elder",
+  "sex": "male",
+  "race": "asian",
+  "phenotype": {
+   "gender": 1.0,
+   "age": 0.841,
+   "muscle": 0.495,
+   "weight": 0.49,
+   "proportions": 0.585,
+   "height": 0.357,
+   "cupsize": 0.5,
+   "firmness": 0.3,
+   "race": {
+    "asian": 0.857,
+    "caucasian": 0.131,
+    "african": 0.011
+   }
+  },
+  "hair": "short03",
+  "hairColor": "grey",
+  "hairRgb": [
+   0.5,
+   0.5,
+   0.5
+  ],
+  "clothes": [
+   "male_casualsuit03",
+   "shoes01"
+  ],
+  "skin": "old_asian_male",
+  "eyes": "brown",
+  "eyebrows": "eyebrow007",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.363
+   },
+   {
+    "target": "nose-scale-vert-decr",
+    "value": 0.176
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.311
+   },
+   {
+    "target": "nose-hump-incr",
+    "value": 0.112
+   },
+   {
+    "target": "nose-nostrils-width-incr",
+    "value": 0.262
+   },
+   {
+    "target": "mouth-scale-horiz-incr",
+    "value": 0.199
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.398
+   },
+   {
+    "target": "mouth-lowerlip-volume-decr",
+    "value": 0.365
+   },
+   {
+    "target": "mouth-angles-up",
+    "value": 0.281
+   },
+   {
+    "target": "chin-width-decr",
+    "value": 0.035
+   },
+   {
+    "target": "chin-prominent-decr",
+    "value": 0.302
+   },
+   {
+    "target": "chin-height-incr",
+    "value": 0.303
+   },
+   {
+    "target": "head-fat-incr",
+    "value": 0.154
+   },
+   {
+    "target": "head-scale-horiz-incr",
+    "value": 0.066
+   },
+   {
+    "target": "l-eye-scale-decr",
+    "value": 0.223
+   },
+   {
+    "target": "r-eye-scale-decr",
+    "value": 0.223
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.346
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.346
+   },
+   {
+    "target": "l-eye-trans-up",
+    "value": 0.242
+   },
+   {
+    "target": "r-eye-trans-up",
+    "value": 0.242
+   },
+   {
+    "target": "l-eye-epicanthus-out",
+    "value": 0.133
+   },
+   {
+    "target": "r-eye-epicanthus-out",
+    "value": 0.133
+   },
+   {
+    "target": "l-cheek-bones-incr",
+    "value": 0.059
+   },
+   {
+    "target": "r-cheek-bones-incr",
+    "value": 0.059
+   },
+   {
+    "target": "l-cheek-volume-decr",
+    "value": 0.155
+   },
+   {
+    "target": "r-cheek-volume-decr",
+    "value": 0.155
+   },
+   {
+    "target": "eyebrows-trans-up",
+    "value": 0.184
+   },
+   {
+    "target": "head-diamond",
+    "value": 0.186
+   }
+  ],
+  "tris": 17937,
+  "heightM": 1.537,
+  "file": "mpfb_elder_2",
+  "bytes": 13038740,
+  "shirtColor": "lilac",
+  "shirtRgb": [
+   0.6,
+   0.5,
+   0.7
+  ]
+ },
+ "elder_3": {
+  "id": "elder_3",
+  "cls": "elder",
+  "sex": "female",
+  "race": "caucasian",
+  "phenotype": {
+   "gender": 0.0,
+   "age": 0.883,
+   "muscle": 0.462,
+   "weight": 0.469,
+   "proportions": 0.452,
+   "height": 0.251,
+   "cupsize": 0.57,
+   "firmness": 0.3,
+   "race": {
+    "caucasian": 0.884,
+    "asian": 0.049,
+    "african": 0.068
+   }
+  },
+  "hair": "bob01",
+  "hairColor": "grey",
+  "hairRgb": [
+   0.5,
+   0.5,
+   0.5
+  ],
+  "clothes": [
+   "female_casualsuit02",
+   "shoes03"
+  ],
+  "skin": "old_caucasian_female",
+  "eyes": "bluegreen",
+  "eyebrows": "eyebrow008",
+  "targets": [
+   {
+    "target": "nose-scale-horiz-incr",
+    "value": 0.099
+   },
+   {
+    "target": "nose-scale-vert-incr",
+    "value": 0.075
+   },
+   {
+    "target": "nose-point-width-decr",
+    "value": 0.258
+   },
+   {
+    "target": "nose-hump-decr",
+    "value": 0.171
+   },
+   {
+    "target": "nose-nostrils-width-decr",
+    "value": 0.309
+   },
+   {
+    "target": "mouth-scale-horiz-decr",
+    "value": 0.343
+   },
+   {
+    "target": "mouth-upperlip-volume-decr",
+    "value": 0.032
+   },
+   {
+    "target": "mouth-lowerlip-volume-incr",
+    "value": 0.298
+   },
+   {
+    "target": "mouth-angles-down",
+    "value": 0.076
+   },
+   {
+    "target": "chin-width-incr",
+    "value": 0.138
+   },
+   {
+    "target": "chin-prominent-incr",
+    "value": 0.108
+   },
+   {
+    "target": "chin-height-decr",
+    "value": 0.283
+   },
+   {
+    "target": "head-fat-decr",
+    "value": 0.163
+   },
+   {
+    "target": "head-scale-horiz-decr",
+    "value": 0.004
+   },
+   {
+    "target": "l-eye-scale-incr",
+    "value": 0.321
+   },
+   {
+    "target": "r-eye-scale-incr",
+    "value": 0.321
+   },
+   {
+    "target": "l-eye-height2-incr",
+    "value": 0.301
+   },
+   {
+    "target": "r-eye-height2-incr",
+    "value": 0.301
+   },
+   {
+    "target": "l-eye-trans-down",
+    "value": 0.162
+   },
+   {
+    "target": "r-eye-trans-down",
+    "value": 0.162
+   },
+   {
+    "target": "l-eye-epicanthus-in",
+    "value": 0.355
+   },
+   {
+    "target": "r-eye-epicanthus-in",
+    "value": 0.355
+   },
+   {
+    "target": "l-cheek-bones-incr",
+    "value": 0.017
+   },
+   {
+    "target": "r-cheek-bones-incr",
+    "value": 0.017
+   },
+   {
+    "target": "l-cheek-volume-incr",
+    "value": 0.187
+   },
+   {
+    "target": "r-cheek-volume-incr",
+    "value": 0.187
+   },
+   {
+    "target": "eyebrows-trans-down",
+    "value": 0.395
+   },
+   {
+    "target": "head-round",
+    "value": 0.341
+   }
+  ],
+  "tris": 27244,
+  "heightM": 1.446,
+  "file": "mpfb_elder_3",
+  "bytes": 15532264,
+  "shirtColor": "sky",
+  "shirtRgb": [
+   0.45,
+   0.62,
+   0.8
+  ]
+ }
+}

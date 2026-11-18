@@ -2,6 +2,7 @@ import { useHistoric } from './state/historic'
 import * as THREE from 'three'
 import { _roots } from '@react-three/fiber'
 import { useStore } from './state/store'
+import { POND } from './components/walk/park'
 import { flightControl, ship, thrustFx, warpFx } from './state/flight'
 import { bodies, markerOverride, beamTargets, ports, sim } from './state/registry'
 import { useRace } from './state/race'
@@ -17,9 +18,13 @@ import { goToSite, skipDescent, startLanding, startTakeoff, useLanding } from '.
 import { quitRally, startRally, useRally } from './state/rally'
 import { useSurfaceLab } from './state/surfaceLab'
 import { launchRover, recallRover, roverCtl, roverDebug, roverFocus, roverInput, roverPose, useRover } from './state/rover'
+import { shipCol } from './components/eva/shipCollider'
 import { evaDebug, evaInput, recallEva, startEva, useEva } from './state/eva'
 import { evaJobsDebug, jobsRt, useEvaJobs } from './state/evaJobs'
 import { evaSite } from './components/eva/hull'
+import { colonyWalk, endWalk, startWalk, useWalk, walkInput } from './state/walk'
+import { mobDebug, walker } from './components/walk/WalkActors'
+import { walkDebug } from './components/walk/WalkWorld'
 import { useSkyClock } from './components/surface/skyClock'
 import { wideNow } from './components/surface/wideGround'
 import { weatherNow } from './components/surface/weather'
@@ -44,7 +49,22 @@ const sv = {
   surfaceLab: useSurfaceLab,
   wide: wideNow,
   rover: { state: useRover, launch: launchRover, recall: recallRover, input: roverInput, debug: roverDebug, focus: roverFocus, ctl: roverCtl, pose: roverPose },
-  eva: { site: evaSite, state: useEva, start: startEva, recall: recallEva, input: evaInput, debug: evaDebug, jobs: evaJobsDebug, jobsRt, jobsState: useEvaJobs },
+  // コロニーの中を歩く。start('colony') でコロニーの中にいることにして始める（テスト用）
+  walk: {
+    state: useWalk,
+    input: walkInput,
+    walker,
+    mobs: mobDebug,
+    debug: walkDebug,
+    pond: POND,
+    start: (id = 'colony', name = 'Colony') => {
+      colonyWalk.inside = { id, name: () => name }
+      startWalk()
+    },
+    end: endWalk,
+    inside: () => colonyWalk.inside?.id ?? null,
+  },
+  eva: { site: evaSite, state: useEva, start: startEva, recall: recallEva, input: evaInput, debug: evaDebug, jobs: evaJobsDebug, jobsRt, jobsState: useEvaJobs, col: shipCol },
   historic: useHistoric,
   skyClock: useSkyClock,
   weather: weatherNow,

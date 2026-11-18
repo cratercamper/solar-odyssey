@@ -29,6 +29,14 @@ TRACKS = {
     'coprates': ('rallyCourse.ts', 122, 'mars_coprates', 32.0, 420.0, 12.0, 0.4, 6.0, 16.0),
     'taurus': ('moonCourse.ts', None, 'moon_taurus', 26.0, 360.0, 13.0, 1.7, 2.5, 12.0),
     'conamara': ('europaCourse.ts', None, 'europa_conamara', 22.0, 330.0, 15.0, 2.6, 6.0, 16.0),
+    # the easy Europa course (cratercamper 2026-11-12): the original line with no bends or zigzag, so most
+    # of it is flat-out drifting, and only 7 gates about 200 m apart, none just after a slab's edge
+    # (pack_europa.py SLABS: edges at 330, 760, 1110 (15 m, long flight) and 1450 m)
+    'conamara_easy': ('europaCourse.ts', None, 'europa_conamara', 0.0, 330.0, 0.0, 0.0, 6.0, 16.0),
+}
+# gates at fixed base-line distances (m) instead of every GAP m (the goal is added at the end)
+FIXED_GATES = {
+    'conamara_easy': [200.0, 430.0, 640.0, 880.0, 1300.0, 1570.0],
 }
 
 
@@ -76,7 +84,7 @@ def build(name, fname, n, demname, amp, wave, zig, phase, max_dh, max_slope):
     t /= np.linalg.norm(t, axis=1, keepdims=True)
     nrm = np.stack([-t[:, 1], t[:, 0]], 1)  # left of travel
     goal = total - 15
-    gates = list(np.arange(START, goal - GAP * 0.6, GAP))
+    gates = FIXED_GATES.get(name) or list(np.arange(START, goal - GAP * 0.6, GAP))
     fade = np.clip((s - 60) / 60, 0, 1) * np.clip((goal - 10 - s) / 50, 0, 1)
     fade = fade * fade * (3 - 2 * fade)
     off = amp * np.sin(2 * np.pi * s / wave + phase) + zig * np.cos(np.pi * (s - START) / GAP)
@@ -119,7 +127,7 @@ def build(name, fname, n, demname, amp, wave, zig, phase, max_dh, max_slope):
 def main():
     out = ['// ローバーレースのコース（tools/terrain/wiggle_courses.py が書き出す。手で直さない）。',
            '// 地形の上に引いた走行ライン（rallyCourse.ts・moonCourse.ts・europaCourse.ts）を、大きな S 字に曲げ、',
-           '// 門を 70 m ごとに左右交互（ジグザグ）に置いて、そのあいだを縫うように走る道にしたもの。',
+           '// 門を 70 m ごとに左右交互（ジグザグ）に置いて、そのあいだを縫うように走る道にしたもの（CONAMARA_EASY は曲げない、門は約 200 m ごと）。',
            '// line：10 m ごとの点（x 東・z 南、m）。gates：門の道のり（m、最後がゴール）', '']
     for name, args in TRACKS.items():
         line, gates = build(name, *args)

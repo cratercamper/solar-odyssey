@@ -1,0 +1,13 @@
+Park textures for the colony walk scene (src/components/walk/WalkWorld.tsx).
+All from Poly Haven (https://polyhaven.com), CC0. Resized to 1024/512 px; grass recoloured greener.
+grass.jpg   - leafy_grass
+path.jpg    - gravel_ground_01
+paving.jpg  - herringbone_pavement_02
+sand.jpg    - playground_sand
+shore.jpg   - gravelly_sand
+asphalt.jpg - asphalt_02
+bark.jpg    - japanese_zelkova_bark
+planks.jpg  - weathered_planks
+
+Park trees near the player: ez-tree by Dan Greenheck (https://github.com/dgreenheck/ez-tree), MIT License,
+including its bark and leaf textures. Generated in the browser from its presets (Oak, Ash, Pine).

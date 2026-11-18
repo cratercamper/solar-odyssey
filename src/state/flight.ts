@@ -5,6 +5,7 @@ import { isTelescope, scopeName } from '../data/telescopes'
 import { SF_OBJECTS, sfEntry } from '../data/sf'
 import { RACE_TEXT, raceActive } from './race'
 import { bodies } from './registry'
+import { blockedByCampaign } from './campaign'
 import { useStore } from './store'
 import { playWarp, speak } from '../audio/sfx'
 import { planetLongitude, simDays } from '../data/ephemeris'
@@ -89,6 +90,8 @@ export function warpPrepDone() {
 export function engage() {
   const s = useStore.getState()
   if (!s.targetId || s.warpPhase !== 'idle') return
+  // キャンペーン：まだ開いていない星へは、ワープもマップからの移動もできない
+  if (blockedByCampaign(s.targetId)) return
   // 全体マップからは、声も光の筋も出さず、カメラがその天体の前の船まで約1秒ですっと寄るだけにする
   // （マップから操縦席への切り替えとワープの演出が重なると、重くて止まりやすいので）
   if (s.mode === 'map' && !raceActive()) {

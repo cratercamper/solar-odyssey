@@ -42,7 +42,7 @@ function build(terrain: Terrain, cx: number, cz: number, half: number, n: number
       for (let i = 0; i < n; i++) {
         const x = x0 + i * step
         const z = z0 + row * step
-        hs[row * n + i] = terrain.height(x, z) + (x * x + z * z) * bend
+        hs[row * n + i] = terrain.mapHeight(x, z) + (x * x + z * z) * bend
       }
       row++
       const spent = performance.now() - t0

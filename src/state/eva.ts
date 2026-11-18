@@ -14,7 +14,8 @@ import { DOCK_CLEAR_SEGMENTS, dockSiteMatrix, setEvaSite, type EvaSiteId } from 
 // 流れ：none → fadeIn（暗転）→ launch（ハッチが開いて押し出される）→ deploy（展開・起動）→ fly（操縦）
 //       → recall（命綱を巻き取って、たたみながらもどる）→ fadeOut → none
 
-export type EvaPhase = 'none' | 'fadeIn' | 'launch' | 'deploy' | 'fly' | 'recall' | 'fadeOut'
+//       母船のまわりで遠くにいるときは、回収の前に return（暗転して、エアロックのそばへ連れもどす）
+export type EvaPhase = 'none' | 'fadeIn' | 'launch' | 'deploy' | 'fly' | 'return' | 'recall' | 'fadeOut'
 export type EvaView = 'chase' | 'head'
 export type EvaTool = 'hand' | 'drill' | 'cutter' | 'welder' | 'pad'
 export type EvaFace = 'none' | 'boot' | 'normal' | 'happy' | 'focus' | 'sweat' | 'ouch'
@@ -28,8 +29,14 @@ export const DEPLOY_SEC = 3.6
 export const RECALL_SEC = 3.2
 /** 命綱の長さ（m）。エアロックからこれより遠くへは行けない */
 export const TETHER_M = 40
-/** 最高速度（m/s） */
-export const EVA_TOP = 3
+/** 速さの段階（m/s）。マウスのホイール・スマホの「速さ」ボタンで切り替える。Q（スマホはブースト）を押しているあいだは 2.5 倍 */
+export const EVA_SPEEDS = [1, 3, 8, 20, 40]
+export const EVA_SPEED_DEFAULT = 2
+export const EVA_BOOST = 2.5
+/** 遠くから回収するときの暗転（秒） */
+export const RETURN_SEC = 0.9
+/** これより遠くから回収するときは、暗転してエアロックのそばへ連れもどす（m） */
+export const RETURN_FAR = 14
 
 type EvaState = {
   phase: EvaPhase
@@ -47,6 +54,10 @@ type EvaState = {
   taut: boolean
   /** 自動ブレーキ（手を離すと、ゆっくり止まる） */
   assist: boolean
+  /** 速さの段階（EVA_SPEEDS の番号） */
+  speed: number
+  /** 母船のまわり（ship）：母船の外形からの距離と、警告・限界 */
+  range: { d: number; warn: boolean; edge: boolean }
 }
 
 export const evaNow = () => performance.now() / 1000
@@ -62,10 +73,18 @@ export const useEva = create<EvaState>(() => ({
   hud: { speed: 0, dist: 0, alt: 0, gas: 100, battery: 100, x: 0, z: 0, hdg: 0 },
   taut: false,
   assist: true,
+  speed: EVA_SPEED_DEFAULT,
+  range: { d: 0, warn: false, edge: false },
 }))
 
+/** 速さの段階を変える（+1 速く、-1 遅く） */
+export function stepEvaSpeed(dir: number) {
+  const s = useEva.getState()
+  useEva.setState({ speed: Math.max(0, Math.min(EVA_SPEEDS.length - 1, s.speed + dir)) })
+}
+
 /** 船外の場面を出している（宇宙の場面は止める） */
-export const evaScene = (phase = useEva.getState().phase) => phase === 'launch' || phase === 'deploy' || phase === 'fly' || phase === 'recall'
+export const evaScene = (phase = useEva.getState().phase) => phase === 'launch' || phase === 'deploy' || phase === 'fly' || phase === 'return' || phase === 'recall'
 export const evaActive = () => useEva.getState().phase !== 'none'
 
 const setPhase = (phase: EvaPhase) => useEva.setState({ phase, since: evaNow() })
@@ -81,10 +100,16 @@ const v2 = new THREE.Vector3()
 const q1 = new THREE.Quaternion()
 
 /**
- * 作業場所を決める：天の湊のそば（SF の世界）ならリングの下面、アルカディアに乗っていれば発進路、ほかは船の外壁。
+ * 作業場所を決める。ふつうは母船のまわりを自由に飛ぶ（ship）。
+ * 修理の仕事（repair）は：天の湊のそば（SF の世界）ならリングの下面、アルカディアに乗っていれば発進路、ほかは船の外壁。
  * want で決め打ちもできる（テスト用）
  */
-function pickSite(want?: EvaSiteId) {
+function pickSite(want?: EvaSiteId | 'repair') {
+  if (want === undefined || want === 'ship') {
+    setEvaSite('ship', ship.quaternion)
+    return
+  }
+  if (want === 'repair') want = undefined
   const s = useStore.getState()
   const dock = s.settings.world === 'sf' ? bodies.get(DOCK_ID) : undefined
   let id: EvaSiteId = s.settings.ship === 'arcadia' ? 'arcadia' : 'hull'
@@ -122,10 +147,11 @@ function pickSite(want?: EvaSiteId) {
   s.showToast(ui().eva.dockSiteNote)
 }
 
-export function startEva(want?: EvaSiteId) {
+/** 船外活動を始める（ボタン一つで、母船のまわりへ）。'repair' なら修理の仕事の場所へ */
+export function startEva(want?: EvaSiteId | 'repair') {
   pickSite(typeof want === 'string' ? want : undefined)
   if (document.pointerLockElement) document.exitPointerLock()
-  useEva.setState({ view: 'chase', swapping: false, working: false, face: 'none', taut: false, hud: { speed: 0, dist: 0, alt: 0, gas: 100, battery: 100, x: 0, z: 0, hdg: 0 } })
+  useEva.setState({ view: 'chase', swapping: false, working: false, face: 'none', taut: false, range: { d: 0, warn: false, edge: false }, hud: { speed: 0, dist: 0, alt: 0, gas: 100, battery: 100, x: 0, z: 0, hdg: 0 } })
   resetEvaInput()
   newShift()
   setPhase('fadeIn')
@@ -134,13 +160,20 @@ export function startEva(want?: EvaSiteId) {
   }, EVA_FADE * 1000)
 }
 
-/** 回収：命綱を巻き取って、エアロックへもどす */
-export function recallEva() {
+/** 修理の仕事へ（船の外壁・アルカディアの発進路・天の湊） */
+export const startRepairEva = () => startEva('repair')
+
+/** 回収：命綱を巻き取って、エアロックへもどす（far：エアロックから遠いときは、先に暗転して連れもどす） */
+export function recallEva(far = false) {
   const p = useEva.getState().phase
   if (p !== 'fly' && p !== 'deploy') return
+  if (document.pointerLockElement) document.exitPointerLock()
   useEva.setState({ working: false, swapping: false })
-  setPhase('recall')
+  setPhase(far && p === 'fly' ? 'return' : 'recall')
 }
+
+/** 回収のボタン・キー：遠くにいるかは Tsumugi が決める */
+export const evaRecall = { request: () => recallEva() }
 
 /** 巻き取りが終わったら（Tsumugi から呼ぶ）、暗転して宇宙へ */
 export function finishEva() {
@@ -190,10 +223,12 @@ export const evaInput = {
   stickY: 0,
   /** スマホの上昇・下降ボタン */
   padUp: 0,
+  /** ブースト（Q・スマホのボタン） */
+  boost: false,
 }
 
 export function resetEvaInput() {
-  Object.assign(evaInput, { fwd: 0, right: 0, up: 0, yaw: 0, pitch: 0, roll: 0, lookX: 0, lookY: 0, brake: false, work: false, swapTo: null, stickX: 0, stickY: 0, padUp: 0 })
+  Object.assign(evaInput, { fwd: 0, right: 0, up: 0, yaw: 0, pitch: 0, roll: 0, lookX: 0, lookY: 0, brake: false, work: false, swapTo: null, stickX: 0, stickY: 0, padUp: 0, boost: false })
   keys.clear()
 }
 
@@ -209,11 +244,19 @@ function fromKeys() {
   evaInput.roll = has('KeyC') - has('KeyZ')
   evaInput.brake = keys.has('KeyX')
   evaInput.work = keys.has('KeyE')
+  evaInput.boost = keys.has('KeyQ') || touchBoost
 }
 
-const HOLD_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'KeyF', 'Space', 'ShiftLeft', 'ShiftRight', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyZ', 'KeyC', 'KeyX', 'KeyE'])
+let touchBoost = false
+/** スマホのブーストのボタン */
+export function setTouchBoost(on: boolean) {
+  touchBoost = on
+  evaInput.boost = keys.has('KeyQ') || on
+}
 
-/** キーボード：WASD 前後左右・R/スペース 上・F/Shift 下・矢印 向き・Z/C 横回転・X ブレーキ・E 作業・1〜5 ツール・V 見方 */
+const HOLD_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'KeyF', 'Space', 'ShiftLeft', 'ShiftRight', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyZ', 'KeyC', 'KeyX', 'KeyE', 'KeyQ'])
+
+/** キーボード：WASD 前後左右・R/スペース 上・F/Shift 下・マウス／矢印 向き・Z/C 横回転・Q ブースト・ホイール 速さ・X ブレーキ・E 作業・1〜5 ツール・V 見方・K 回収 */
 export function bindEvaKeys() {
   const down = (e: KeyboardEvent) => {
     if (!evaActive()) return
@@ -230,6 +273,12 @@ export function bindEvaKeys() {
       e.preventDefault()
       e.stopPropagation()
       if (!e.repeat) useEva.setState({ view: useEva.getState().view === 'chase' ? 'head' : 'chase' })
+      return
+    }
+    if (e.code === 'KeyK') {
+      e.preventDefault()
+      e.stopPropagation()
+      if (!e.repeat) evaRecall.request()
       return
     }
     if (e.code === 'KeyB') {
@@ -251,10 +300,34 @@ export function bindEvaKeys() {
     keys.clear()
     fromKeys()
   }
+  // ホイールで速さの段階を変える（上へ回すと速く）
+  let acc = 0
+  let pausedUntil = 0
+  const wheel = (e: WheelEvent) => {
+    if (useEva.getState().phase !== 'fly') return
+    if ((e.target as HTMLElement | null)?.closest?.('.eva-jobs, .sample-card')) return
+    const now = performance.now()
+    if (now < pausedUntil) return
+    acc += e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 800 : 1)
+    if (Math.abs(acc) < 60) return
+    stepEvaSpeed(acc < 0 ? 1 : -1)
+    acc = 0
+    pausedUntil = now + 160
+  }
+  // マウスを固定しているときは、マウスを動かすだけで向きが変わる
+  const move = (e: MouseEvent) => {
+    if (!document.pointerLockElement || useEva.getState().phase !== 'fly') return
+    evaInput.lookX += e.movementX * 0.0022
+    evaInput.lookY += e.movementY * 0.0022
+  }
   window.addEventListener('keydown', down, true)
   window.addEventListener('keyup', up, true)
   window.addEventListener('blur', blur)
+  window.addEventListener('wheel', wheel, { passive: true })
+  window.addEventListener('mousemove', move)
   return () => {
+    window.removeEventListener('wheel', wheel)
+    window.removeEventListener('mousemove', move)
     window.removeEventListener('keydown', down, true)
     window.removeEventListener('keyup', up, true)
     window.removeEventListener('blur', blur)
@@ -267,4 +340,6 @@ export const evaDebug: {
   place?: (x: number, y: number, z: number, yawDeg?: number) => void
   state?: () => { pos: number[]; vel: number[] }
   cam?: [number, number, number]
+  /** 確認用：エアロックのハッチの開き（0..1）を固定する */
+  hatch?: number
 } = {}

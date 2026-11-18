@@ -49,7 +49,8 @@ function envMapFor(gl: THREE.WebGLRenderer) {
 const sector = (radius: number, center: number, width: number, segments = 24) =>
   new THREE.CylinderGeometry(radius, radius, L, segments, 1, true, center - width / 2, width)
 
-export function ColonyModel({ interior = true }: { interior?: boolean }) {
+/** cityTrees = false：街の木を描かない（コロニーの中を歩く場面が、近くの木を幹のある形で描く） */
+export function ColonyModel({ interior = true, cityTrees = true }: { interior?: boolean; cityTrees?: boolean }) {
   const { gl } = useThree()
   const parts = useMemo(() => {
     const env = envMapFor(gl)
@@ -168,7 +169,7 @@ export function ColonyModel({ interior = true }: { interior?: boolean }) {
       ))}
       {interior && parts.lands.map((l, i) => <mesh key={`l${i}`} geometry={l.geometry} material={l.material} />)}
       {interior && parts.nightLights.map((l, i) => <mesh key={`n${i}`} geometry={l.geometry} material={l.material} renderOrder={1} />)}
-      {interior && <ColonyInterior />}
+      {interior && <ColonyInterior trees={cityTrees} />}
       {parts.windows.map((g, i) => (
         <mesh key={`w${i}`} geometry={g} material={parts.glassMat} renderOrder={2} />
       ))}

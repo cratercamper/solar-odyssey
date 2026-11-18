@@ -8,7 +8,7 @@ export const surfaceViewEn: Translation<typeof surfaceViewJa> = {
   sampleAnalysed: 'Sample analysed',
   samplesHere: 'Samples here',
   close: 'Close',
-  keysHint: 'W/↑ drive · S/↓ reverse · A D/← → steer · Space jump · E sample · V view',
+  keysHint: 'W/↑ drive · S/↓ reverse · A D/← → steer · Space jump · E sample · C cruise · V view',
   droppingRover: 'Dropping the rover…',
   roverUnfolding: 'Rover unfolding…',
   cantGoFarther: "Can't go any farther",

@@ -5,6 +5,7 @@ import Hangar from './Hangar'
 import './index.css'
 import './touch.css'
 import { setupMusic } from './audio/music'
+import { setupCleanScreen } from './ui/CleanScreen'
 
 // 録画・動作確認用
 if (location.hash.includes('debug')) void import('./debugHooks')
@@ -14,6 +15,9 @@ const terrainLab = location.hash.startsWith('#terrain-lab')
 const TerrainLab = lazy(() => import('./components/terrainLab/TerrainLab'))
 
 if (!location.hash.startsWith('#hangar') && !terrainLab) setupMusic()
+
+// Shift+F12 で、画面の文字とボタンをぜんぶ消す（スクリーンショット用）
+setupCleanScreen()
 
 // マウスや指で押したボタンからは、すぐにフォーカスを外す。残っていると、そのあと Enter（ワープ）や Space（上昇）を押したときに
 // 同じボタンがもう一度押されてしまう（「ブリッジに入る」を押してから Enter でワープすると、ブリッジから出てしまうなど）。

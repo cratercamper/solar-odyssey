@@ -4,7 +4,7 @@ export const surfaceViewJa = {
   sampleAnalysed: '試料を分析しました',
   samplesHere: 'この天体の試料',
   close: '閉じる',
-  keysHint: 'W/↑ 前進・S/↓ 後退・A D/← → 曲がる・スペース ジャンプ・E 採集・V 見方',
+  keysHint: 'W/↑ 前進・S/↓ 後退・A D/← → 曲がる・スペース ジャンプ・E 採集・C 巡航・V 見方',
   droppingRover: 'ローバーを投下…',
   roverUnfolding: 'ローバーを展開中…',
   cantGoFarther: 'これ以上は遠くへ行けません',

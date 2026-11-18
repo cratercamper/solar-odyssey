@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../../i18n/lang'
-import { COUNT_SEC, RALLY_COLORS, loadBest, quitRally, rallyNow, setRallyColor, startRally, useRally } from '../../state/rally'
-import { roverInput } from '../../state/rover'
-import { TRACKS } from '../../data/rallyTracks'
+import { COUNT_SEC, RALLY_COLORS, loadBest, pickRallyTrack, quitRally, rallyNow, setRallyColor, startRally, useRally, useRallyTrack } from '../../state/rally'
+import { releaseRoverMouse, roverInput } from '../../state/rover'
+import { TRACKS, siteOfTrack, tracksAt } from '../../data/rallyTracks'
 import { useLanding } from '../../state/landing'
 import { RallyHiscore } from './RallyHiscore'
 import { ui } from '../../i18n'
@@ -24,9 +24,20 @@ export function RallyStart({ track, compact = false }: { track: string; compact?
   useLang()
   const color = useRally((r) => r.color)
   const best = loadBest()
+  const site = siteOfTrack(track)
+  const courses = tracksAt(site)
   return (
     <div className={`rally-start${compact ? ' compact' : ''}`}>
       <div className="rally-title">🏁 {ui().rallyTracks[track].title}</div>
+      {courses.length > 1 && (
+        <div className="rally-levels" role="radiogroup" aria-label={ui().rallyPanel.course}>
+          {courses.map((id) => (
+            <button key={id} role="radio" aria-checked={id === track} className={id === track ? 'on' : ''} onClick={() => pickRallyTrack(site, id)}>
+              {TRACKS[id].level === 'hard' ? ui().rallyPanel.levelHard : ui().rallyPanel.levelEasy}
+            </button>
+          ))}
+        </div>
+      )}
       {!compact && (
         <p>
           {ui().rallyTracks[track].intro}
@@ -74,12 +85,14 @@ export function RallyPanel() {
   const result = useRally((r) => r.result)
   const color = useRally((r) => r.color)
   const chase = useRally((r) => r.chase)
-  const track = useLanding((l) => l.site)
+  const track = useRallyTrack(useLanding((l) => l.site))
   const isChase = !!(track && TRACKS[track]?.chase)
   // 結果のカードで R を押すと、もう一度（「もう一度」のボタンと同じ）。ゴールから 0.5 秒は効かない：
   // ゴールの直前に押した R（直前の門へ）で、すぐに走り直さないように
   useEffect(() => {
     if (phase !== 'done') return
+    // 結果のカードのボタンを押せるように、マウスの固定をはずす
+    releaseRoverMouse()
     const down = (e: KeyboardEvent) => {
       if (e.code !== 'KeyR' || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
       const tag = (e.target as HTMLElement | null)?.tagName

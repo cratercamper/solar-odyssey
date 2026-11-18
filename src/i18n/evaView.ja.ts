@@ -27,7 +27,7 @@ export const evaViewJa = {
   openingAirlock: 'エアロックを開けています…',
   tsumugiBooting: 'ツムギ、展開して起動中…',
   reelingIn: '命綱を巻き取って、船内へもどります',
-  keysHint: 'W A S D 移動・R/F 上下・ドラッグ／矢印 向き・Z/C 横回転・X ブレーキ・E 作業・1〜5 ツール・V 見方',
+  keysHint: 'W A S D 移動・スペース/Shift 上下・マウス／矢印 向き・Q ブースト・ホイール 速さ・Z/C 横回転・X ブレーキ・E 作業・1〜5 ツール・V 見方・K 回収',
   swappingTools: 'ツールを付け替え中…',
   workingWithTool: (toolName: string) => `${toolName}で作業中`,
   useTool: (toolName: string) => `${toolName}を使う`,
@@ -46,4 +46,14 @@ export const evaViewJa = {
   pendingMark: '・',
   /** 作業記録の行の区切り */
   sep: ' ・ ',
+  fromShip: '母船',
+  speedLevel: (n: number, max: number) => `速さ ${n}/${max}`,
+  speedWord: '速さ',
+  slower: '遅く',
+  faster: '速く',
+  boost: 'ブースト',
+  backAboard: 'エアロックから船内へもどります',
+  freeKeysHint: 'W A S D 移動・スペース/Shift 上下・マウス 向き・Q ブースト・ホイール 速さ・Z/C 横回転・X ブレーキ・V 見方・K 回収',
+  clickToLock: '画面をクリックするとマウスで向きを変えられます（Esc で解除）',
+  mouseLocked: 'マウス操作中（Esc で解除）',
 }

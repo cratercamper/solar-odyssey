@@ -10,7 +10,7 @@ import type { SkyNow } from './skyNow'
 import { PAINT_PARTS, paintUniforms, withPaint } from './paint'
 import { windFor } from './landerFx'
 import { TRACKS } from '../../data/rallyTracks'
-import { COUNT_SEC, RALLY_COLORS, loadBest, rallyArrive, rallyNow, saveBest, setRallyPhase, useRally, type RallyEntry } from '../../state/rally'
+import { COUNT_SEC, RALLY_COLORS, loadBest, rallyArrive, rallyClock, rallyNow, saveBest, setRallyPhase, useRally, type RallyEntry } from '../../state/rally'
 import { bookResult } from '../../state/rallyHiscore'
 import { launchRover, roverCtl, roverInput, roverPose, useRover } from '../../state/rover'
 import { useLanding } from '../../state/landing'
@@ -446,7 +446,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
   useEffect(() => () => dust.dispose(), [dust])
 
   // ---- レースの進み ----
-  const run = useRef({ start: 0, prog: GRID_S, lastGate: -1, splits: [] as number[], hud: 0, placed: false })
+  const run = useRef({ started: false, prog: GRID_S, lastGate: -1, splits: [] as number[], hud: 0, placed: false })
 
   const placeBots = () => {
     for (const b of bots.list) {
@@ -478,7 +478,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
     roverCtl.place?.(p.x, p.z, p.heading)
     roverCtl.locked = true
     placeBots()
-    run.current = { start: 0, prog: GRID_S, lastGate: -1, splits: [], hud: 0, placed: true }
+    run.current = { started: false, prog: GRID_S, lastGate: -1, splits: [], hud: 0, placed: true }
     useRally.setState({ gate: 0, time: 0, place: 1, split: null, result: null, lost: false })
     setRallyPhase('count')
   }
@@ -747,12 +747,13 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       roverCtl.locked = true
       if (now - st.since >= COUNT_SEC) {
         roverCtl.locked = false
-        r.start = now
+        rallyClock.t = 0
+        r.started = true
         setRallyPhase('run')
       }
-    }
+    } else if (r.started) rallyClock.t += dt // 走り出したフレームは 0 から。そのあとは進めた分だけ
     const running = st.phase === 'run'
-    const t = running || st.phase === 'done' ? now - r.start : 0
+    const t = running || st.phase === 'done' ? rallyClock.t : 0
     const moving = running || st.phase === 'done'
 
     // ---- 自分 ----

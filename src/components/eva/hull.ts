@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { shipDistance } from './shipCollider'
 
 // 船外の場面の足場（作業場所）。エアロックはどこでも原点、外向きが +Y、前が -Z。
 // - hull：乗っている船の背中のあたりを、メートル単位の大きな円筒の一部として描く（円筒の軸は Z、いちばん上が y = 0）
@@ -12,7 +13,8 @@ export const HULL_HALF = 150
 /** エアロック（背中のまんなか） */
 export const AIRLOCK = { x: 0, z: 0, size: 1.5 }
 
-export type EvaSiteId = 'hull' | 'arcadia' | 'dock'
+/** ship：本物の母船の模型（実寸）のまわりを自由に飛ぶ（shipCollider.ts） */
+export type EvaSiteId = 'ship' | 'hull' | 'arcadia' | 'dock'
 
 /** 横断面の折れ線（右側が中身）。x, y（m） */
 export type Poly = [number, number][]
@@ -57,6 +59,7 @@ export const arcTaper = (z: number) => -0.046 * z
 export const DOCK_R = 2050
 
 export const SITE_SHAPES: Record<EvaSiteId, SiteShape> = {
+  ship: { R: 0, polys: [], shift: () => 0, half: Infinity },
   hull: { R: HULL_R, polys: [], shift: () => 0, half: HULL_HALF },
   arcadia: {
     R: 0,
@@ -182,6 +185,7 @@ const n2 = new THREE.Vector2()
 
 /** 点 p が外壁から r より近ければ、めりこんだ深さ（m、>0）を返し、normal に外向きを入れる */
 export function hullClearance(p: THREE.Vector3, r: number, normal: THREE.Vector3) {
+  if (evaSite.id === 'ship') return Math.max(0, r - shipDistance(p, normal, r + 0.01))
   const sh = evaSite.shape
   if (Math.abs(p.z) > sh.half) return 0
   // エアロックの穴の中（発進・回収のとき）は当たらない
@@ -208,8 +212,11 @@ export function hullClearance(p: THREE.Vector3, r: number, normal: THREE.Vector3
   return depth
 }
 
+const altN = new THREE.Vector3()
+
 /** 外壁からの高さ（計器） */
 export function hullAlt(p: THREE.Vector3) {
+  if (evaSite.id === 'ship') return shipDistance(p, altN, 5000)
   if (flat()) {
     const n = new THREE.Vector3()
     // 足もとの面までの距離（壁のそばでは壁まで）

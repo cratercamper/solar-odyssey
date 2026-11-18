@@ -10,8 +10,8 @@ import { useOptionalTexture } from '../../hooks/useOptionalTexture'
 import { haloTexture } from '../ship/ShipModel'
 import { currentLevel, dprFor, lowMemory, useLevel } from '../../state/quality'
 import { ASCENT, DESCENT, FADE, goToSite, landingNow, skipDescent, startTakeoff, surfaceReady, useLanding } from '../../state/landing'
-import { goToRally, useRally } from '../../state/rally'
-import { TRACKS, trackForBody } from '../../data/rallyTracks'
+import { goToRally, trackAt, useRally, useRallyTrack } from '../../state/rally'
+import { trackForBody } from '../../data/rallyTracks'
 import { LANDER_POS, Terrain, grainTexture, rockGeometry, seeded, type Rock } from './terrain'
 import { WideWorld, isWide, wideNow, withHole } from './wideGround'
 import { useLang } from '../../i18n/lang'
@@ -43,7 +43,8 @@ import { Rover } from './Rover'
 import { MAP_KEYS, shrinkTexture } from './shrinkTexture'
 import { RoverHud, RoverMap } from './RoverHud'
 import { useMapTerrain } from './mapRelief'
-import { bindRoverKeys, launchRover, recallRover, roverFocus, roverInput, useRover, useSampleLog } from '../../state/rover'
+import { isTouchDevice } from '../../state/input'
+import { bindRoverKeys, bindRoverMouse, launchRover, recallRover, roverFocus, roverInput, useRover, useSampleLog } from '../../state/rover'
 import { openRocks } from '../../state/rockBook'
 import { compLabel, samplesFor } from '../../data/rockSamples'
 import { ui } from '../../i18n'
@@ -987,6 +988,8 @@ function Look({ terrain }: { terrain: Terrain }) {
   const eyeY = useMemo(() => terrain.height(0, 0) + EYE, [terrain])
   const landerAt = useMemo(() => new THREE.Vector3(LANDER_POS.x, terrain.height(LANDER_POS.x, LANDER_POS.y) + 3, LANDER_POS.y), [terrain])
 
+  // PC：運転中は、画面をクリックするとマウスで運転（state/rover.ts の bindRoverMouse）。先に登録して、固定中はこちらが受け取る
+  useEffect(() => (isTouchDevice() ? undefined : bindRoverMouse(gl.domElement)), [gl])
   useEffect(() => {
     const el = gl.domElement
     const pointers = new Map<number, { x: number; y: number }>()
@@ -994,7 +997,12 @@ function Look({ terrain }: { terrain: Terrain }) {
     const canLook = () => useLanding.getState().phase === 'surface'
     const down = (e: PointerEvent) => {
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
-      el.setPointerCapture(e.pointerId)
+      // マウスを固定した直後（運転中のクリック）は、つかまえられないことがある
+      try {
+        el.setPointerCapture(e.pointerId)
+      } catch {
+        // つかまえなくても見回せる
+      }
     }
     const move = (e: PointerEvent) => {
       const prev = pointers.get(e.pointerId)
@@ -1124,6 +1132,8 @@ type Air = {
 const tmpDir = new THREE.Vector3()
 
 function Scene({ def }: { def: SurfaceDef }) {
+  /** このレース場で選んでいるコース（レース場でなければ null） */
+  const rallyTrack = useRallyTrack(def.site)
   // ローバーなどの十数 cm より小さな部品は影を落とさない（影のための描画を減らす）
   useTrimShadows(0.12)
   // 本物の地形（火星・地球）。読み終わるまでは今までの作った地形
@@ -1355,10 +1365,10 @@ function Scene({ def }: { def: SurfaceDef }) {
       <Suspense fallback={null}>
         <Rover terrain={terrain} dustColor={def.ground} sky={sky} landerYaw={LANDER_YAW} prepare={prepareRover} />
       </Suspense>
-      {def.site && TRACKS[def.site] && (
+      {rallyTrack && (
         <Suspense fallback={null}>
-          <Rally key={def.site} track={def.site} terrain={terrain} prepare={prepareRover} dustColor={def.ground} sky={sky} />
-          <RallyGhost key={def.site + ':ghost'} track={def.site} />
+          <Rally key={rallyTrack} track={rallyTrack} terrain={terrain} prepare={prepareRover} dustColor={def.ground} sky={sky} />
+          <RallyGhost key={rallyTrack + ':ghost'} track={rallyTrack} />
         </Suspense>
       )}
       {def.site === 'taurus' && <Apollo17 terrain={terrain} prepare={prepareRover} />}
@@ -1430,6 +1440,7 @@ function SampleCard({ bodyId, id }: { bodyId: string; id: string }) {
 const sizeLabel = (m: number) => (m >= 1000 ? `${m / 1000} km` : `${m} m`)
 
 function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
+  const rallyTrack = useRallyTrack(site)
   useLang()
   const rally = useRally((r) => r.phase)
   const racing = !!site && rally !== 'off'
@@ -1443,6 +1454,7 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
   const got = useSampleLog((l) => l.log[bodyId]?.length ?? 0)
   const total = samplesFor(bodyId).length
   const view = useRover((r) => r.view)
+  const mouseDrive = useRover((r) => r.mouse)
   const menu = useRover((r) => r.menu)
   const setView = useRover((r) => r.setView)
   useEffect(() => bindRoverKeys(), [])
@@ -1451,14 +1463,19 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
     <>
       <div className="surface-hint rover-hint" hidden={racing}>
         {drive
-          ? ui().surfaceView.keysHint
+          ? (
+            <>
+              {ui().surfaceView.keysHint}
+              {!isTouchDevice() && <span className={`eva-lock${mouseDrive ? ' on' : ''}`}>{mouseDrive ? ui().roverHud.mouseOn : ui().roverHud.mouseOff}</span>}
+            </>
+          )
           : phase === 'drop'
             ? ui().surfaceView.droppingRover
             : ui().surfaceView.roverUnfolding}
       </div>
       {drive && <RoverHud />}
       {site && <RallyPanel />}
-      {drive && site && TRACKS[site] && !racing && <RallyStart track={site} compact />}
+      {drive && rallyTrack && !racing && <RallyStart track={rallyTrack} compact />}
       {drive && edge && !racing && (
         <div className="rover-edge">
           {ui().surfaceView.cantGoFarther}
@@ -1522,7 +1539,7 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
         </button>
         {!site && trackForBody(bodyId) && (
           <button className="secondary rally-site" onClick={() => goToRally(trackForBody(bodyId)!)} title={ui().surfaceView.raceTrackTip}>
-            🏁 {ui().surfaceView.raceButton(ui().rallyTracks[trackForBody(bodyId)!].button)}
+            🏁 {ui().surfaceView.raceButton(ui().rallyTracks[trackAt(trackForBody(bodyId)!)].button)}
           </button>
         )}
         <button className="primary" onClick={startTakeoff}>
@@ -1534,6 +1551,7 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
 }
 
 function SurfacePanel({ def }: { def: SurfaceDef }) {
+  const rallyTrack = useRallyTrack(def.site)
   useLang()
   const rover = useRover((r) => r.phase)
   // ローバーを出しているあいだは、説明と時刻・天気の表示をたたんで景色を広く（メニューのボタンで開く）
@@ -1602,7 +1620,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             <RoverPanel bodyId={def.id} site={def.site} />
           ) : (
           <>
-          {def.site && TRACKS[def.site] && <RallyStart track={def.site} />}
+          {rallyTrack && <RallyStart track={rallyTrack} />}
           <div className="surface-hint">
             {view === 'eye'
               ? ui().surfaceView.lookAroundHint
@@ -1620,7 +1638,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             </button>
             {!def.site && trackForBody(def.id) && (
               <button className="secondary rally-site" onClick={() => goToSite(trackForBody(def.id))}>
-                🏁 {ui().surfaceView.toRaceTrack(ui().rallyTracks[trackForBody(def.id)!].button)}
+                🏁 {ui().surfaceView.toRaceTrack(ui().rallyTracks[trackAt(trackForBody(def.id)!)].button)}
               </button>
             )}
             {!def.site && def.id === 'moon' && (
@@ -1628,9 +1646,9 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
                 🚩 {ui().surfaceView.toApollo17}
               </button>
             )}
-            {def.site && TRACKS[def.site] && (
+            {rallyTrack && (
               <button className="secondary" onClick={() => goToSite(null)}>
-                {ui().rallyTracks[def.site].home}
+                {ui().rallyTracks[rallyTrack].home}
               </button>
             )}
             <button className="primary" onClick={startTakeoff}>

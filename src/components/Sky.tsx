@@ -170,13 +170,17 @@ function CatalogStars() {
   return <points geometry={geometry} material={material} renderOrder={-0.5} frustumCulled={false} />
 }
 
-/** 背景の空：天の川の全天画像（淡い光として）と、星表の本物の星。遠くの星なので、どこへ行ってもカメラと一緒に動かす */
-export function Sky() {
+/**
+ * 背景の空：天の川の全天画像（淡い光として）と、星表の本物の星。遠くの星なので、どこへ行ってもカメラと一緒に動かす。
+ * follow=false は、親がもうカメラについて動いているとき（船外の場面の Distant）。二重に足すと、
+ * カメラが原点から離れるほど星の球がずれて、遠くへ行くと球の外に出てしまう
+ */
+export function Sky({ follow = true }: { follow?: boolean }) {
   const map = useOptionalTexture(textureUrl('milkyWayGlow'))
   const group = useRef<THREE.Group>(null!)
   const material = useRef<THREE.MeshBasicMaterial>(null)
   useFrame(({ camera }, delta) => {
-    group.current.position.copy(camera.position)
+    if (follow) group.current.position.copy(camera.position)
     // 図鑑モードはいつも同じ明るさ。写真モードは明るい天体の映り方で、なめらかに変える
     const target = photoUniform.value > 0.5 ? 1 - 0.96 * THREE.MathUtils.smoothstep(brightOnScreen(camera as THREE.PerspectiveCamera), 0.003, 0.08) : 1
     starExposure.value += (target - starExposure.value) * (1 - Math.exp(-delta * 2.5))

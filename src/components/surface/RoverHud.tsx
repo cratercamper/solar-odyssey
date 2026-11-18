@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
-import { RALLY_COLORS, useRally } from '../../state/rally'
+import { useEffect, useMemo, useState } from 'react'
+import { RALLY_COLORS, useRally, useRallyTrack } from '../../state/rally'
 import { buildCourse } from './Rally'
 import { TRACKS } from '../../data/rallyTracks'
 import { APOLLO17, APOLLO17_TRAVERSE } from '../../data/apollo17'
 import { useHistoric } from '../../state/historic'
-import { useRover, ROVER_RANGE, ROVER_TOP } from '../../state/rover'
+import { jumpCharge, roverMouse, useRover, useRoverCruise, ROVER_RANGE, ROVER_TOP } from '../../state/rover'
 import { LANDER_POS } from './terrain'
 import { useMapTerrain, useRelief, type ReliefLayer } from './mapRelief'
 import { useLang } from '../../i18n/lang'
@@ -136,6 +136,56 @@ export function RoverHud() {
         </div>
       </div>
       <div className="rover-badge">ORV-7</div>
+      {hud.air && <AirGauge fuel={hud.fuel} />}
+      <MouseDrive />
+    </div>
+  )
+}
+
+/** マウスで運転（PC）：巡航の速さ、マウスのハンドルの切れ（固定しているときだけ） */
+function MouseDrive() {
+  const mouse = useRover((r) => r.mouse)
+  const cruise = useRoverCruise((c) => c.cruise)
+  const [, tick] = useState(0)
+  // ハンドルの切れは React の外（roverMouse）にあるので、固定中だけ 1 秒に 15 回書き換える
+  useEffect(() => {
+    if (!mouse) return
+    const id = window.setInterval(() => tick((n) => n + 1), 66)
+    return () => window.clearInterval(id)
+  }, [mouse])
+  if (!mouse && cruise === 0) return null
+  return (
+    <div className="rover-mouse">
+      {cruise > 0 && (
+        <span className="rm-cruise" title={ui().roverHud.cruiseTip}>
+          {ui().roverHud.cruise(cruise)}
+        </span>
+      )}
+      {mouse && (
+        <span className="rm-steer">
+          <i style={{ left: `${50 + roverMouse.steer * 50}%` }} />
+        </span>
+      )}
+      {mouse && jumpCharge() >= 0 && (
+        <span className="rm-jump">
+          <i style={{ width: `${Math.round(jumpCharge() * 100)}%` }} />
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** 空中だけ、画面の右端に出す噴射剤の縦のメーター（cratercamper さん：あとどれだけ曲がれるか見たい。2026-11-13 に真ん中から右端へ）。
+ * 下の線（AIR_RESERVE、Rover.tsx）から下は ▼ だけに取ってある。車体の後ろの灯（RcsLights）も同じ残りを見せる */
+function AirGauge({ fuel }: { fuel: number }) {
+  const reserve = fuel <= 0.12
+  return (
+    <div className={`rover-airgauge${fuel < 0.42 ? ' low' : ''}${reserve ? ' reserve' : ''}`}>
+      <span>{reserve && fuel > 0 ? ui().roverHud.airReserve : ui().roverHud.rcs}</span>
+      <div className="bar">
+        <i style={{ height: `${Math.round(fuel * 100)}%` }} />
+        <b style={{ bottom: '12%' }} />
+      </div>
     </div>
   )
 }
@@ -183,10 +233,11 @@ export function RoverMap() {
   // 峡谷レース場：コース・門・ほかのローバー
   const gate = useRally((r) => r.gate)
   const bots = useRally((r) => (r.phase === 'off' ? NO_BOTS : r.bots))
+  const rallyTrack = useRallyTrack(terrain?.def.site)
   const course = useMemo(() => {
-    const tr = terrain?.def.site ? TRACKS[terrain.def.site] : null
+    const tr = rallyTrack ? TRACKS[rallyTrack] : null
     return tr ? buildCourse(tr.line, tr.gates) : null
-  }, [terrain])
+  }, [rallyTrack])
   const pois = wide ? (terrain?.pois ?? []) : []
   // アポロ17号の谷：月面車が走った道と史跡
   const apollo = terrain?.def.site === 'taurus'

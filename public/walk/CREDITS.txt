@@ -1,0 +1,5 @@
+Park people (walk/mobs/mpfb_*.vrm): made for Solar Odyssey in Blender with MPFB 2 (MakeHuman), using the
+MakeHuman system assets (CC0 1.0: body, skins, hair, clothes, eyes, eyebrows). Generated from
+tools/mobs/mpfb_style.json; hidden body parts under clothes removed, hair recoloured, textures resized.
+Motions (walk/motions.json): Mixamo (Adobe) animations, retargeted and converted to compact keyframes for these characters.
+

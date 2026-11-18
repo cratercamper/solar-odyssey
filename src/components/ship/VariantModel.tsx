@@ -155,7 +155,7 @@ function materials(spec: ShipSpec, baked: BakedMaps | null) {
 }
 
 /** 乗る船が SV-01 以外のときの自機。unitScale は自機に掛かっている拡大率（投光器の届く距離を合わせる） */
-export function VariantModel({ spec, unitScale = 1 }: { spec: ShipSpec; unitScale?: number | (() => number) }) {
+export function VariantModel({ spec, unitScale = 1, env = true }: { spec: ShipSpec; unitScale?: number | (() => number); env?: boolean }) {
   const { scene } = useGLTF(url(spec.model!))
 
   const level = useLevel()
@@ -190,7 +190,7 @@ export function VariantModel({ spec, unitScale = 1 }: { spec: ShipSpec; unitScal
     const decals = spec.decals.map((d) => ({ ...d, map: decalTexture(d.text, d.color) }))
     return { model, rotor: rotor as THREE.Object3D | null, slits, whole, mats, glow, blue, radiator, decals }
   }, [scene, spec])
-  useSpaceEnvOn(useMemo(() => [...Object.values(built.mats), ...built.whole], [built]))
+  useSpaceEnvOn(useMemo(() => (env ? [...Object.values(built.mats), ...built.whole] : []), [built, env]))
   useEffect(() => {
     for (const m of Object.values(built.mats)) setBakedLevel(m as THREE.MeshStandardMaterial, level)
     // 丸ごと焼いた材質：軽量の画質では継ぎ目の凹凸（ノーマル）を外す
@@ -295,7 +295,7 @@ export function VariantModel({ spec, unitScale = 1 }: { spec: ShipSpec; unitScal
 }
 
 /** 乗っている船の模型（SV-01 か、ほかの船） */
-export function OwnShipModel({ spec, unitScale }: { spec: ShipSpec; unitScale?: number | (() => number) }) {
+export function OwnShipModel({ spec, unitScale, env = true }: { spec: ShipSpec; unitScale?: number | (() => number); env?: boolean }) {
   // 船ごとに作り直す（灯火や投光器の数が船ごとに違うので、前の船の分を残さない）
-  return spec.model ? <VariantModel key={spec.id} spec={spec} unitScale={unitScale} /> : <ShipModel unitScale={unitScale} />
+  return spec.model ? <VariantModel key={spec.id} spec={spec} unitScale={unitScale} env={env} /> : <ShipModel unitScale={unitScale} env={env} />
 }

@@ -3,6 +3,8 @@
 import { useStore } from '../state/store'
 
 let ctx: AudioContext | null = null
+/** AudioContext が使えない（エラーは一度だけ出す） */
+let noAudio = false
 let master: GainNode | null = null
 /** すべての音（BGM・効果音・艦橋の音）が最後に通る出口。裏に回ったときはここで絞る */
 let bus: GainNode | null = null
@@ -14,8 +16,19 @@ let suspendTimer = 0
 const FADE_OUT = 0.4
 const FADE_IN = 0.8
 
-export function audio() {
-  ctx ??= new AudioContext()
+/** 音を鳴らす AudioContext。ないブラウザ（Web Audio を切ってあるなど）では null を返し、音なしで遊べるようにする */
+export function audio(): AudioContext | null {
+  if (!ctx) {
+    if (noAudio) return null
+    try {
+      ctx = new AudioContext()
+    } catch (e) {
+      // AudioContext が無い・作れない（ReferenceError など）。一度だけ知らせて音なしで続ける
+      noAudio = true
+      console.error('ERROR: AudioContext is not available; the game runs without sound', e)
+      return null
+    }
+  }
   if (ctx.state === 'suspended' && !away) void ctx.resume()
   return ctx
 }
@@ -88,6 +101,7 @@ function noiseBuffer(c: AudioContext, seconds: number) {
 /** ワープ：低いうなりが高まり、風切り音が抜けていく。seconds はワープ中の長さ */
 export function playWarp(chargeSeconds: number, seconds: number) {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const jump = now + chargeSeconds
   const end = jump + seconds + 1
@@ -167,6 +181,7 @@ export function speak(text: string, opts: { rate?: number; pitch?: number } = {}
 /** ビーム：高めの音がすっと下がる */
 export function playBeam() {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const osc = c.createOscillator()
   osc.type = 'sawtooth'
@@ -187,6 +202,7 @@ export function playBeam() {
 /** 爆発：低いノイズが広がって消える */
 export function playBlast() {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const src = c.createBufferSource()
   src.buffer = noiseBuffer(c, 1.2)
@@ -205,6 +221,7 @@ export function playBlast() {
 /** 短い電子音（カウントダウンや輪の通過） */
 export function playBeep(freq: number, seconds = 0.18) {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const osc = c.createOscillator()
   osc.type = 'sine'
@@ -228,6 +245,7 @@ export type ChargeHum = { setLevel: (level: number) => void; stop: () => void }
 /** 溜めのうなり：段階が上がるたびに音程が上がる。stop で短く消える */
 export function startChargeHum(): ChargeHum {
   const c = audio()
+  if (!c) return { setLevel: () => {}, stop: () => {} }
   const now = c.currentTime
   const low = c.createOscillator()
   low.type = 'sawtooth'
@@ -281,6 +299,7 @@ export function startChargeHum(): ChargeHum {
 /** 段階が上がった瞬間の、きらっとした短い音 */
 export function playChargeStep(level: number) {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const base = 660 * 2 ** ((level - 1) * 4 / 12)
   ;[1, 1.5].forEach((ratio, i) => {
@@ -300,6 +319,7 @@ export function playChargeStep(level: number) {
 /** 発射：低い「ドン」。段階が高いほど低く重い */
 export function playChargeFire(level: number) {
   const c = audio()
+  if (!c) return
   const now = c.currentTime
   const osc = c.createOscillator()
   osc.type = 'sine'
@@ -329,6 +349,7 @@ export function playChargeFire(level: number) {
 /** ビームが出ているあいだのうなり。seconds たったらフェードアウトする。戻り値で途中でも止められる */
 export function beamHum(seconds: number, level: number) {
   const c = audio()
+  if (!c) return () => {}
   const now = c.currentTime
   const end = now + seconds + 0.45
   const a = c.createOscillator()

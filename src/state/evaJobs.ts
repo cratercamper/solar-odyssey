@@ -172,17 +172,20 @@ const DOCK_SITES: Record<JobType, JobSite[]> = {
   ],
 }
 
-const SITE_JOBS: Record<EvaSiteId, { jobs: Record<JobType, JobSite[]>; rack: JobSite }> = {
+const SITE_JOBS: Record<Exclude<EvaSiteId, 'ship'>, { jobs: Record<JobType, JobSite[]>; rack: JobSite }> = {
   hull: { jobs: HULL_SITES, rack: { th: -0.13, z: 1.8 } },
   arcadia: { jobs: ARCADIA_SITES, rack: { th: -2.3, z: 2.2 } },
   dock: { jobs: DOCK_SITES, rack: { th: -3.4, z: 1.8 } },
 }
 
 /** いまの作業場所の、依頼の置き場所の候補 */
-export const jobSites = () => SITE_JOBS[evaSite.id].jobs
+/** 母船のまわりを自由に飛ぶとき（ship）は修理の依頼がない。呼ばれたときは外壁の分を返す */
+const siteJobs = () => SITE_JOBS[evaSite.id === 'ship' ? 'hull' : evaSite.id]
+
+export const jobSites = () => siteJobs().jobs
 
 /** 放熱板の置き場所（外壁の場面では、もとからある放熱板を使う） */
-export const radiatorFins = () => (evaSite.id === 'hull' ? [] : SITE_JOBS[evaSite.id].jobs.radiator)
+export const radiatorFins = () => (evaSite.id === 'hull' || evaSite.id === 'ship' ? [] : siteJobs().jobs.radiator)
 
 /** 種類ごとの、作業する点（局所座標）、近づく向き（局所）、ツムギの上の向き（局所） */
 export function workSpot(type: JobType, site: JobSite) {
@@ -259,7 +262,7 @@ function makeRt(type: JobType, site: JobSite): JobRt {
 export const rackRt = { site: { th: -0.13, z: 1.8 } as JobSite, P: new THREE.Vector3(), A: new THREE.Vector3(), U: new THREE.Vector3() }
 
 function placeRack() {
-  const site = SITE_JOBS[evaSite.id].rack
+  const site = siteJobs().rack
   const m = hullFrame(site)
   const q = new THREE.Quaternion().setFromRotationMatrix(m)
   rackRt.site = site
@@ -353,7 +356,8 @@ export function newShift(rnd = Math.random) {
   const log = useEvaLog.getState().log
   const fresh = JOB_TYPES.filter((t) => !log[t]).sort(() => rnd() - 0.5)
   const old = JOB_TYPES.filter((t) => log[t]).sort(() => rnd() - 0.5)
-  const types = [...fresh, ...old].slice(0, 3)
+  // 母船のまわりを自由に飛ぶときは、依頼なし
+  const types = evaSite.id === 'ship' ? [] : [...fresh, ...old].slice(0, 3)
   placeRack()
   jobsRt.list = types.map((t) => {
     const c = jobSites()[t]

@@ -6,7 +6,7 @@ const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'O
 
 export const saturnExplorerEn: typeof saturnExplorerJa = {
   title: 'Take a look at the Saturn V',
-  where: 'Kennedy Space Center, Pad 39A · the evening of 20 November 1972',
+  where: 'Kennedy Space Center, Pad 39A · the evening of November 20, 1972',
   hint: 'Drag to turn, scroll to move in. Touch a glowing dot to see inside',
   hintTouch: 'Drag to turn, pinch to move in. Touch a glowing dot to see inside',
   cut: 'Cutaway',
@@ -20,7 +20,7 @@ export const saturnExplorerEn: typeof saturnExplorerJa = {
   daysLeft: (n) => (n > 0 ? `${n} day${n === 1 ? '' : 's'} to launch` : 'Launch night'),
   dusk: 'The sun sets and the floodlights come on. A full moon rises in the east',
   waning: 'Each night the moon rises later and grows thinner',
-  launchNight: '12:33 AM, 7 December 1972. A moonless night',
+  launchNight: '12:33 AM, December 7, 1972. A moonless night',
   parts: {
     les: {
       name: 'Launch escape tower',
@@ -35,7 +35,7 @@ export const saturnExplorerEn: typeof saturnExplorerJa = {
     lm: {
       name: 'Lunar module',
       fact: 'Lunar module "Challenger"',
-      lines: ['It rides with its legs folded, inside an adapter.', 'On the way to the Moon the command module turns around and pulls it out (chapter 3).', 'It takes two astronauts down to a lunar valley and back up to orbit.'],
+      lines: ['It rides with its legs folded, inside an adapter.', 'On the way to the Moon the command module turns around and pulls it out (chapter 4).', 'It takes two astronauts down to a lunar valley and back up to orbit.'],
     },
     iu: {
       name: 'Instrument unit',
@@ -45,7 +45,7 @@ export const saturnExplorerEn: typeof saturnExplorerJa = {
     s3: {
       name: 'Third stage (S-IVB)',
       fact: '18 m tall · one J-2 engine',
-      lines: ['It finishes the climb to Earth orbit, then lights again to send the ship to the Moon (chapter 2).', 'Inside: liquid hydrogen (−253 °C) and liquid oxygen (−183 °C). So cold that frost forms outside.'],
+      lines: ['It finishes the climb to Earth orbit, then lights again to send the ship to the Moon (chapter 3).', 'Inside: liquid hydrogen (−253 °C) and liquid oxygen (−183 °C). So cold that frost forms outside.'],
     },
     s2: {
       name: 'Second stage (S-II)',
@@ -60,7 +60,7 @@ export const saturnExplorerEn: typeof saturnExplorerJa = {
     f1: {
       name: 'F-1 engines',
       fact: '5.6 m tall · five of them',
-      lines: ['Still the most powerful single-chamber rocket engine ever built.', 'Together the five could lift about 3,400 tonnes.', 'Each nozzle is 3.7 m wide, twice the height of a person.'],
+      lines: ['Still the most powerful single-chamber liquid-fuel rocket engine ever flown.', 'Together the five could lift about 3,400 tonnes.', 'Each nozzle is 3.7 m wide, twice the height of a person.'],
     },
   },
 }

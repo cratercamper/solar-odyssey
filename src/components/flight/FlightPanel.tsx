@@ -65,7 +65,7 @@ export function FlightPanel({ loading, failed }: { loading: boolean; failed: boo
                 ))}
               </span>
               <button className="secondary small" onClick={() => setGear(s.gear + 1)} aria-label={t.faster}>
-                ＋
+                +
               </button>
             </div>
             <div className="flight-lap">

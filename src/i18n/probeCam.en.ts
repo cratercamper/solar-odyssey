@@ -23,7 +23,7 @@ export const probeCamEn: Translation<typeof probeCamJa> = {
   speed: 'Speed relative to the Sun',
   speedValue: (v: number) => `${v.toFixed(1)} km/s`,
   toPlanet: (name: string, d: string) => `${d} to ${name}`,
-  toSurface: (name: string, d: string) => `${d} above ${name}'s ground`,
+  toSurface: (name: string, d: string) => `${d} above ${name}'s surface`,
   fromEarth: (d: string, t: string) => `${d} from Earth · radio takes ${t}`,
   lightTime: (minutes: number) => (minutes < 1 ? `${(minutes * 60).toFixed(1)} s` : minutes < 60 ? `${Math.round(minutes)} min` : `${(minutes / 60).toFixed(1)} h`),
   arrow: 'speed arrow',
@@ -82,7 +82,7 @@ export const probeCamEn: Translation<typeof probeCamJa> = {
         (d: string, t: string) => `${d} from Earth. Radio from Earth takes ${t} to get here.`,
         'It points its two solar wings at the Sun to make electricity.',
       ],
-      beyond: () => 'Leaving Earth for its next asteroid. It should reach 1998 KY26, about 30 m across, in 2031.',
+      beyond: () => 'Leaving Earth for its next asteroid. It should reach 1998 KY26, only about 11 m across, in 2031.',
     },
     cassini: {
       credit: 'Model: NASA 3D Resources / Trajectory: NASA JPL Horizons',
@@ -95,7 +95,7 @@ export const probeCamEn: Translation<typeof probeCamJa> = {
         '',
       ],
       cruise: [
-        '6.8 m tall and 5.6 tonnes, built together by the USA, Europe and Italy.',
+        '6.8 m tall and 5.6 tonnes, built together by NASA, the European Space Agency and the Italian Space Agency.',
         (d: string, t: string) => `${d} from Earth. Radio from Earth takes ${t} to get here.`,
         'Three nuclear batteries (RTGs) make its power. Sunlight at Saturn is only about 1/100 as bright as at Earth.',
         'The disc on its side is Huygens, a European probe it carries to drop on the moon Titan.',
@@ -112,7 +112,7 @@ export const probeCamEn: Translation<typeof probeCamJa> = {
         dips: [
           'It let go of Huygens, which spins as it drifts toward Titan for three weeks.',
           'Huygens landed on Titan! The most distant landing ever made from Earth.',
-          'It passed 175 km above Enceladus and found water vapour spraying from its south pole.',
+          'It passed 175 km above Enceladus and found water vapor spraying from its south pole.',
           'The Grand Finale begins: a dive through the gap, about 2,000 km wide, between Saturn and its rings.',
           'Before its fuel ran out, it dove into Saturn, sending data to Earth until the very last moment.',
         ],

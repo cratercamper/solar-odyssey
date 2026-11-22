@@ -42,8 +42,8 @@ export const apolloEvaEn: Translation<typeof apolloEvaJa> = {
     st4: {
       title: '74220 · the orange soil',
       lines: [
-        'The orange colour comes from glass beads about 0.1 mm across: spray from volcanic fountains on the Moon about 3.6 billion years ago that cooled in flight.',
-        'It proved the Moon once had volcanoes. Sample 74220 is still being studied around the world.',
+        'The orange color comes from glass beads about 0.1 mm across: spray from volcanic fountains on the Moon about 3.6 billion years ago that cooled in flight.',
+        'It showed that lava once sprayed up from the Moon like a fountain. Sample 74220 is still being studied around the world.',
       ],
     },
     st6: {

@@ -14,7 +14,7 @@ export const firstThreeEn: Translation<typeof firstThreeJa> = {
   rover: 'Pick up a rock with the rover',
   roverHint: 'After landing, send out the rover and drive up to a rock.',
   done: 'Done',
-  fold: 'Fold',
+  fold: 'Collapse',
   close: 'Close',
   allDone: 'All three done! Enjoy the journey. There is much more under Play and Learn in the nav computer.',
 }

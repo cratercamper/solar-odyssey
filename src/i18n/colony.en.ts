@@ -31,7 +31,7 @@ export const colonyEn: Translation<typeof colonyJa> = {
   capacityLine: 'Room for',
   series: { happy: 'Happiness', food: 'Food', water: 'Water', power: 'Power' },
   tipAt: (d: number, h: number) => `Day ${d}, ${hh(h)}`,
-  daysAgo: (d: number) => `${d} days ago`,
+  daysAgo: (d: number) => `${d} day${d === 1 ? '' : 's'} ago`,
   now: 'now',
   zonesTitle: 'Zones',
   land: (used: number, size: number) => `Land ${used}/${size}`,
@@ -101,7 +101,12 @@ export const colonyEn: Translation<typeof colonyJa> = {
   hours: (h: number) => `${h} h`,
   researchDone: (name: string) => `Research finished: ${name}`,
   awayTitle: 'While you were away',
-  away: (h: number) => `${Math.floor(h / 24)} days ${h % 24} hours passed in the colony`,
+  away: (h: number) => {
+    const d = Math.floor(h / 24)
+    const r = h % 24
+    const parts = [d ? `${d} day${d === 1 ? '' : 's'}` : '', r ? `${r} hour${r === 1 ? '' : 's'}` : ''].filter(Boolean)
+    return `${parts.join(' and ')} passed in the colony`
+  },
   awayPop: (n: number) => `People ${sign(n)}`,
   awayHappy: (n: number) => `Happiness ${sign(n)}`,
   awayMetal: (n: number) => `Factories sent ${n} metal to the store`,

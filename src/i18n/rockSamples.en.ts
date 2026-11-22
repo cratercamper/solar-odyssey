@@ -83,7 +83,7 @@ export const rockSamplesEn: Translation<RockSamplesJa> = {
   // race gold medal rewards
   'layered-sulfate': {
     name: 'Canyon layer rock (sulfate)',
-    note: 'A piece of the bright layers stacked thousands of metres high inside Valles Marineris. They were left behind by water-borne minerals, a sign that ancient Mars had plenty of water.',
+    note: 'A piece of the bright layers stacked thousands of meters high inside Valles Marineris. They were left behind by water-borne minerals, a sign that ancient Mars had plenty of water.',
   },
   troctolite: {
     name: 'Troctolite (Apollo 17 sample 76535)',

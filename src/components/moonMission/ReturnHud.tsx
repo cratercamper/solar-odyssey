@@ -75,7 +75,7 @@ function Corridor() {
         <div className={`rt-big ${inCorridor(ret.angle) ? 'good' : 'bad'}`}>{T.deg(ret.angle)}</div>
         <AngleGauge angle={ret.angle} />
         <div className="rt-sub">
-          {T.ideal}　·　{T.toEi(left)}
+          {T.ideal} · {T.toEi(left)}
         </div>
         {!touch && !auto && <div className="rt-keys">{T.angleKeys}</div>}
       </div>
@@ -193,7 +193,7 @@ function Tei() {
         <i style={{ width: `${(burned / TEI_BURN) * 100}%` }} />
       </div>
       <div className="rt-sub">
-        {T.burn(burned)}　·　{T.warp(TEI_WARP)}
+        {T.burn(burned)} · {T.warp(TEI_WARP)}
       </div>
     </div>
   )

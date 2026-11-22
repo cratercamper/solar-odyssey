@@ -1,4 +1,5 @@
 import type { Translation } from './translation'
+import { theEn, TheEn } from './article'
 import type { sizeCompareJa } from './sizeCompare.ja'
 
 // Size comparison (ui/SizeCompare.tsx), English
@@ -9,7 +10,7 @@ export const sizeCompareEn: Translation<typeof sizeCompareJa> = {
   title: 'Size comparison',
   navButton: 'Compare sizes',
   open3d: '🌍 Compare in 3D',
-  across: (big: string, small: string, count: number) => `About ${n(count)} × ${small} fit across ${big}`,
+  across: (big: string, small: string, count: number) => `${TheEn(big)} is about ${n(count)} times as wide as ${theEn(small)}`,
   picks: 'Bodies to compare',
   tapHint: 'Tap one to zoom in',
   back: 'Show all',

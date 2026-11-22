@@ -176,7 +176,7 @@ function Engines({ r, tli }: { r: Readout; tli: boolean }) {
   return (
     <>
       <div className="ac-title">
-        {c.engines}　<span className="ac-sub">{t.stageName[stage]}</span>
+        {c.engines} <span className="ac-sub">{t.stageName[stage]}</span>
       </div>
       <div className="ac-engines">
         <svg viewBox="-40 -40 80 80" className="ac-bells" aria-hidden>
@@ -368,7 +368,7 @@ function OrbitMap({ r, tli }: { r: Readout; tli: boolean }) {
         <>
           <div className="ac-big">{c.period(Math.round(period / 60))}</div>
           <div className="ac-small">
-            <i className="ac-swatch" /> {c.window}　{c.skin}
+            <i className="ac-swatch" /> {c.window} {c.skin}
           </div>
         </>
       )}

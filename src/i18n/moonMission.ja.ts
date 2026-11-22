@@ -97,7 +97,7 @@ export const moonMissionJa = {
     entryInterface: '熱よけの表面は約 2,700 ℃。中の 3 人のまわりは、ふつうの部屋の温度のまま',
     blackout: '本物の通信途絶は 3 分 20 秒。地上はそのあいだ、待つことしかできない',
     mains: 'アポロ17号は、目標の地点から約 2 km（1.3 マイル）の所に降りた',
-    splash: '12 日 13 時間 52 分の旅。人が月へ行ったのは、いまのところこれが最後',
+    splash: '12 日 13 時間 52 分の旅。人が月に降り立ったのは、いまのところこれが最後',
   } as Record<string, string>,
   chapters: {
     button: '場面',

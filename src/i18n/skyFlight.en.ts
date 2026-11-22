@@ -25,7 +25,7 @@ export const skyFlightEn: Translation<typeof skyFlightJa> = {
   lapped: '🌕 You flew all the way around the Moon!',
   lapTime: (time: string) => `Time ${time}`,
   ok: 'OK',
-  keys: 'W / S (↑↓): climb / dive   A / D (←→): turn   E / Q or wheel: speed   Drag: look around. The higher you fly, the faster you can go',
+  keys: 'W / S (↑↓): climb / dive · A / D (←→): turn · E / Q or wheel: speed · Drag: look around. The higher you fly, the faster you can go',
   restart: 'Start a lap from here',
   restartTip: 'Measure a new lap in the direction you are facing now',
   back: 'Back to the landing site',

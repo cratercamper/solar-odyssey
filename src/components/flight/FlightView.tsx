@@ -443,6 +443,8 @@ function Pilot({ map, start, heading }: { map: GlobalMap; start: THREE.Vector3; 
     if (location.hash.includes('debug')) (window as unknown as { __flight: unknown }).__flight = { ctl, lap }
   }, [ctl, lap])
 
+  // 優先度 -1：着陸船の模型（Ship）より先に動かす。後だと、模型が 1 コマ前の位置に描かれる。
+  // 負の優先度なので、描画は R3F がこれまでどおり自分でする（自分で描かなくなるのは正の優先度のときだけ）
   useFrame((_, dt) => {
     const k = (c: string) => (keys.has(c) ? 1 : 0)
     input.turn = THREE.MathUtils.clamp(k('KeyD') + k('ArrowRight') - k('KeyA') - k('ArrowLeft') + flightPad.turn, -1, 1)
@@ -485,7 +487,7 @@ function Pilot({ map, start, heading }: { map: GlobalMap; start: THREE.Vector3; 
       const off = Math.atan2(tmp.side.crossVectors(along, ctl.fwd).dot(ctl.up), along.dot(ctl.fwd))
       useSkyFlight.setState({ alt: ctl.alt, speed: ctl.speed, lap: Math.max(0, Math.abs(lap.angle) / (Math.PI * 2)), off: -off })
     }
-  })
+  }, -1)
   return <Ship ctl={ctl} />
 }
 

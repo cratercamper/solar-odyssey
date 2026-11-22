@@ -486,7 +486,7 @@ function Pilot({ map, start, heading }: { map: GlobalMap; start: THREE.Vector3; 
       tmp.ui = 0
       const along = lap.along(ctl.up, tmp.along)
       const off = Math.atan2(tmp.side.crossVectors(along, ctl.fwd).dot(ctl.up), along.dot(ctl.fwd))
-      useSkyFlight.setState({ alt: ctl.alt, speed: ctl.speed, lap: Math.max(0, Math.abs(lap.angle) / (Math.PI * 2)), off: -off })
+      useSkyFlight.setState({ alt: ctl.alt, speed: ctl.speed, lap: Math.max(0, Math.abs(lap.angle) / (Math.PI * 2)), off })
     }
   }, -1)
   return <Ship ctl={ctl} />

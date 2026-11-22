@@ -22,6 +22,9 @@ const texts = {
   scopes: { name: '望遠鏡ウォッチャー', how: () => 'ハッブルとウェッブ、2つの宇宙望遠鏡を訪れる' },
   mystery: { name: '謎の発見者', how: () => 'どこかに浮かぶ、見たことのない船を見つける' },
   colonist: { name: 'コロニー訪問者', how: () => 'L5スペースコロニーを訪れる' },
+  'race-debut': { name: 'ローバーレーサー', how: () => 'どこかのローバーレースでメダルを1つ取る' },
+  'race-champion': { name: '太陽系ローバー王者', how: (count: number) => `ローバーレースの${count}コースぜんぶで金メダルを取る` },
+  'moon-lap': { name: '月をめぐる操縦士', how: () => '着陸船で月を一周する' },
   scholar: { name: '博士の卵', how: (count: number) => `航海日誌のクイズに${count}問正解する` },
   professor: { name: '太陽系博士', how: (count: number) => `航海日誌のクイズに、太陽・惑星・衛星ぜんぶ（${count}）正解する` },
 } satisfies Record<string, TitleText>

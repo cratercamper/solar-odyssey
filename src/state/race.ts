@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import { ui } from '../i18n'
 
@@ -8,11 +9,11 @@ export type RacePhase = 'idle' | 'countdown' | 'running' | 'finished'
 
 export type RaceResult = { time: number; rivalTime: number | null; win: boolean; best: number; newBest: boolean }
 
-const BEST_KEY = 'solar-voyager:race-best'
+const BEST_KEY = 'race-best'
 
 function loadBest(): number | null {
   try {
-    const v = Number(localStorage.getItem(BEST_KEY))
+    const v = Number(saveData.get(BEST_KEY))
     return v > 0 ? v : null
   } catch {
     return null
@@ -55,7 +56,7 @@ export const useRace = create<RaceState>((set, get) => ({
     const newBest = prev === null || time < prev
     const best = newBest ? time : prev
     try {
-      localStorage.setItem(BEST_KEY, String(best))
+      saveData.set(BEST_KEY, String(best))
     } catch {
       // 保存できなくても遊べる
     }

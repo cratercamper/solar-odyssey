@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8" />
+<script type="importmap">
+  { "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/", "@dgreenheck/ez-tree": "/node_modules/@dgreenheck/ez-tree/build/ez-tree.es.js" } }
+</script>
+<script type="module">
+  // 公園の近くの木（ez-tree、MIT）を、型と種ごとに作って glb に書き出す（tools/trees/bake.mjs から開く）
+  import * as THREE from 'three'
+  import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'
+  import { Tree } from '@dgreenheck/ez-tree'
+
+  const KINDS = JSON.parse(new URLSearchParams(location.search).get('kinds'))
+  /** 画像を size 四方へ縮める（透明はそのまま） */
+  function shrink(tex, size) {
+    const img = tex.image
+    const c = document.createElement('canvas')
+    c.width = c.height = size
+    c.getContext('2d').drawImage(img, 0, 0, size, size)
+    const t = new THREE.CanvasTexture(c)
+    t.colorSpace = THREE.SRGBColorSpace
+    t.wrapS = tex.wrapS
+    t.wrapT = tex.wrapT
+    t.flipY = tex.flipY
+    return t
+  }
+  async function bake() {
+    const scene = new THREE.Scene()
+    const shared = new Map()
+    for (const [preset, seed] of KINDS) {
+      const tree = new Tree()
+      tree.loadPreset(preset)
+      tree.options.seed = seed
+      tree.generate()
+      // 画像が読み終わるまで待つ
+      const maps = [tree.branchesMesh.material.map, tree.leavesMesh.material.map]
+      for (let i = 0; i < 200 && maps.some((m) => m && !(m.image && m.image.complete && m.image.naturalWidth > 0)); i++) await new Promise((r) => setTimeout(r, 50))
+      const g = new THREE.Group()
+      g.name = `${preset}#${seed}`
+      for (const [mesh, name, size] of [
+        [tree.branchesMesh, 'branches', 256],
+        [tree.leavesMesh, 'leaves', 512],
+      ]) {
+        const src = mesh.material
+        const key = `${name}:${src.map?.image?.src?.slice(-80)}`
+        let mat = shared.get(key)
+        if (!mat) {
+          mat = new THREE.MeshStandardMaterial({ name: `${name}-${preset.split(' ')[0].toLowerCase()}`, color: src.color, map: src.map ? shrink(src.map, size) : null, side: name === 'leaves' ? THREE.DoubleSide : THREE.FrontSide, alphaTest: name === 'leaves' ? 0.5 : 0, transparent: false, roughness: 0.9, metalness: 0 })
+          shared.set(key, mat)
+        }
+        const geo = new THREE.BufferGeometry()
+        for (const a of ['position', 'normal', 'uv']) if (mesh.geometry.attributes[a]) geo.setAttribute(a, mesh.geometry.attributes[a])
+        geo.setIndex(mesh.geometry.index)
+        const m = new THREE.Mesh(geo, mat)
+        m.name = name
+        g.add(m)
+      }
+      scene.add(g)
+    }
+    const glb = await new GLTFExporter().parseAsync(scene, { binary: true })
+    const bytes = new Uint8Array(glb)
+    let s = ''
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+    window.result = btoa(s)
+  }
+  bake().catch((e) => (window.result = 'ERR ' + e.stack))
+</script>

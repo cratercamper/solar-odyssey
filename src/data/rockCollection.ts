@@ -1,7 +1,7 @@
 // 岩石コレクション（図鑑）のページ分け。ローバーで採集できる岩を、見つかる場所ごとにまとめる。
 // 岩の種類は rockSamples.ts の samplesFor() と同じもの（同じ一覧を使う天体は 1 ページにまとめる）。
 
-import { samplesFor, type RockSample } from './rockSamples'
+import { REWARD_ROCKS, samplesFor, type RockSample } from './rockSamples'
 import { SURFACES } from './surfaces'
 
 export type RockGroup = {
@@ -26,6 +26,11 @@ function build(): RockGroup[] {
     const lead = bodies.includes('europa') ? 'europa' : bodies.includes('phobos') ? 'phobos' : bodies[0]
     groups.push({ id: lead, bodies, samples })
   }
+  // レースのごほうびの岩は、その天体のページの最後に
+  for (const r of REWARD_ROCKS) {
+    const g = groups.find((x) => x.bodies.includes(r.body))
+    if (g) g.samples = [...g.samples, r]
+  }
   const rank = (g: RockGroup) => (ORDER.includes(g.id) ? ORDER.indexOf(g.id) : ORDER.length)
   return groups.sort((a, b) => rank(a) - rank(b))
 }
@@ -38,5 +43,8 @@ export const foundAt = (g: RockGroup, id: string, log: Record<string, string[]>)
 
 export const rockCount = (log: Record<string, string[]>) =>
   ROCK_GROUPS.reduce((n, g) => n + g.samples.filter((s) => foundAt(g, s.id, log).length > 0).length, 0)
+
+/** レースのごほうびの岩なら、そのコース（data/rallyTracks.ts の reward） */
+export const isRewardRock = (id: string) => REWARD_ROCKS.some((r) => r.id === id)
 
 export const rockImage = (id: string) => `${import.meta.env.BASE_URL}rocks/${id}.webp`

@@ -6,6 +6,7 @@ import './index.css'
 import './touch.css'
 import { setupMusic } from './audio/music'
 import { setupCleanScreen } from './ui/CleanScreen'
+import { SceneBoundary } from './ui/SceneBoundary'
 
 // 録画・動作確認用
 if (location.hash.includes('debug')) void import('./debugHooks')
@@ -29,6 +30,8 @@ document.addEventListener('click', (e) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    {/* どこかで失敗しても真っ白にせず、読み直すボタンを出す */}
+    <SceneBoundary name="app">
     {terrainLab ? (
       <Suspense fallback={null}>
         <TerrainLab />
@@ -38,5 +41,6 @@ createRoot(document.getElementById('root')!).render(
     ) : (
       <App />
     )}
+    </SceneBoundary>
   </StrictMode>,
 )

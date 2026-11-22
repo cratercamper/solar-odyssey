@@ -1,18 +1,20 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import { NATURAL, STAMP_IDS, TITLES, titleEarned, titleText } from '../data/stamps'
 import { playBeep } from '../audio/sfx'
 import { ui } from '../i18n'
 import { bodies } from './registry'
 import { useStore } from './store'
+import { useRallyMedals } from './rallyMedals'
 
 // 訪問スタンプ帳：行った天体（いつ初めて行ったか）と、もらった称号。端末に保存する
 
-const STAMPS_KEY = 'solar-voyager:stamps'
-const TITLES_KEY = 'solar-voyager:titles'
+const STAMPS_KEY = 'stamps'
+const TITLES_KEY = 'titles'
 
 function load<T>(key: string, fallback: T): T {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? 'null') ?? fallback
+    return JSON.parse(saveData.get(key) ?? 'null') ?? fallback
   } catch {
     return fallback
   }
@@ -20,7 +22,7 @@ function load<T>(key: string, fallback: T): T {
 
 function save(key: string, value: unknown) {
   try {
-    localStorage.setItem(key, JSON.stringify(value))
+    saveData.set(key, JSON.stringify(value))
   } catch {
     // 保存できなくても遊べる
   }
@@ -108,3 +110,16 @@ useStore.subscribe((s, prev) => {
   const lines = newTitles(next)
   if (lines.length) announce(lines)
 })
+
+// ローバーレースでメダルを取ったら、レースの称号を調べる
+useRallyMedals.subscribe((s, prev) => {
+  if (s.medals === prev.medals) return
+  const lines = newTitles(useStamps.getState().stamps)
+  if (lines.length) announce(lines)
+})
+
+/** ほかの記録（月を一周したなどの出来事）が増えたときに呼ぶ：新しくそろった称号を知らせる */
+export function checkTitles() {
+  const lines = newTitles(useStamps.getState().stamps)
+  if (lines.length) announce(lines)
+}

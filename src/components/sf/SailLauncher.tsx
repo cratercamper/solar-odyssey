@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { bodies } from '../../state/registry'
 import { useStore } from '../../state/store'
 import { SAIL_LAUNCHER_ID, SF_TEXT, sailLauncherName } from '../../data/sf'
@@ -10,6 +9,7 @@ import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
 import { hullTexture } from './colonyTextures'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // 光帆の発射台（オリジナルのデザイン）。古い円筒形の居住区を改造した、レーザーの発射台。
 // 先端（+Z）の六角形のタイルが並んだ面が、たくさんの小さなレーザーを束ねる発射口（フェーズドアレイ）。
@@ -92,9 +92,7 @@ export function SailLauncher() {
   })
 
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const hullMap = hullTexture(41)
     hullMap.wrapS = hullMap.wrapT = THREE.RepeatWrapping
     hullMap.repeat.set(1, 4)
@@ -146,7 +144,6 @@ export function SailLauncher() {
 
   useEffect(
     () => () => {
-      parts.env.dispose()
       parts.hullMap.dispose()
       parts.tileMesh.geometry.dispose()
       ;(parts.tileMesh.material as THREE.Material).dispose()

@@ -1,8 +1,11 @@
+import { saveData } from './save'
 import { create } from 'zustand'
-import { launchRover, roverActive } from './rover'
+import { launchRover, recallRover, roverActive, useRover } from './rover'
 import { goToSite, useLanding } from './landing'
 import { TRACKS, tracksAt } from '../data/rallyTracks'
 import { coursePrint } from './rallyGhost'
+import { isTouchDevice } from './input'
+import type { Medal } from './rallyMedals'
 import type { RallyColorsJa } from '../i18n/rallyColors.ja'
 
 // 火星の峡谷レース（マリネリス峡谷のレース場）：色違いの ORV-7 が 4 台で、光の門を順にくぐってゴールを目指す。
@@ -33,6 +36,10 @@ export const COUNT_SEC = 3.6
 
 export type RallyEntry = { color: number; time: number | null; you: boolean }
 
+/** コンピューターの強さ（スタート欄で選ぶ。やさしいは、いちばん遅い 1 台が自分を待つので最下位にならない） */
+export const RALLY_LEVELS = ['easy', 'normal', 'hard'] as const
+export type RallyLevel = (typeof RALLY_LEVELS)[number]
+
 type RallyState = {
   phase: RallyPhase
   /** 今の段階を始めた時刻（performance.now() / 1000） */
@@ -51,7 +58,20 @@ type RallyState = {
   /** 門をくぐったときの表示：自己ベストとの差（秒）。null は初めて */
   split: { gate: number; time: number; diff: number | null; at: number } | null
   /** ゴールの結果。at はハイスコア表に入れた日時、rank は表での順位（state/rallyHiscore.ts） */
-  result: { time: number; place: number; best: number; newBest: boolean; order: RallyEntry[]; at: number; rank: number } | null
+  result: {
+    time: number
+    place: number
+    best: number
+    newBest: boolean
+    order: RallyEntry[]
+    at: number
+    rank: number
+    /** 取ったメダル（state/rallyMedals.ts）と、前より良いメダルか */
+    medal: Medal | null
+    newMedal: boolean
+    /** 金メダルで初めてもらった、ごほうびの岩の id */
+    rock: string | null
+  } | null
   /** 門から外れて戻る（R）の案内を出す */
   lost: boolean
   /** 追いかけっこ（月）：つかまえたローバーと、ゴールまで逃げきったローバー（色の番号）、最後につかまえた時刻と色 */
@@ -60,6 +80,10 @@ type RallyState = {
   bots: { c: number; x: number; z: number }[]
   /** レース場ごとに選んだコース（着陸地点の名前 → TRACKS の名前）。コースがひとつのレース場には無い */
   picked: Record<string, string>
+  /** コンピューターの強さ */
+  level: RallyLevel
+  /** 自動アクセル：レース中は ▲ を押さなくても進む（▼ でブレーキ）。スマホは最初から入れておく */
+  auto: boolean
 }
 
 /** そのレース場で今選んでいるコース（TRACKS の名前）。選んでいなければ、いちばんやさしいコース */
@@ -76,14 +100,40 @@ export const useRallyTrack = (site: string | null | undefined) => useRally((r) =
 const bestKey = () => {
   const track = trackAt(useLanding.getState().site ?? 'coprates')
   const tr = TRACKS[track]
-  return `solar-voyager:rally-best:${track}${tr ? `:${coursePrint(tr.line)}` : ''}`
+  return `rally-best:${track}${tr ? `:${coursePrint(tr.line)}` : ''}`
 }
-const COLOR_KEY = 'solar-voyager:rally-color'
-const PICK_KEY = 'solar-voyager:rally-course'
+const COLOR_KEY = 'rally-color'
+const PICK_KEY = 'rally-course'
+const LEVEL_KEY = 'rally-level'
+const AUTO_KEY = 'rally-auto'
+
+function loadLevel(): RallyLevel {
+  const v = saveData.get(LEVEL_KEY) as RallyLevel | null
+  return v && RALLY_LEVELS.includes(v) ? v : 'normal'
+}
+
+function loadAuto(): boolean {
+  const v = saveData.get(AUTO_KEY)
+  if (v === '1' || v === '0') return v === '1'
+  // まだ選んでいなければ、端末に合わせる（スマホは入）
+  return isTouchDevice()
+}
+
+/** コンピューターの強さを選ぶ（スタート前に） */
+export function setRallyLevel(level: RallyLevel) {
+  useRally.setState({ level })
+  saveData.set(LEVEL_KEY, level)
+}
+
+/** 自動アクセルの入・切 */
+export function setRallyAuto(auto: boolean) {
+  useRally.setState({ auto })
+  saveData.set(AUTO_KEY, auto ? '1' : '0')
+}
 
 function loadPicked(): Record<string, string> {
   try {
-    const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}')
+    const v = JSON.parse(saveData.get(PICK_KEY) ?? '{}')
     return v && typeof v === 'object' ? v : {}
   } catch {
     return {}
@@ -95,7 +145,7 @@ export function pickRallyTrack(site: string, track: string) {
   const picked = { ...useRally.getState().picked, [site]: track }
   useRally.setState({ picked })
   try {
-    localStorage.setItem(PICK_KEY, JSON.stringify(picked))
+    saveData.set(PICK_KEY, JSON.stringify(picked))
   } catch {
     // 保存できなくても遊べる
   }
@@ -105,7 +155,7 @@ export type RallyBest = { time: number; splits: number[] }
 
 export function loadBest(): RallyBest | null {
   try {
-    const v = JSON.parse(localStorage.getItem(bestKey()) ?? 'null')
+    const v = JSON.parse(saveData.get(bestKey()) ?? 'null')
     return v && v.time > 0 ? v : null
   } catch {
     return null
@@ -114,7 +164,7 @@ export function loadBest(): RallyBest | null {
 
 export function saveBest(b: RallyBest) {
   try {
-    localStorage.setItem(bestKey(), JSON.stringify(b))
+    saveData.set(bestKey(), JSON.stringify(b))
   } catch {
     // 保存できなくても遊べる
   }
@@ -122,7 +172,7 @@ export function saveBest(b: RallyBest) {
 
 function loadColor() {
   try {
-    const v = Number(localStorage.getItem(COLOR_KEY))
+    const v = Number(saveData.get(COLOR_KEY))
     return v >= 0 && v < RALLY_COLORS.length ? v : 0
   } catch {
     return 0
@@ -154,6 +204,8 @@ export const useRally = create<RallyState>(() => ({
   chase: null,
   bots: [],
   picked: loadPicked(),
+  level: loadLevel(),
+  auto: loadAuto(),
 }))
 
 export const setRallyPhase = (phase: RallyPhase) => useRally.setState({ phase, since: rallyNow() })
@@ -161,7 +213,7 @@ export const setRallyPhase = (phase: RallyPhase) => useRally.setState({ phase, s
 export function setRallyColor(color: number) {
   useRally.setState({ color })
   try {
-    localStorage.setItem(COLOR_KEY, String(color))
+    saveData.set(COLOR_KEY, String(color))
   } catch {
     // 保存できなくても遊べる
   }
@@ -170,6 +222,8 @@ export function setRallyColor(color: number) {
 /** レースを始める。ローバーがまだ出ていなければ降ろして展開してから、スタートの列へ */
 export function startRally() {
   useRally.setState({ gate: 0, time: 0, place: 1, toGate: null, split: null, result: null, lost: false, chase: null })
+  // レースは無人ローバーで走る（与圧ローバーに乗っていたら、乗りかえる）
+  if (roverActive() && useRover.getState().vehicle !== 'orv7') recallRover()
   if (!roverActive()) launchRover(true)
   setRallyPhase('deploy')
 }

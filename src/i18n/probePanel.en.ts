@@ -15,5 +15,6 @@ export const probePanelEn: Translation<typeof probePanelJa> = {
   pause: 'Pause',
   play: 'Play',
   otherProbes: 'Other probes',
+  realPathNote: 'The path is the real one, from NASA JPL Horizons. Tap an event to jump to that day.',
   pathsNote: 'The paths are rough shapes made by joining the bodies each probe passed with arcs around the Sun. The dates and the bodies visited are real.',
 }

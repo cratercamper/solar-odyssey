@@ -1,0 +1,131 @@
+/* 章6：月を真上から見た図（LoiCard.tsx） */
+.lc-card {
+  position: absolute;
+  left: 16px;
+  bottom: 22px;
+  width: 340px;
+  padding: 10px 12px 9px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.74), rgba(6, 10, 16, 0.62));
+  border: 1px solid rgba(140, 190, 255, 0.22);
+  color: #e8f0ff;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  animation: lc-in 0.5s ease-out;
+}
+@keyframes lc-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.lc-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #ffd98a;
+  margin-bottom: 4px;
+}
+.lc-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.lc-hidden {
+  fill: rgba(0, 0, 0, 0.45);
+}
+.lc-moon {
+  fill: #8e8a82;
+  stroke: #cfc9bc;
+  stroke-width: 1;
+}
+.lc-path {
+  fill: none;
+  stroke: #ffb070;
+  stroke-width: 1.6;
+  stroke-dasharray: 4 3;
+}
+.lc-path.closed {
+  stroke: #7ee0a0;
+  stroke-dasharray: none;
+}
+.lc-vel {
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+.lc-ship {
+  fill: #fff;
+}
+.lc-ship.burn {
+  fill: #ffcf6a;
+  filter: drop-shadow(0 0 4px #ffb040);
+}
+.lc-earth {
+  stroke: #8fd0ff;
+  stroke-width: 1.4;
+}
+.lc-earth-head {
+  fill: #8fd0ff;
+}
+.lc-label {
+  font-size: 10px;
+  fill: #dbe6f7;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 2.5px;
+}
+.lc-label.mid {
+  text-anchor: middle;
+}
+.lc-label.end {
+  text-anchor: end;
+}
+.lc-label.dim {
+  fill: #8ea2bf;
+}
+.lc-state {
+  font-weight: 700;
+  color: #ffb070;
+}
+.lc-state.ok {
+  color: #7ee0a0;
+}
+.lc-clocks {
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  font-variant-numeric: tabular-nums;
+}
+.lc-clocks-head {
+  font-size: 10.5px;
+  color: #ffd98a;
+}
+.lc-clocks .dim {
+  color: #9fb2cc;
+}
+.lc-note {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: #9fb2cc;
+}
+@media (max-width: 700px) {
+  .lc-card {
+    left: 8px;
+    bottom: 8px;
+    width: min(250px, calc(100vw - 150px));
+    padding: 7px 9px 6px;
+    font-size: 11px;
+  }
+}
+/* 背の低い画面では、まん中下の「減速の窓」と重ならないよう細く */
+@media (max-height: 640px) and (min-width: 701px) and (max-width: 1299px) {
+  .lc-card {
+    width: min(340px, calc(50vw - 240px));
+  }
+}

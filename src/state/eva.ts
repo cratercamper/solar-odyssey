@@ -1,3 +1,4 @@
+import { useGLTF } from '@react-three/drei'
 import { create } from 'zustand'
 import { useStore } from './store'
 import { raceActive } from './race'
@@ -150,6 +151,8 @@ function pickSite(want?: EvaSiteId | 'repair') {
 /** 船外活動を始める（ボタン一つで、母船のまわりへ）。'repair' なら修理の仕事の場所へ */
 export function startEva(want?: EvaSiteId | 'repair') {
   pickSite(typeof want === 'string' ? want : undefined)
+  // 船外活動ロボットの模型は、起動のときには読まない（起動を軽く）。ここで読み始める
+  useGLTF.preload(`${import.meta.env.BASE_URL}models/eva-tsumugi.glb`)
   if (document.pointerLockElement) document.exitPointerLock()
   useEva.setState({ view: 'chase', swapping: false, working: false, face: 'none', taut: false, range: { d: 0, warn: false, edge: false }, hud: { speed: 0, dist: 0, alt: 0, gas: 100, battery: 100, x: 0, z: 0, hdg: 0 } })
   resetEvaInput()

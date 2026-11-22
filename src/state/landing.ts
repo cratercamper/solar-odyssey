@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useGLTF } from '@react-three/drei'
 import { blockedByCampaign } from './campaign'
 import { useStore } from './store'
 import { raceActive } from './race'
@@ -79,6 +80,8 @@ export function startLanding(bodyId = landableBody()) {
   useLanding.setState({ bodyId, site: null, view: 'eye', ready: false })
   recallRover()
   setPhase('fadeIn')
+  // 着陸船とローバーの模型は、起動のときには読まない（起動を軽く）。暗転のあいだに読み始める
+  for (const file of ['ship-lander.glb', 'rover-orv7.glb']) useGLTF.preload(`${import.meta.env.BASE_URL}models/${file}`)
   // 本物の地形は暗転しているあいだに読んでおく（読み終わるまで地表の場面を出さない）
   const dem = DEM_BODIES.has(bodyId) ? loadDem(bodyId).catch(() => null) : Promise.resolve(null)
   // 火星の地面の素材（Blender で焼いたタイル）も、暗転のあいだに
@@ -136,6 +139,16 @@ export function skipDescent() {
     useLanding.setState({ ready: true })
     setPhase('surface')
   }
+}
+
+/** 着陸船で飛び立たずに、暗転して宇宙へもどる（アポロ17号の追体験の章7を終えるとき。着陸船はミッションの模型） */
+export function leaveSurface() {
+  if (useLanding.getState().phase !== 'surface') return
+  recallRover()
+  setPhase('fadeOut')
+  window.setTimeout(() => {
+    if (useLanding.getState().phase === 'fadeOut') useLanding.setState({ phase: 'idle', bodyId: null, site: null })
+  }, FADE * 1000)
 }
 
 export function startTakeoff() {

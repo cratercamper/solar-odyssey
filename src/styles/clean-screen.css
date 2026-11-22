@@ -1,0 +1,53 @@
+/* Shift+F12 か右上のボタンで文字やボタンを消した画面（src/ui/CleanScreen.tsx）：three.js の canvas とそれを包む要素、
+   地表と船外活動の画面の枠（.surface-view）、読み込み中の画面（#boot）、暗転の幕、ビームの暗さと光、右上のボタンのほかは見えなくする。
+   visibility で消すので配置は変わらず、クリックは下の場面に届く。
+   SF モードの紫の枠（body.sf::after）は body についているので残る（SF の画面を本物の太陽系とまちがえないための枠） */
+html.clean-screen
+  body
+  *:not(
+    canvas[data-engine^='three.js'],
+    :has(canvas[data-engine^='three.js']),
+    .surface-view,
+    #boot,
+    #boot *,
+    .surface-curtain,
+    .beam-dim,
+    .beam-flash,
+    .clean-screen-button,
+    .clean-screen-button *
+  ) {
+  visibility: hidden !important;
+}
+
+/* 消す・戻すの右上のボタン：どの画面でも同じ場所。ふつうの大きさの窓では、航法コンピュータ（top: 16px）の上のすきまに入る
+   （小さな窓では航法コンピュータが上に寄るので、その上のふちに少し重なる）。
+   ふだんも消したあとも 10% の濃さで、マウスを重ねるとはっきり見える。
+   天体の名札（drei の Html）や望遠鏡の画面より手前、初めての言語の画面（.lang-picker）より奥 */
+.clean-screen-button {
+  position: fixed;
+  top: 0;
+  right: 16px;
+  z-index: 16777350;
+  padding: 0 8px;
+  border: 1px solid rgba(200, 220, 255, 0.4);
+  border-top: none;
+  border-radius: 0 0 7px 7px;
+  background: rgba(10, 14, 22, 0.65);
+  color: #eef;
+  font-size: 10px;
+  line-height: 14px;
+  white-space: nowrap;
+  opacity: 0.1;
+  cursor: pointer;
+}
+.clean-screen-button:hover,
+.clean-screen-button:focus-visible {
+  opacity: 1;
+}
+.clean-screen-button kbd {
+  font-size: 9px;
+}
+/* 指で操作する端末では出さない（指の画面での右上の置き場所は、まだ確かめていない） */
+body.touch .clean-screen-button {
+  display: none;
+}

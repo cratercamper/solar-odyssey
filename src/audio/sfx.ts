@@ -217,6 +217,24 @@ export function playBlast() {
   src.start(now)
 }
 
+/** 無線のザッという音（交信が途切れる・戻るとき）。fade：音が消えていく長さ（秒） */
+export function playStatic(fade = 0.9) {
+  const c = audio()
+  if (!c) return
+  const now = c.currentTime
+  const src = c.createBufferSource()
+  src.buffer = noiseBuffer(c, fade + 0.1)
+  const band = c.createBiquadFilter()
+  band.type = 'bandpass'
+  band.frequency.value = 2200
+  band.Q.value = 0.8
+  const gain = c.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.22, now + 0.03)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + fade)
+  src.connect(band).connect(gain).connect(out(c))
+  src.start(now)
+}
 
 /** 短い電子音（カウントダウンや輪の通過） */
 export function playBeep(freq: number, seconds = 0.18) {

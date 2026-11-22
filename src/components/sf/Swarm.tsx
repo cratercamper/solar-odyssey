@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { useSite } from './useSite'
 import { bodies } from '../../state/registry'
 import { ship } from '../../state/flight'
@@ -10,6 +9,7 @@ import { useStore } from '../../state/store'
 import { SF_SPACE_TEXT, SWARM_ID, sfEntry } from '../../data/sf'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
+import { roomEnvironment } from '../telescope/parts'
 
 // 銀色の群れ（オリジナルの架空の生命体）。何百もの小さな銀のかけらが、ムクドリの大群のように
 // 流れながら、球・輪・波・らせんへと形を変えていく。自機が近づくと、自機の形をまねてみせる。
@@ -75,9 +75,7 @@ export function Swarm() {
   const moved = useSite(group, { id: SWARM_ID, radius: SIZE * 1.6, notice: { distance: MIMIC, text: SF_SPACE_TEXT.swarmFound } })
 
   const mesh = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const geometry = new THREE.OctahedronGeometry(1, 0)
     geometry.scale(0.022, 0.022, 0.06)
     const material = new THREE.MeshStandardMaterial({ color: '#dfe6ef', metalness: 1, roughness: 0.14, envMap: env, envMapIntensity: 1.3 })
@@ -89,7 +87,6 @@ export function Swarm() {
   useEffect(
     () => () => {
       mesh.geometry.dispose()
-      ;(mesh.material as THREE.MeshStandardMaterial).envMap?.dispose()
       ;(mesh.material as THREE.Material).dispose()
     },
     [mesh],

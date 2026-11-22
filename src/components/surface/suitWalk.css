@@ -1,0 +1,142 @@
+/* 宇宙服で歩く：一言・端の知らせ・スマホのスティックとボタン */
+
+.sw-intro,
+.sw-edge {
+  position: absolute;
+  left: 50%;
+  top: 54px;
+  transform: translateX(-50%);
+  max-width: min(92vw, 560px);
+  padding: 10px 18px;
+  border-radius: 14px;
+  background: rgba(10, 14, 22, 0.72);
+  color: #f4f7ff;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+  animation: sw-in 0.4s ease-out both;
+}
+
+.sw-edge {
+  top: 110px;
+  color: #ffd9a8;
+  font-size: 15px;
+}
+
+@keyframes sw-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+
+.sw-steps {
+  margin-left: 12px;
+  color: #ffd27a;
+}
+
+.sw-actions .on {
+  border-color: #ffc46b;
+  color: #ffd9a8;
+}
+
+.sw-pad {
+  display: none;
+}
+
+body.touch .sw-pad {
+  display: block;
+}
+
+.sw-stick {
+  position: absolute;
+  left: 18px;
+  bottom: calc(env(safe-area-inset-bottom) + 18px);
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.45);
+  border: 1px solid rgba(200, 220, 255, 0.4);
+  touch-action: none;
+  display: grid;
+  place-items: center;
+  /* 地表の画面（.surface-ui）は、ボタン以外は触れても下の 3D に通す。スティックは受け取る */
+  pointer-events: auto;
+}
+
+.sw-knob {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(232, 240, 255, 0.8);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.sw-pad-right {
+  position: absolute;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 22px);
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.sw-pad-right button {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.55);
+  border: 1px solid rgba(200, 220, 255, 0.4);
+  color: #e8f0ff;
+  font-size: 14px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sw-pad-right .sw-jump {
+  width: 78px;
+  height: 78px;
+  background: rgba(242, 166, 90, 0.8);
+  color: #1a1206;
+  font-weight: 700;
+}
+
+.sw-pad-right .sw-run.on {
+  border-color: #ffc46b;
+  color: #ffd9a8;
+}
+
+/* スマホ：キーの説明は短く。ボタン（メニュー・戻る）は左上に縦に */
+body.touch .sw-actions {
+  left: 10px;
+  right: auto;
+  top: calc(env(safe-area-inset-top) + 10px);
+  bottom: auto;
+  transform: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+body.touch .sw-actions button {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+body.touch .surface-ui.walk-menu .sw-actions {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom) + 160px);
+}
+
+body.touch .surface-hint.sw-hint {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom) + 172px);
+}
+
+body.touch .sw-intro {
+  top: calc(env(safe-area-inset-top) + 64px);
+  font-size: 15px;
+}

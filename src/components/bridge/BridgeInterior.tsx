@@ -41,12 +41,24 @@ export function BridgeInterior() {
     const cam = main as THREE.PerspectiveCamera
     // 拡大画面：窓の位置から目標（なければ正面）へ望遠のカメラを向けて、宇宙をもう一度描いておく
     if (useBridge.getState().viewscreen) zoom.render(gl, space, cam, dt)
-    if (!postFx) gl.render(space, cam)
     camera.fov = cam.fov
     camera.aspect = cam.aspect
     camera.updateProjectionMatrix()
     camera.position.copy(bridgeEye.pos)
     camera.quaternion.copy(bridgeEye.quaternion)
+    camera.updateMatrixWorld()
+    if (!postFx) {
+      // 宇宙は窓と天窓から見える四角だけ描く（壁の裏は部屋で上書きされるので、描くだけむだ）。
+      // 窓が画面の外なら宇宙は描かない
+      const rect = openingRect(camera, gl)
+      if (rect === 'all') gl.render(space, cam)
+      else if (rect) {
+        gl.setScissor(rect.x, rect.y, rect.w, rect.h)
+        gl.setScissorTest(true)
+        gl.render(space, cam)
+        gl.setScissorTest(false)
+      } else gl.clear()
+    }
     const autoClear = gl.autoClear
     gl.autoClear = false
     gl.clearDepth()
@@ -62,6 +74,56 @@ export function BridgeInterior() {
     </Suspense>,
     scene,
   )
+}
+
+/** 窓（正面の帯）と天窓のふちの点（部屋の座標、m） */
+const OPENING_POINTS = (() => {
+  const pts: THREE.Vector3[] = []
+  for (let i = 0; i <= 8; i++) {
+    const th = -Math.PI / 2 - ROOM.windowHalf + (2 * ROOM.windowHalf * i) / 8
+    for (const y of [ROOM.windowBottom, ROOM.windowTop]) pts.push(new THREE.Vector3(ROOM.rx * Math.cos(th), y, ROOM.rz * Math.sin(th)))
+  }
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2
+    pts.push(new THREE.Vector3(Math.cos(a) * ROOM.skylight, ROOM.height, Math.sin(a) * ROOM.skylight))
+  }
+  return pts
+})()
+const op = new THREE.Vector3()
+const opSize = new THREE.Vector2()
+const opRect = { x: 0, y: 0, w: 0, h: 0 }
+
+/**
+ * 窓と天窓が見える、画面の四角（描画の画素で、左下が原点）。
+ * 窓のふちが目の後ろに回るとき（窓のそばに立って横を見るなど）は 'all'（全部描く）、窓が画面に入っていなければ null
+ */
+export function openingRect(camera: THREE.PerspectiveCamera, gl: THREE.WebGLRenderer): typeof opRect | 'all' | null {
+  const size = gl.getDrawingBufferSize(opSize)
+  let x0 = Infinity
+  let y0 = Infinity
+  let x1 = -Infinity
+  let y1 = -Infinity
+  for (const p of OPENING_POINTS) {
+    op.copy(p).applyMatrix4(camera.matrixWorldInverse)
+    if (op.z > -0.05) return 'all'
+    op.applyMatrix4(camera.projectionMatrix)
+    x0 = Math.min(x0, op.x)
+    x1 = Math.max(x1, op.x)
+    y0 = Math.min(y0, op.y)
+    y1 = Math.max(y1, op.y)
+  }
+  // 窓のふちのあいだの曲がり（弧）と、拡大のずれのぶん、少し広く
+  const pad = 0.04
+  x0 = Math.max(-1, x0 - pad)
+  y0 = Math.max(-1, y0 - pad)
+  x1 = Math.min(1, x1 + pad)
+  y1 = Math.min(1, y1 + pad)
+  if (x0 >= x1 || y0 >= y1) return null
+  opRect.x = Math.floor(((x0 + 1) / 2) * size.x)
+  opRect.y = Math.floor(((y0 + 1) / 2) * size.y)
+  opRect.w = Math.ceil(((x1 - x0) / 2) * size.x)
+  opRect.h = Math.ceil(((y1 - y0) / 2) * size.y)
+  return opRect
 }
 
 const projected = new THREE.Vector3()
@@ -93,12 +155,21 @@ class ZoomView {
   private fwd = new THREE.Vector3()
 
   constructor() {
-    // スマホでは絵を小さめにして軽くする
-    const w = isTouchDevice() ? 1024 : 1800
+    // スマホでは絵を小さめにして軽くする（窓の幅は画面の半分ほどなので、これで足りる）
+    const w = isTouchDevice() ? 768 : 1280
     this.target = new THREE.WebGLRenderTarget(w, Math.round(w / SCREEN_ASPECT), { colorSpace: THREE.SRGBColorSpace, samples: isTouchDevice() ? 0 : 4 })
   }
 
-  render(gl: THREE.WebGLRenderer, space: THREE.Scene, eye: THREE.PerspectiveCamera, dt: number) {
+  /** 1 コマおきに描く（センサーの映像なので 30 コマで十分）。とばしたコマの時間はためておく */
+  private skip = false
+  private acc = 0
+
+  render(gl: THREE.WebGLRenderer, space: THREE.Scene, eye: THREE.PerspectiveCamera, frameDt: number) {
+    this.acc += frameDt
+    this.skip = !this.skip
+    if (this.skip) return
+    const dt = this.acc
+    this.acc = 0
     const st = useStore.getState()
     const target = st.targetId ? bodies.get(st.targetId) : undefined
     const cam = this.camera

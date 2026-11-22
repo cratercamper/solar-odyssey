@@ -2,7 +2,6 @@ import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { useLayout } from '../../state/useLayout'
 import { useStore } from '../../state/store'
 import { sim } from '../../state/registry'
@@ -11,6 +10,7 @@ import { ARK_ID, SF_TEXT, UNITS_PER_METER, arkName } from '../../data/sf'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // 世代宇宙船（オリジナルのデザイン）。何世代もかけて、となりの恒星（ケンタウルス座アルファ星）をめざす。
 // 前（+Z）に氷と岩の盾、長い背骨の途中に逆向きに回る2つの居住リング、燃料タンクの房、
@@ -47,9 +47,7 @@ export function GenerationShip() {
   })
   const { gl } = useThree()
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const metal = new THREE.MeshStandardMaterial({ color: '#b9bdc4', metalness: 0.55, roughness: 0.45, envMap: env, envMapIntensity: 0.5 })
     return {
       metal,

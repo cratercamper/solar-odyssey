@@ -1,0 +1,115 @@
+/* いまどこ：地球から月までの線と数字 */
+.jb {
+  position: absolute;
+  top: 12px;
+  left: 290px;
+  width: min(430px, calc(100vw - 290px - 650px));
+  padding: 7px 12px 6px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.62), rgba(6, 10, 16, 0.5));
+  border: 1px solid rgba(140, 190, 255, 0.2);
+  font-size: 11px;
+  color: #b9c8da;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.jb b {
+  color: #fff;
+  font-weight: 600;
+}
+.jb-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.jb-end {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.jb-end.earth {
+  color: #8fc4ff;
+}
+.jb-end.moon {
+  color: #d8d8d0;
+}
+.jb-track {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+}
+.jb-done {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #5aa9ff, #ffd98a);
+  border-radius: 2px;
+}
+.jb-ship {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 2px rgba(255, 220, 150, 0.8);
+}
+.jb-nums {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+.jb-time {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.jb-date {
+  color: #8fa0b4;
+}
+/* 中くらいの画面：右上のボタンの下に小さく */
+@media (max-width: 1279px) {
+  .jb {
+    left: auto;
+    right: 14px;
+    top: 62px;
+    width: 168px;
+    padding: 5px 9px 4px;
+    font-size: 10px;
+  }
+  .jb-nums {
+    flex-direction: column;
+    gap: 1px;
+    margin-top: 4px;
+  }
+  .jb-nums > span {
+    display: flex;
+    justify-content: space-between;
+  }
+  .jb-time {
+    margin-top: 1px;
+  }
+  .jb-date {
+    display: none;
+  }
+}
+/* スマホ：ボタンは下にあるので、右上のすみへ */
+@media (max-width: 700px) {
+  .jb {
+    right: 8px;
+    top: 8px;
+  }
+}
+@media (max-width: 700px) {
+  /* 帯に同じ数字があるので、大きな「地球から」は出さない */
+  .jb-big {
+    display: none;
+  }
+}

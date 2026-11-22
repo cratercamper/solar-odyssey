@@ -1,6 +1,11 @@
 // 探査機の旅。日付と、通った天体は本物。あいだの道すじは、天体どうしを太陽のまわりの弧でつないだ、おおよその形。
 // 最後の天体のあとは、その日から本物の向きと速さでまっすぐ進む（太陽の重力をふり切ったあとは、ほぼまっすぐ飛ぶ）。
 
+import type { Trajectory } from './trajectory'
+import { VOYAGER2_TRAJECTORY } from './trajectories/voyager2'
+import { HAYABUSA2_TRAJECTORY } from './trajectories/hayabusa2'
+import { CASSINI_TRAJECTORY } from './trajectories/cassini'
+
 export type ProbeStop = {
   date: string
   /** そこにいた天体（惑星の id か 'ryugu'） */
@@ -22,6 +27,10 @@ export type Probe = {
   /** 今の、太陽からの本物の距離を求める基準（天文単位） */
   distance?: { date: string; au: number; auPerYear: number }
   events: { date: string }[]
+  /** 本物の道すじ（JPL Horizons の値）。あるものは、弧のかわりにこれをたどり、右に探査機の模型を出す */
+  trajectory?: Trajectory
+  /** 模型（public/models の glb）。ボイジャーは NASA 3D Resources のもの、はやぶさ2は写真をもとにしたオリジナルの再現 */
+  model?: string
 }
 
 /** Probe の文言（日本語は src/i18n/probes.ja.ts、英語は probes.en.ts） */
@@ -50,6 +59,8 @@ export const PROBES: Probe[] = [
     escape: { lon: 290.7, lat: -35.8, auPerYear: 3.25 },
     pace: { slow: 0.55, fast: 3.5 },
     distance: { date: '2018-11-05', au: 119, auPerYear: 3.25 },
+    trajectory: VOYAGER2_TRAJECTORY,
+    model: 'probe-voyager.glb',
     events: [
       { date: '1977-08-20' },
       { date: '1979-07-09' },
@@ -89,7 +100,8 @@ export const PROBES: Probe[] = [
       { date: '2000-12-30', body: 'jupiter' },
       { date: '2004-07-01', body: 'saturn', until: '2017-09-15' },
     ],
-    end: '2017-09-15',
+    // 土星の大気へ飛びこんだ時刻（Horizons の値の最後）
+    end: '2017-09-15T10:30:50Z',
     pace: { slow: 0.37, fast: 2 },
     events: [
       { date: '1997-10-15' },
@@ -98,9 +110,14 @@ export const PROBES: Probe[] = [
       { date: '1999-08-18' },
       { date: '2000-12-30' },
       { date: '2004-07-01' },
+      { date: '2004-12-25' },
       { date: '2005-01-14' },
       { date: '2005-07-14' },
+      { date: '2017-04-26' },
+      { date: '2017-09-15' },
     ],
+    trajectory: CASSINI_TRAJECTORY,
+    model: 'probe-cassini.glb',
   },
   {
     id: 'newhorizons',
@@ -129,8 +146,10 @@ export const PROBES: Probe[] = [
       { date: '2018-06-27', body: RYUGU_ID, until: '2019-11-13' },
       { date: '2020-12-06', body: 'earth' },
     ],
-    end: '2020-12-06',
+    end: '2020-12-09',
     pace: { slow: 0.25, fast: 0.25 },
+    trajectory: HAYABUSA2_TRAJECTORY,
+    model: 'probe-hayabusa2.glb',
     events: [
       { date: '2014-12-03' },
       { date: '2015-12-03' },
@@ -145,4 +164,5 @@ export const PROBES: Probe[] = [
 /** リュウグウの軌道要素（2011年12月12日の値） */
 export const RYUGU = { epoch: '2011-12-12', a: 1.1896, e: 0.1902, i: 5.8837, node: 251.62, peri: 211.43, M: 3.9832, periodDays: 474 }
 
-export const dateMs = (iso: string) => Date.parse(`${iso}T12:00:00Z`)
+/** 日付（その日の正午、世界時）。時刻まであるもの（2017-09-15T10:30:50Z）は、その時刻 */
+export const dateMs = (iso: string) => Date.parse(iso.includes('T') ? iso : `${iso}T12:00:00Z`)

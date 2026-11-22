@@ -1,0 +1,69 @@
+/* 宇宙から見る日食・月食 */
+.eclipse-panel {
+  border-left-color: #ffb347;
+}
+
+.eclipse-panel .eclipse-kind {
+  color: #ffd27a;
+}
+
+.eclipse-dot.solar {
+  background: radial-gradient(circle at 35% 50%, #1a1426 45%, #ffd27a 50%);
+}
+
+.eclipse-dot.lunar {
+  background: #c8553a;
+}
+
+.eclipse-stage {
+  min-height: 3.1em;
+}
+
+.eclipse-seek {
+  width: 100%;
+}
+
+.eclipse-panel > * {
+  flex-shrink: 0;
+}
+
+.eclipse-panel .probe-list {
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+/* スマホの縦向き：地球と月が見えるよう、パネルは画面の下の半分弱に。見ているあいだは、全体の説明を省く */
+@media (max-width: 720px) {
+  .probe-panel.eclipse-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 76px;
+    width: auto;
+    max-height: 44vh;
+    gap: 4px;
+    padding: 8px 12px;
+  }
+
+  .eclipse-panel .eclipse-about.watching {
+    display: none;
+  }
+
+  .eclipse-panel .probe-date {
+    font-size: 15px;
+  }
+}
+
+/* スマホの横向き：パネルは左に縦長。入りきらないぶんはスクロールし、全体の説明は省く */
+@media (max-height: 500px) {
+  .probe-panel.eclipse-panel {
+    overflow-y: auto;
+  }
+
+  .eclipse-panel .eclipse-about {
+    display: none;
+  }
+
+  .eclipse-panel .probe-date {
+    font-size: 14px;
+  }
+}

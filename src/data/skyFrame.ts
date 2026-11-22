@@ -17,3 +17,5 @@ const galacticToSphere = new THREE.Matrix3().set(1, 0, 0, 0, 0, -1, 0, 1, 0)
 /** アプリの向き → 全天画像を貼った球（回す前）の向き。シェーダーで画像を直接引くときに使う */
 export const SKY_FROM_APP = galacticToSphere.clone().multiply(toGalactic).multiply(toEquatorial).multiply(appToEcliptic)
 export const MILKY_WAY_ROTATION = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().setFromMatrix3(SKY_FROM_APP.clone().transpose()))
+/** アプリの向き → 赤道座標（J2000）の向き。打ち上げの場面で、星を発射場の空に並べるのに使う */
+export const EQUATORIAL_FROM_APP = toEquatorial.clone().multiply(appToEcliptic)

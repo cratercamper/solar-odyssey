@@ -1,0 +1,200 @@
+/* 岩石コレクション（ローバーで採集した岩の図鑑） */
+.rock-book {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* 地表の画面（z-index 50）の上にも出す */
+  z-index: 60;
+  width: min(720px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: 16px 18px;
+  border-top: 6px solid #c98a4e;
+  border-radius: 14px;
+  background: rgba(18, 16, 22, 0.98);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e8e6f0;
+}
+
+.rock-book header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rock-book h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #ffc98a;
+}
+
+.rock-total {
+  flex: 1;
+  font-size: 13px;
+  color: #ffd9a8;
+  letter-spacing: 1px;
+}
+
+.rock-book .close {
+  border: none;
+  background: none;
+  font-size: 18px;
+}
+
+.rock-book p {
+  margin: 6px 0;
+}
+
+.rock-group h3 {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cfd8ff;
+}
+
+.rock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+}
+
+.rock-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.rock-card.got {
+  border-color: rgba(255, 196, 107, 0.35);
+}
+
+.rock-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.rock-pic {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 58%, #3a3f4c 0%, #1d2028 62%, #121419 100%);
+}
+
+.rock-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* まだ見つけていない岩：形だけのシルエット */
+.rock-card:not(.got) .rock-pic img,
+.rock-detail:not(.got) .rock-pic img {
+  filter: brightness(0);
+  opacity: 0.55;
+}
+
+.rock-q {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rock-name {
+  font-size: 12px;
+  line-height: 1.35;
+  min-height: 2.7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rock-card:not(.got) .rock-name {
+  color: #8a8798;
+  letter-spacing: 2px;
+}
+
+.rock-back {
+  margin: 8px 0;
+}
+
+.rock-detail-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.rock-pic.big {
+  flex: 0 0 min(280px, 42%);
+}
+
+.rock-pic.big .rock-q {
+  font-size: 60px;
+}
+
+.rock-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rock-text h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: #ffd9a8;
+}
+
+@media (max-width: 560px) {
+  .rock-detail-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rock-pic.big {
+    flex: none;
+    width: min(260px, 100%);
+    align-self: center;
+  }
+  .rock-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .rock-name {
+    font-size: 11px;
+  }
+}
+
+/* ローバー画面の「試料」表示は、押すと図鑑が開く */
+button.sample-count {
+  pointer-events: auto;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.sample-book {
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 196, 107, 0.35);
+  color: #ffe7c4;
+}
+
+.rover-map .m-poi-rocks {
+  fill: #ffb347;
+}

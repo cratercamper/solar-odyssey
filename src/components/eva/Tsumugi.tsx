@@ -911,4 +911,3 @@ export const focus = new THREE.Vector3()
 /** ハッチの開き具合（0 = 閉、1 = 開）。Tsumugi が書き、外壁の場面が読む */
 export const hatchState = { get: () => 0 }
 
-useGLTF.preload(url('eva-tsumugi.glb'))

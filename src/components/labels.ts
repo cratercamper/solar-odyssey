@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useLayout } from '../state/useLayout'
 import { BLACK_HOLE_POS, DESERT_POS, ICE_POS } from '../data/sf'
+import { colonyWalk } from '../state/walk'
+import { useStore } from '../state/store'
 
 /**
  * 天体の名札（drei の Html）の重なり順。既定ではとても大きな z-index になり、
@@ -31,12 +33,18 @@ export function nearFarPlace(eye: THREE.Vector3) {
   return FAR_PLACES.some((p) => eye.distanceToSquared(p) < FAR_NEAR * FAR_NEAR)
 }
 
-/** 名札は奥まで透けて見えるので、太陽の向こうに隠れたら消す（太陽を大きくしたときに目立つ） */
+/**
+ * コロニーの円筒の中を飛んでいるか。中からは外の天体や船は壁で見えないのに、名札（HTML）は壁を透けて
+ * 見えてしまうので、中にいるあいだは名札を出さない（全体マップでは出す）
+ */
+export const insideColony = () => colonyWalk.inside !== null && useStore.getState().mode === 'flight'
+
+/** 名札は奥まで透けて見えるので、太陽の向こうに隠れたら消す（太陽を大きくしたときに目立つ）。コロニーの中でも消す */
 export function useHideBehindSun(span: RefObject<HTMLElement | null>, anchor: RefObject<THREE.Object3D | null>) {
   const sun = useLayout().sun
   useFrame(({ camera }) => {
     if (!span.current || !anchor.current) return
-    const hide = nearFarPlace(camera.position) || behindSun(camera.position, anchor.current.getWorldPosition(at), sun)
+    const hide = insideColony() || nearFarPlace(camera.position) || behindSun(camera.position, anchor.current.getWorldPosition(at), sun)
     span.current.style.display = hide ? 'none' : ''
   })
 }

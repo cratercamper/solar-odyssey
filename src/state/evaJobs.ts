@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import * as THREE from 'three'
 import type { EvaTool } from './eva'
@@ -328,11 +329,11 @@ export const useEvaJobs = create<JobsState>(() => ({ ui: emptyUi, carrying: null
 
 // ---- 作業記録（種類ごとに直した回数。ブラウザに残す） ------------------------------------------
 
-const LOG_KEY = 'solar-voyager:eva-log'
+const LOG_KEY = 'eva-log'
 
 function readLog(): Partial<Record<JobType, number>> {
   try {
-    return JSON.parse(localStorage.getItem(LOG_KEY) ?? '{}')
+    return JSON.parse(saveData.get(LOG_KEY) ?? '{}')
   } catch {
     return {}
   }
@@ -344,7 +345,7 @@ export const useEvaLog = create<{ log: Partial<Record<JobType, number>>; add: (t
     const log = { ...get().log, [t]: (get().log[t] ?? 0) + 1 }
     set({ log })
     try {
-      localStorage.setItem(LOG_KEY, JSON.stringify(log))
+      saveData.set(LOG_KEY, JSON.stringify(log))
     } catch {
       // 保存できなくても遊べる
     }

@@ -24,6 +24,8 @@ export const hudEn: Translation<typeof hudJa> = {
   mapMouseHint: 'Drag to rotate · scroll to zoom · click a name to target it',
   galleryMouseHint: 'Viewing mode: drag to rotate · scroll to zoom · V to go back',
   clickToFly: 'Click to start flying (Esc to release)',
+  showControls: 'Show controls',
+  hideControls: 'Hide controls',
   moveKeysHint: 'W/S forward/back · A/D left/right · Space/Shift up/down · Q/E roll · mouse to steer',
   actionKeysHint: 'F or click to fire the beam (hold to charge) · I for the ship’s log · C to switch camera',
   thrustKeysHint: 'Mouse wheel to change thrust (speed) · O to observe the target up close',

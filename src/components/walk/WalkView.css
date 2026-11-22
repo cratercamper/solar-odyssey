@@ -1,0 +1,20 @@
+/* 人の模型を読み込むあいだの小さな表示（画面のまん中より少し下。スマホのボタンにかからない所） */
+.walk-loading {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(10, 14, 22, 0.55);
+  color: #dfe7ef;
+  font-size: 12px;
+  pointer-events: none;
+  animation: walk-loading-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes walk-loading-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

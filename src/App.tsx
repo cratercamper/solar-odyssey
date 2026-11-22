@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { PLANETS } from './data/bodies'
@@ -11,7 +12,6 @@ import { StructureLook } from './components/StructureLook'
 import { SimClock } from './components/SimClock'
 import { Ship } from './components/Ship'
 import { SpaceDust } from './components/SpaceDust'
-import { SizeCompare } from './components/SizeCompare'
 import { CloudWake } from './components/CloudWake'
 import { AsteroidBelt } from './components/AsteroidBelt'
 import { WarpStreaks } from './components/WarpStreaks'
@@ -19,7 +19,6 @@ import { TargetMarker } from './components/TargetMarker'
 import { Phaser } from './components/Phaser'
 import { ChargeBeam } from './components/ChargeBeam'
 import { BeamGauge } from './ui/BeamGauge'
-import { SFWorld } from './components/sf/SFWorld'
 import { SFBoundary } from './components/sf/SFBoundary'
 import { useSF } from './data/sf'
 import { SFBadge } from './ui/SFBadge'
@@ -35,7 +34,7 @@ import { NavPanel } from './ui/NavPanel'
 import { LogPanel } from './ui/LogPanel'
 import { TelescopeView } from './ui/TelescopeView'
 import { useLayout } from './state/useLayout'
-import { dprFor, useLevel } from './state/quality'
+import { useDpr } from './state/quality'
 import { QualityGovernor } from './components/QualityGovernor'
 import { GalleryCamera } from './components/ship/GalleryCamera'
 import { GalleryPanel } from './ui/GalleryPanel'
@@ -58,18 +57,32 @@ import { ObservePanel } from './ui/ObservePanel'
 import { useEclipse } from './state/eclipse'
 import { StampBook } from './ui/StampBook'
 import { RockBook } from './ui/RockBook'
+import { BodyCards } from './ui/BodyCards'
+import { SizeCompare } from './ui/SizeCompare'
+import { TodayPanel } from './ui/TodayPanel'
+import { ScannerHud } from './ui/ScannerHud'
+import { DiscoveryNote } from './ui/DiscoveryNote'
+import { ScanTracker } from './components/ScanTracker'
+import { DiscoveryFx } from './components/DiscoveryFx'
+import { ArrivalRow } from './components/ArrivalRow'
+import { ArrivalMoment } from './ui/ArrivalMoment'
 import { HistoricBook } from './ui/HistoricBook'
 import { BridgeInterior } from './components/bridge/BridgeInterior'
-import { SurfaceView } from './components/surface/SurfaceView'
 import { SurfaceMemory } from './components/SurfaceMemory'
 import { useLanding } from './state/landing'
 import { BridgePanel } from './ui/BridgePanel'
 import { BridgeLabels } from './ui/BridgeLabels'
 import { PhotoNote } from './ui/PhotoNote'
-import { EvaView } from './components/eva/EvaView'
+import { FirstThree } from './ui/FirstThree'
 import { evaScene, useEva } from './state/eva'
-import { WalkView } from './components/walk/WalkView'
+import { LazyScenes } from './ui/LazyScenes'
 import { useWalk, walkScene } from './state/walk'
+import { missionScene, useMoonMission } from './state/moonMission'
+
+import { PioneerUi, PioneerWorld } from './components/sf/pioneer/Pioneer'
+
+// SF の世界の船や構造物は、SF モードにしたときに読み込む（現実の世界だけで遊ぶときは読まない）
+const SFWorld = lazy(() => import('./components/sf/SFWorld').then((m) => ({ default: m.SFWorld })))
 
 /** 全体マップの視点。距離のスライダーで太陽系を広げたら、そのぶん遠くまで引ける */
 function MapControls() {
@@ -86,21 +99,23 @@ export default function App() {
   const eclipseView = useEclipse((e) => e.open && e.eclipseId !== null)
   useGlobalKeys()
   useThrottleWheel()
-  const level = useLevel()
+  const dpr = useDpr()
   // 地表にいるあいだは、宇宙の場面を止める（暗転している最中は動かしておく）
   const onLand = useLanding((l) => l.phase === 'descent' || l.phase === 'surface' || l.phase === 'ascent')
   // 船外活動のあいだも同じく止める
   const onEva = useEva((e) => evaScene(e.phase))
   // コロニーの中を歩くあいだも
   const onWalk = useWalk((w) => walkScene(w.phase))
-  const onSurface = onLand || onEva || onWalk
+  // 月ミッション（アポロ17号の追体験）のあいだも
+  const onMoonMission = useMoonMission((m) => missionScene(m.phase))
+  const onSurface = onLand || onEva || onWalk || onMoonMission
 
   // 地表にいるあいだは、止めた宇宙の場面の最後の1枚を見えなくしておく。
   // 地表の Canvas が一瞬描けなかったフレーム（画面サイズの変化・画質の切り替え・GPU の都合）に、
   // 下に残った宇宙の絵が透けて「チラッ」と映ってしまうため。
   return (
     <>
-      <Canvas frameloop={onSurface ? 'never' : 'always'} style={{ visibility: onSurface ? 'hidden' : 'visible' }} shadows="percentage" dpr={dprFor(level)} camera={{ position: [0, 120, 220], fov: 50, near: 0.01, far: 200_000 }} gl={{ logarithmicDepthBuffer: true }}>
+      <Canvas frameloop={onSurface ? 'never' : 'always'} style={{ visibility: onSurface ? 'hidden' : 'visible' }} shadows="percentage" dpr={dpr} camera={{ position: [0, 120, 220], fov: 50, near: 0.01, far: 200_000 }} gl={{ logarithmicDepthBuffer: true }}>
         <SimClock />
         <QualityGovernor />
         <SpaceLighting />
@@ -115,7 +130,10 @@ export default function App() {
         {sf && (
           <SFBoundary>
             <StructureLook>
-              <SFWorld />
+              <Suspense fallback={null}>
+                <SFWorld />
+              </Suspense>
+              <PioneerWorld />
             </StructureLook>
           </SFBoundary>
         )}
@@ -128,15 +146,18 @@ export default function App() {
         {mode === 'gallery' && <GalleryCamera />}
         <CloudWake />
         <SpaceDust />
-        <SizeCompare />
         <WarpStreaks />
         <TargetMarker />
+        <ScanTracker />
+        <DiscoveryFx />
+        <ArrivalRow />
         <ProbeScene />
         <EclipseScene />
         <Phaser />
         <ChargeBeam />
         {mode === 'map' && !eclipseView && <MapControls />}
-        <PostFx />
+        {/* 地表・船外活動・コロニーの中にいるあいだは、宇宙の後処理（画面いっぱいの絵を何枚も持つ）を外してメモリを空ける */}
+        {!onSurface && <PostFx />}
         {bridge && <BridgeInterior />}
         <BootFrames />
         <SurfaceMemory />
@@ -149,6 +170,8 @@ export default function App() {
       <NavPanel />
       <GalleryPanel />
       <BeamGauge />
+      {/* 到着の瞬間は、スマホの操作ボタンの下に描く（ボタンを隠さない） */}
+      <ArrivalMoment />
       <TouchControls />
       <TouchWarp />
       <ObservePanel />
@@ -167,11 +190,16 @@ export default function App() {
       <SFBadge />
       <ScaleBadge />
       <PhotoNote />
+      <FirstThree />
       <ContextLost />
-      <SurfaceView />
-      <EvaView />
-      <WalkView />
+      <LazyScenes />
       <RockBook />
+      <BodyCards />
+      <SizeCompare />
+      <TodayPanel />
+      <PioneerUi />
+      <ScannerHud />
+      <DiscoveryNote />
       <HistoricBook />
       <LabelDeclutter />
       <CleanScreenButton />

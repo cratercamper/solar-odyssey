@@ -1,0 +1,187 @@
+/* サターンV 図鑑（観察パート）とタイムラプス。prefix: se- */
+
+.se-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.se-head {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  max-width: min(440px, calc(100vw - 44px));
+  animation: se-in 1s ease-out;
+}
+.se-title {
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+.se-where {
+  font-size: 13px;
+  color: #c9d6e4;
+  margin-top: 4px;
+}
+.se-hint {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #ffe2b0;
+  animation: se-blink 2.4s ease-in-out infinite;
+}
+.se-card {
+  position: absolute;
+  left: 22px;
+  bottom: 92px;
+  width: min(420px, calc(100vw - 44px));
+  padding: 14px 18px 12px;
+  border-radius: 14px;
+  background: rgba(8, 14, 24, 0.74);
+  border: 1px solid rgba(160, 200, 255, 0.28);
+  line-height: 1.6;
+  animation: se-in 0.5s ease-out;
+  pointer-events: auto;
+}
+.se-card-name {
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.se-card-fact {
+  font-size: 13px;
+  color: #ffc98a;
+  margin-bottom: 6px;
+}
+.se-card-line {
+  font-size: 14px;
+  color: #dde6f0;
+}
+.se-card-back {
+  margin-top: 10px;
+  font-size: 13px !important;
+  padding: 5px 12px !important;
+}
+.se-size-note {
+  position: absolute;
+  left: 22px;
+  bottom: 92px;
+  max-width: min(420px, calc(100vw - 44px));
+  font-size: 15px;
+  color: #ffe2b0;
+  animation: se-in 0.5s ease-out;
+}
+.se-buttons {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 16px;
+}
+.se-buttons button {
+  pointer-events: auto;
+}
+.se-go {
+  border-color: #ffb060 !important;
+  color: #ffe2c0 !important;
+  box-shadow: 0 0 18px rgba(255, 150, 60, 0.35);
+}
+
+/* ロケットにそった印（3D の中の名札） */
+.se-dot {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-7px, -50%);
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  color: #f2f6fa;
+  font: 13px/1.2 system-ui, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+.se-dot i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 28%, rgba(255, 196, 110, 0.9) 34%, rgba(255, 150, 60, 0) 72%);
+  box-shadow: 0 0 10px rgba(255, 180, 90, 0.8);
+  animation: se-glow 1.8s ease-in-out infinite;
+}
+.se-dot span {
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: rgba(6, 10, 18, 0.55);
+}
+.se-dot.on span {
+  background: rgba(255, 160, 70, 0.4);
+}
+
+/* タイムラプス */
+.se-lapse {
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  text-align: left;
+  pointer-events: none;
+}
+.se-clock {
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
+.se-zone {
+  font-size: 12px;
+  color: #a9bbd0;
+}
+.se-days {
+  margin-top: 10px;
+  font-size: 17px;
+  color: #ffd9a8;
+  animation: se-in 0.25s ease-out;
+}
+.se-lapse-note {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #dde6f0;
+}
+.se-skip {
+  position: fixed;
+  right: 20px;
+  bottom: 22px;
+  pointer-events: auto;
+}
+
+@keyframes se-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes se-blink {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes se-glow {
+  50% {
+    transform: scale(1.25);
+  }
+}
+@media (max-width: 640px) {
+  .se-title {
+    font-size: 19px;
+  }
+  .se-card {
+    bottom: 132px;
+  }
+  .se-size-note {
+    bottom: 132px;
+  }
+  .se-clock {
+    font-size: 24px;
+  }
+}

@@ -1,8 +1,18 @@
-import type { sizeCompareJa } from './sizeCompare.ja'
 import type { Translation } from './translation'
+import type { sizeCompareJa } from './sizeCompare.ja'
 
-// The texts of components/SizeCompare.tsx (English). Same keys as sizeCompare.ja.ts
+// Size comparison (ui/SizeCompare.tsx), English
+
+const n = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 1 })
 
 export const sizeCompareEn: Translation<typeof sizeCompareJa> = {
-  trueSizeRatio: (id: string) => `${id} (true size ratio)`,
+  title: 'Size comparison',
+  navButton: 'Compare sizes',
+  open3d: '🌍 Compare in 3D',
+  across: (big: string, small: string, count: number) => `About ${n(count)} × ${small} fit across ${big}`,
+  picks: 'Bodies to compare',
+  tapHint: 'Tap one to zoom in',
+  back: 'Show all',
+  close: 'Close',
+  diameter: (km: number) => (km >= 100 ? `${Math.round(km).toLocaleString('en-US')} km` : `${n(km)} km`),
 }

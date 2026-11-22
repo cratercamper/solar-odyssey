@@ -1,0 +1,42 @@
+/* 航法パネルの入口（ui/nav/） */
+
+/* スマホ・狭い画面でたたんだときは、目標とワープだけ */
+@media (max-width: 720px), (max-height: 500px) {
+  .nav-panel.collapsed .nav-entry {
+    display: none;
+  }
+}
+
+/* 行く・見る・遊ぶ・学ぶ のタブ */
+.nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  flex: none;
+}
+.nav-tab {
+  padding: 7px 2px;
+  border: 1px solid rgba(155, 140, 217, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfc8e8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nav-tab:hover {
+  background: rgba(155, 140, 217, 0.18);
+}
+.nav-tab.on {
+  border-color: #f2a65a;
+  background: rgba(242, 166, 90, 0.18);
+  color: #ffd7a0;
+}
+.nav-tab-note {
+  flex: none;
+  line-height: 1.45;
+}
+body.touch .nav-tab {
+  padding: 10px 2px;
+  font-size: 15px;
+}

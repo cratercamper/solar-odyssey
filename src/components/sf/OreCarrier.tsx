@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { useStore } from '../../state/store'
 import { useLayout } from '../../state/useLayout'
 import { UNITS_PER_METER } from '../../data/sf'
@@ -10,6 +9,7 @@ import { CARRIER_ID, SPACE_TEXT, carrierName } from '../../data/sfSpace'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // くさび形の鉱石輸送船（オリジナルのデザイン）。長さ約1.6km。前は -Z。
 // 平たいくさびの背に1本の稜線、両側の斜面にコンテナを並べ、船の下の開いた荷室に鉱石を抱える。
@@ -129,9 +129,7 @@ export function OreCarrier() {
   })
   const { gl } = useThree()
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const tex = hullTextures()
     const rand = rng(9)
 

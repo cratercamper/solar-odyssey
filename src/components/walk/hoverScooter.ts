@@ -174,11 +174,11 @@ export class HoverScooter {
     own(this.ringGeo)
   }
 
-  /** ハンドルのにぎり（世界の位置）。左・右 */
+  /** ハンドルのにぎり（世界の位置）。乗る人の左・右（前が -z なので、左手は -x の側） */
   grips(left: THREE.Vector3, right: THREE.Vector3) {
     this.body.updateMatrixWorld(true)
-    left.set(GRIP.x, GRIP.y, GRIP.z).applyMatrix4(this.body.matrixWorld)
-    right.set(-GRIP.x, GRIP.y, GRIP.z).applyMatrix4(this.body.matrixWorld)
+    left.set(-GRIP.x, GRIP.y, GRIP.z).applyMatrix4(this.body.matrixWorld)
+    right.set(GRIP.x, GRIP.y, GRIP.z).applyMatrix4(this.body.matrixWorld)
   }
 
   /**
@@ -199,10 +199,11 @@ export class HoverScooter {
       g.position.y = o.water ? 0.1 : 0.02
       g.scale.setScalar(0.55 + h * 1.6)
     }
-    this.glowMat.opacity = 0.55 * glow * THREE.MathUtils.clamp(1.2 - h * 1.2, 0.25, 1)
+    // 空を飛んでいるとき（高さ 3 m より上）は、地面の光を消す
+    this.glowMat.opacity = h > 3 ? 0 : 0.55 * glow * THREE.MathUtils.clamp(1.2 - h * 1.2, 0.25, 1)
     // 輪：速く走るほど間をつめて出す
     this.nextRing -= dt
-    if (o.speed > 2 && o.lift > 0.5 && this.nextRing <= 0) {
+    if (o.speed > 2 && o.lift > 0.5 && h < 2.5 && this.nextRing <= 0) {
       this.nextRing = THREE.MathUtils.clamp(1.4 / o.speed, 0.06, 0.25)
       const r = this.rings[this.ringIdx++ % RINGS]
       const bs = o.s + Math.sin(o.yaw) * 0.45

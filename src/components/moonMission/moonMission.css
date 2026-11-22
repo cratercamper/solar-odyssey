@@ -1,0 +1,437 @@
+/* ---- 月ミッション（アポロ17号の追体験） ---- */
+.mm-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.mm-root[data-phase='none'] {
+  display: none;
+}
+/* 映画のカメラ：数字の板・手本の目盛り・豆知識・旅の線をしまう（見出しと本物の交信の字幕は残す） */
+.mm-root[data-film] .mm-panel,
+.mm-root[data-film] .mm-steer,
+.mm-root[data-film] .mm-tilt,
+.mm-root[data-film] .mm-fact,
+.mm-root[data-film] .mm-caption-line,
+.mm-root[data-film] .jb {
+  display: none;
+}
+/* 自動のカメラのあいだ、3 秒さわらなければ右上のボタンもしまう（さわると出る。動画のプレイヤーと同じ） */
+.mm-root .mm-buttons {
+  transition: opacity 0.5s;
+}
+.mm-root[data-film][data-idle] .mm-buttons:not(:has(.cam-panel, .cm-panel)) {
+  opacity: 0;
+  pointer-events: none;
+}
+.mm-root[data-film][data-idle] .mm-buttons:not(:has(.cam-panel, .cm-panel)) * {
+  pointer-events: none;
+}
+/* 3D の絵がまだ出ていない一瞬（章の切り替え・地形の読みこみ）に、うしろのアプリの画面が透けないように */
+.mm-root:not([data-phase='fadeIn']) {
+  background: #000;
+}
+.mm-root > div:first-child {
+  pointer-events: auto;
+  touch-action: none;
+}
+.mm-fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  transition-property: opacity;
+  pointer-events: none;
+}
+.mm-hud {
+  position: absolute;
+  inset: 0;
+  color: #e6ecf4;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.mm-hud button {
+  pointer-events: auto;
+  font: inherit;
+  color: #e6ecf4;
+  background: rgba(10, 16, 26, 0.72);
+  border: 1px solid rgba(160, 200, 255, 0.35);
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.mm-hud button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.mm-hud button.on {
+  border-color: #7fe0a0;
+  color: #b8ffd0;
+}
+
+/* 発射台：カウントダウンと点火 */
+.mm-pad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.mm-intro {
+  position: fixed;
+  top: 12vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.7;
+  animation: mm-in 1.2s ease-out;
+  /* 発射塔の明かりの上でも読めるように */
+  padding: 14px 0 18px;
+  background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0) 100%);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.mm-intro-title {
+  font-size: 26px;
+  letter-spacing: 4px;
+  margin-bottom: 6px;
+}
+.mm-intro-crew {
+  color: #9fb4cc;
+  font-size: 13px;
+}
+.mm-count {
+  position: fixed;
+  left: 22px;
+  bottom: 4vh;
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: 3px;
+}
+.mm-go {
+  font-size: 18px !important;
+  padding: 14px 30px !important;
+  border-radius: 40px !important;
+}
+.mm-go.ready:not(:disabled) {
+  border-color: #ffb060 !important;
+  box-shadow: 0 0 22px rgba(255, 150, 60, 0.5);
+  animation: mm-pulse 1s ease-in-out infinite;
+}
+.mm-go-done {
+  font-size: 22px;
+  color: #ffd0a0;
+  letter-spacing: 4px;
+}
+.mm-hint {
+  font-size: 13px;
+  color: #a9bbd0;
+}
+
+.mm-chapter {
+  margin-top: 14px;
+  pointer-events: auto;
+  font-size: 13px !important;
+}
+.mm-continue {
+  border-color: #ffb060 !important;
+}
+
+/* 計器 */
+.mm-panel {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  min-width: 210px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.7), rgba(6, 10, 16, 0.55));
+  border: 1px solid rgba(140, 190, 255, 0.25);
+}
+.mm-met {
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.mm-stage {
+  font-size: 11px;
+  color: #9fb4cc;
+  margin: 2px 0 8px;
+}
+.mm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin: 3px 0;
+}
+.mm-row span {
+  width: 42px;
+  color: #9fb4cc;
+}
+.mm-row b {
+  font-weight: 500;
+  min-width: 80px;
+}
+.mm-gbar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.mm-gbar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6fd0ff, #ffc060, #ff6040);
+}
+.mm-orbit,
+.mm-warp {
+  font-size: 12px;
+  color: #a9d8ff;
+  margin-top: 6px;
+}
+
+/* 機首の目盛り */
+.mm-steer {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  text-align: center;
+}
+.mm-dial {
+  width: 220px;
+  height: 120px;
+}
+.mm-dial-arc {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 10;
+}
+.mm-dial-guide {
+  fill: rgba(90, 255, 150, 0.55);
+}
+.mm-dial-nose {
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.mm-dial-nose.good {
+  stroke: #fff;
+}
+.mm-dial-nose.ok {
+  stroke: #ffd060;
+}
+.mm-dial-nose.bad {
+  stroke: #ff6050;
+}
+.mm-dial-hub {
+  fill: #fff;
+}
+.mm-tilt {
+  position: absolute;
+  bottom: 22px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50% !important;
+  font-size: 26px;
+}
+.mm-tilt.left {
+  left: 18px;
+}
+.mm-tilt.right {
+  right: 18px;
+}
+
+/* 月への窓 */
+.mm-tli {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  width: min(440px, 90vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.mm-tli-label {
+  font-size: 13px;
+  color: #a9d8ff;
+}
+.mm-tli-bar {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.mm-tli-window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(90, 255, 150, 0.2), rgba(90, 255, 150, 0.7), rgba(90, 255, 150, 0.2));
+}
+.mm-tli-mark {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 24px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+}
+
+/* 字幕 */
+.mm-caption {
+  position: absolute;
+  top: 13vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  animation: mm-in 0.6s ease-out;
+}
+.mm-caption-head {
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+.mm-caption-line {
+  font-size: 14px;
+  color: #c4d2e2;
+  margin-top: 4px;
+}
+/* 豆知識（見出しのあとに同じ場所へ） */
+.mm-fact-label {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #ffd98a;
+  border: 1px solid rgba(255, 217, 138, 0.45);
+  border-radius: 999px;
+  padding: 1px 10px;
+  background: rgba(8, 14, 22, 0.5);
+}
+.mm-fact-line {
+  font-size: 15px;
+  color: #eef3f9;
+  margin: 6px auto 0;
+  max-width: min(560px, calc(100vw - 32px));
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* 右上のボタン */
+.mm-buttons {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60vw;
+}
+
+/* 終わりのカード */
+.mm-end {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, 90vw);
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+  text-align: center;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.86), rgba(6, 10, 16, 0.8));
+  border: 1px solid rgba(140, 190, 255, 0.3);
+  pointer-events: auto;
+  animation: mm-in 0.8s ease-out;
+}
+.mm-end-title {
+  font-size: 18px;
+}
+.mm-end-stars {
+  font-size: 36px;
+  color: #ffd060;
+  margin: 8px 0 2px;
+  letter-spacing: 6px;
+}
+.mm-end-note,
+.mm-end-next,
+.mm-end-best {
+  font-size: 12px;
+  color: #a9bbd0;
+  margin-top: 6px;
+}
+.mm-end-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+@keyframes mm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes mm-pulse {
+  50% {
+    box-shadow: 0 0 34px rgba(255, 150, 60, 0.85);
+  }
+}
+
+@media (max-width: 700px) {
+  .mm-panel {
+    left: 8px;
+    top: 8px;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+  .mm-met {
+    font-size: 17px;
+  }
+  .mm-row {
+    font-size: 12px;
+  }
+  .mm-count {
+    font-size: 48px;
+  }
+  .mm-caption {
+    top: auto;
+    bottom: 160px;
+  }
+  .mm-caption-head {
+    font-size: 19px;
+  }
+  .mm-buttons {
+    top: auto;
+    bottom: 120px;
+    right: 8px;
+    flex-direction: column;
+  }
+  .mm-hud button {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+  .mm-dial {
+    width: 170px;
+    height: 94px;
+  }
+  .mm-steer {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: 12px;
+  }
+  .mm-count {
+    left: 0;
+    right: 0;
+    top: 70px;
+    bottom: auto;
+    text-align: center;
+  }
+}

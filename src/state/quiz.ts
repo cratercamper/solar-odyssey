@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import type { Quiz } from '../data/facts'
 import { FACTS } from '../i18n/facts.ja'
@@ -17,7 +18,7 @@ export const QUIZ_LENGTH = 10
 /** 10問のうち、天体のデータから作る問題の数 */
 const MADE_COUNT = 4
 
-const BEST_KEY = 'solar-voyager:quiz-best'
+const BEST_KEY = 'quiz-best'
 
 type QuizText = Omit<Quiz, 'answer'>
 
@@ -52,7 +53,7 @@ type QuizState = {
 
 function loadBest(): number | null {
   try {
-    const v = localStorage.getItem(BEST_KEY)
+    const v = saveData.get(BEST_KEY)
     return v === null ? null : Number(v)
   } catch {
     return null
@@ -222,7 +223,7 @@ export function nextQuestion() {
   const newBest = q.best === null || q.score > q.best
   const best = newBest ? q.score : q.best
   try {
-    localStorage.setItem(BEST_KEY, String(best))
+    saveData.set(BEST_KEY, String(best))
   } catch {
     // 保存できなくても遊べる
   }

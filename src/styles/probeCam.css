@@ -1,0 +1,220 @@
+/* 探査機の旅：右側（スマホの縦では上）の、探査機の模型の画面（ui/ProbeCamPane.tsx） */
+
+.probe-cam {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  /* 上の真ん中の「現実／SF」「スケール」（z-index 5）より上に */
+  z-index: 6;
+  width: calc(50vw - 18px);
+  overflow: hidden;
+  border: 1px solid rgba(181, 156, 255, 0.35);
+  border-radius: 14px;
+  background: #000;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  touch-action: none;
+}
+
+.probe-cam canvas {
+  display: block;
+}
+
+.pc-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.pc-top {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.pc-speed {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 10px;
+  max-width: 320px;
+}
+
+.pc-speed-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pc-speed-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffc861;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(255, 200, 97, 0.5);
+}
+
+.pc-speed-bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.pc-speed-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffc861, #ff8a4c);
+  transition: width 0.2s linear;
+}
+
+.pc-near {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #cbbcff;
+}
+
+.pc-near.muted {
+  font-weight: normal;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pc-near.close {
+  color: #fff;
+}
+
+/* 字幕：映画の字幕のように、下の真ん中に2行まで */
+.pc-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  width: min(92%, 620px);
+  margin: 0;
+  padding: 8px 14px;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+  animation: pc-fade 0.5s ease-out;
+}
+
+@keyframes pc-fade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+}
+
+.pc-credit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 模型の画面があるとき、説明は左下に小さく（左上の残りに太陽系を見せる） */
+.probe-panel.with-cam {
+  top: auto;
+  bottom: 16px;
+  width: min(380px, calc(50vw - 48px));
+  max-height: 40vh;
+}
+
+/* スマホの縦：上に模型、下に説明、そのあいだに太陽系 */
+@media (max-width: 720px) and (orientation: portrait) {
+  .probe-cam {
+    /* 上の操作ボタンの列は隠さない */
+    top: var(--below-bar, 0px);
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: 40vh;
+    border-width: 0 0 1px;
+    border-radius: 0;
+  }
+
+  .pc-top {
+    top: 8px;
+    left: 10px;
+  }
+
+  .pc-speed-value {
+    font-size: 18px;
+  }
+
+  .pc-near {
+    font-size: 12px;
+  }
+
+  .pc-caption {
+    bottom: 22px;
+    width: calc(100% - 16px);
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .pc-credit {
+    bottom: 4px;
+    font-size: 9px;
+  }
+
+  .probe-panel.with-cam {
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--pad-b, 8px) + 4px);
+    box-sizing: border-box;
+    width: auto;
+    max-height: 30vh;
+    gap: 4px;
+    padding: 8px 12px;
+  }
+
+  .probe-panel.with-cam > p.muted.small {
+    display: none;
+  }
+
+  .probe-panel.with-cam .probe-events li:not(.now) {
+    display: none;
+  }
+}
+
+/* 横向きのスマホ：右半分 */
+@media (max-height: 500px) {
+  .probe-cam {
+    top: 6px;
+    right: 6px;
+    bottom: 6px;
+    width: calc(50vw - 8px);
+  }
+
+  .pc-caption {
+    bottom: 20px;
+    font-size: 12px;
+  }
+
+  .pc-speed-value {
+    font-size: 16px;
+  }
+}

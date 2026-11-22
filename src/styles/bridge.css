@@ -1,0 +1,190 @@
+/* ブリッジ視点：見どころのボタン（上の真ん中） */
+.bridge-panel {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: min(560px, calc(100% - 700px));
+  min-width: 300px;
+}
+
+/* ブリッジから出るボタン：いちばん目立つ色で、パネルの先頭に */
+.bridge-exit {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #f2b45a;
+  color: #1b1325;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bridge-exit kbd {
+  margin-left: 6px;
+}
+
+.bridge-views {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bridge-views button,
+.bridge-look {
+  padding: 6px 12px;
+  border: 1px solid rgba(95, 211, 230, 0.45);
+  border-radius: 4px;
+  background: rgba(8, 14, 20, 0.75);
+  color: #bfeaf2;
+  font-size: 13px;
+}
+
+.bridge-views button.active,
+.bridge-look.active {
+  border-color: #f2b45a;
+  background: rgba(242, 180, 90, 0.25);
+  color: #ffe2b5;
+}
+
+.bridge-info {
+  position: relative;
+  max-width: 460px;
+  padding: 8px 30px 8px 12px;
+  border: 1px solid rgba(95, 211, 230, 0.45);
+  border-radius: 4px;
+  background: rgba(8, 14, 20, 0.88);
+  color: #d8eef2;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bridge-info b {
+  color: #f2b45a;
+}
+
+.bridge-info p {
+  margin: 4px 0 0;
+}
+
+.bridge-info button {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: none;
+  background: none;
+  color: #bfeaf2;
+  font-size: 16px;
+}
+
+.bridge-labels .gallery-anchor button {
+  --accent: #f2b45a;
+  border-color: rgba(95, 211, 230, 0.6);
+  background: rgba(8, 14, 20, 0.75);
+  color: #d8f3f8;
+}
+
+.bridge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bridge-look kbd {
+  margin-left: 6px;
+}
+
+.bridge-hint {
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(8, 14, 20, 0.6);
+  color: #cfd8e0;
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+@media (max-width: 1600px) {
+  .bridge-panel {
+    top: auto;
+    bottom: 76px;
+    max-width: calc(100% - 32px);
+  }
+}
+
+/* スマホ（縦）：左上の表示の下に、たてに並べる */
+@media (max-width: 720px) {
+  .bridge-panel {
+    top: 200px;
+    bottom: auto;
+    left: 8px;
+    transform: none;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 150px;
+  }
+
+  .bridge-views {
+    flex-direction: column;
+  }
+
+  .bridge-views button,
+  .bridge-look {
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .bridge-hint {
+    display: none;
+  }
+
+  .bridge-info {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 210px;
+    max-width: none;
+  }
+}
+
+/* スマホ（横）：左側に、たてに並べる */
+@media (max-height: 500px) {
+  .bridge-panel {
+    top: 64px;
+    bottom: auto;
+    left: 8px;
+    transform: none;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 140px;
+  }
+
+  .bridge-views {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bridge-views button,
+  .bridge-look {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .bridge-hint {
+    display: none;
+  }
+
+  .bridge-info {
+    position: fixed;
+    left: 160px;
+    right: 240px;
+    top: 8px;
+    max-width: none;
+    font-size: 12px;
+  }
+}

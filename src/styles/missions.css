@@ -1,0 +1,223 @@
+/* ストーリーモード：一覧・説明・結果（見た目は連続クイズの箱を使い、色だけ変える） */
+.mission-panel {
+  border-top-color: #8fd8ff;
+}
+
+.mission-panel h2 {
+  color: #8fd8ff;
+}
+
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(143, 216, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(143, 216, 255, 0.06);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mission-list .mission-ship {
+  flex: none;
+  width: 46px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.mission-list button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.mission-no {
+  flex: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #8fd8ff;
+}
+
+.mission-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.stars {
+  flex: none;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.stars .on {
+  color: #ffd27a;
+}
+
+.stars.big {
+  font-size: 34px;
+  letter-spacing: 6px;
+}
+
+.mission-comm {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: none;
+  border-left: 4px solid #8fd8ff;
+  border-radius: 0 10px 10px 0;
+  background: rgba(143, 216, 255, 0.08);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+  white-space: pre-line;
+}
+
+.mission-comm b {
+  margin-right: 6px;
+  color: #8fd8ff;
+}
+
+.mission-comm p {
+  margin: 4px 0 0;
+}
+
+.mission-goals,
+.mission-summary {
+  margin: 4px 0 8px;
+  padding-left: 22px;
+}
+
+.mission-result {
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* 任務中の表示（下の真ん中、ボタンの上） */
+.mission-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  /* 右の航法コンピュータとかぶらない幅 */
+  width: min(460px, max(300px, calc(100vw - 620px)));
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(20, 16, 30, 0.88);
+  font-size: 13px;
+}
+
+.mission-head,
+.mission-goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mission-goal {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #ffd27a;
+}
+
+.mission-goal span:first-child {
+  flex: 1;
+}
+
+.mission-status {
+  flex: none;
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+  color: #8fd8ff;
+}
+
+.mission-meter {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.mission-meter div {
+  height: 100%;
+  background: #8fd8ff;
+  transition: width 0.2s;
+}
+
+.mission-bar .mission-comm {
+  margin: 6px 0 0;
+  max-height: 9.6em;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+/* たたむと1行だけ */
+.mission-bar .mission-comm.folded {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* タブレット：右手のボタンとかぶらないよう、ボタンの上に */
+@media (hover: none) and (pointer: coarse) {
+  .mission-bar {
+    bottom: 280px;
+  }
+}
+
+@media (max-width: 720px) {
+  /* 縦向きのスマホ：レースの表示と同じく、操作ボタンの上に */
+  .mission-bar {
+    top: auto;
+    left: 12px;
+    bottom: 262px;
+    width: auto;
+    right: 12px;
+    transform: none;
+    font-size: 12px;
+  }
+
+  .mission-bar .mission-comm {
+    max-height: 7.5em;
+    font-size: 12px;
+  }
+}
+
+@media (max-height: 500px) {
+  /* 横向きのスマホ：スティックとボタンのあいだ、下の真ん中に小さく */
+  .mission-bar {
+    top: auto;
+    bottom: 64px;
+    left: 50%;
+    right: auto;
+    width: min(360px, 44vw);
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .mission-bar .mission-comm {
+    max-height: 4.8em;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .stars.big {
+    font-size: 26px;
+  }
+}

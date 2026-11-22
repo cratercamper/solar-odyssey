@@ -1,0 +1,362 @@
+/* 発見スキャン（ui/ScannerHud.tsx、ui/DiscoveryNote.tsx） */
+.scanner-hud {
+  position: fixed;
+  left: 50%;
+  top: 104px;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(420px, calc(100vw - 24px));
+  padding: 8px 12px;
+  border: 1px solid rgba(120, 220, 200, 0.5);
+  border-radius: 12px;
+  background: rgba(8, 20, 24, 0.88);
+  color: #dff6f2;
+  font-size: 13px;
+  text-align: center;
+}
+.scanner-status {
+  margin: 0 0 6px;
+}
+.scan-bar {
+  height: 6px;
+  margin: 0 0 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.scan-bar span {
+  display: block;
+  height: 100%;
+  background: #6fe0c8;
+}
+.scan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.scan-actions button {
+  min-height: 36px;
+}
+.scan-stop {
+  min-width: 36px;
+}
+.scan-marker {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  display: none;
+  pointer-events: none;
+}
+.scan-marker span {
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 2px solid #6fe0c8;
+  border-radius: 50%;
+  color: #6fe0c8;
+  font-size: 14px;
+  line-height: 30px;
+  text-align: center;
+  animation: scan-pulse 1.2s ease-in-out infinite;
+}
+@keyframes scan-pulse {
+  50% {
+    transform: scale(1.25);
+    opacity: 0.6;
+  }
+}
+.scan-fresh,
+.discovery-note {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 60;
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: 14px 18px 16px;
+  border-top: 6px solid #6fe0c8;
+  border-radius: 14px;
+  background: rgba(10, 18, 22, 0.98);
+  color: #e6f4f2;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.scan-fresh h2,
+.discovery-note h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #9ff0de;
+}
+.scan-fresh p,
+.discovery-note p {
+  margin: 4px 0;
+}
+.scan-fresh .small,
+.discovery-note .small {
+  font-size: 12px;
+}
+.scan-code b {
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.scan-name {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+}
+.scan-name input {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 15px;
+}
+.scan-name.inline {
+  display: flex;
+  margin: 0;
+}
+.scan-name.inline input {
+  flex: 1;
+  min-width: 0;
+}
+.discovery-note header {
+  display: flex;
+  align-items: center;
+}
+.discovery-note header h2 {
+  flex: 1;
+}
+.discovery-note .close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  min-width: 40px;
+  min-height: 40px;
+}
+.discovery-note ul {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+}
+.discovery-note li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 4px solid #5a534c;
+}
+.discovery-note li.kind-1 {
+  border-left-color: #9a8f80;
+}
+.discovery-note li.kind-2 {
+  border-left-color: #b8b4ac;
+}
+.discovery-note .small-button {
+  justify-self: start;
+  min-height: 30px;
+  font-size: 12px;
+}
+button.scan-primary {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 18px;
+  background: #6fe0c8;
+  color: #0b2420;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .scanner-hud {
+    top: 96px;
+  }
+}
+
+/* ---- 発見の瞬間（A2）：フラッシュ、ポラロイドの写真、種類の色、写真帳、岩の札 ---- */
+.scan-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  background: #fff;
+  pointer-events: none;
+  animation: scan-flash 0.7s ease-out both;
+}
+@keyframes scan-flash {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.scan-fresh {
+  animation: fresh-in 0.45s 0.15s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.scan-fresh.again {
+  animation-delay: 0s;
+}
+@keyframes fresh-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.96);
+  }
+}
+.fresh-top {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.fresh-facts {
+  flex: 1;
+  min-width: 0;
+}
+.fresh-polaroid {
+  flex: none;
+  margin: 0;
+  padding: 7px 7px 4px;
+  border-radius: 4px;
+  background: #f4f1ea;
+  color: #2a2a2a;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+  transform: rotate(-4deg);
+  animation: polaroid-in 0.6s 0.25s cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+.fresh-polaroid figcaption {
+  padding-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+@keyframes polaroid-in {
+  from {
+    opacity: 0;
+    transform: rotate(-16deg) scale(0.5);
+  }
+}
+.rock-photo {
+  display: block;
+  width: 132px;
+  height: 132px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #05070c;
+}
+.rock-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: photo-develop 1.4s ease-out both;
+}
+@keyframes photo-develop {
+  from {
+    filter: brightness(2.2) saturate(0);
+  }
+}
+/* 写真がないとき：種類の色の丸 */
+.rock-photo i {
+  display: block;
+  width: 56%;
+  height: 56%;
+  margin: 22%;
+  border-radius: 46% 54% 50% 50%;
+  background: radial-gradient(circle at 35% 35%, #8a8378, #3b3732 70%);
+}
+.rock-photo.kind-1 i {
+  background: radial-gradient(circle at 35% 35%, #c9b79a, #5d5244 70%);
+}
+.rock-photo.kind-2 i {
+  background: radial-gradient(circle at 35% 35%, #e3e1dc, #6f6c66 70%);
+}
+.kind-chip {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: #4a4540;
+  color: #f2eee8;
+  font-size: 13px;
+  font-weight: 600;
+}
+.kind-chip.kind-1 {
+  background: #8a6f4e;
+}
+.kind-chip.kind-2 {
+  background: #7d8590;
+}
+.fresh-size {
+  font-size: 15px;
+  color: #ffe2a6;
+}
+.fresh-notes {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* 写真帳 */
+.discovery-note ul.photo-book {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.discovery-note .photo-book li {
+  align-content: start;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.photo-book .rock-photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  margin-bottom: 4px;
+}
+.photo-book .rock-photo img {
+  animation: none;
+}
+/* 見つけた岩に残る札（components/DiscoveryFx.tsx） */
+.rock-tag {
+  display: block;
+  padding: 2px 9px;
+  border: 1px solid rgba(159, 240, 222, 0.6);
+  border-radius: 999px;
+  background: rgba(8, 20, 24, 0.72);
+  color: #dff6f2;
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateY(-14px);
+}
+.rock-tag[data-kind='1'] {
+  border-color: rgba(212, 180, 140, 0.7);
+}
+.rock-tag[data-kind='2'] {
+  border-color: rgba(220, 225, 232, 0.7);
+}
+@media (max-width: 640px) {
+  .rock-photo {
+    width: 104px;
+    height: 104px;
+  }
+  .fresh-top {
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-flash,
+  .scan-fresh,
+  .fresh-polaroid,
+  .rock-photo img {
+    animation: none;
+  }
+  .scan-flash {
+    display: none;
+  }
+}

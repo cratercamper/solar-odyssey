@@ -1,0 +1,46 @@
+/* カメラの一覧（CamMenu） */
+.cam-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.cam-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.94), rgba(6, 10, 16, 0.92));
+  border: 1px solid rgba(140, 190, 255, 0.3);
+  pointer-events: auto;
+  z-index: 6;
+}
+.mm-hud .cam-panel button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(140, 190, 255, 0.16);
+}
+.mm-hud .cam-panel button.now {
+  border-color: rgba(123, 227, 154, 0.7);
+}
+.cam-panel i {
+  font-style: normal;
+  font-size: 11px;
+  color: #ffd79a;
+}
+@media (max-width: 720px) {
+  /* スマホではボタンが右下に縦に並ぶので、一覧はボタンの左に開く */
+  .cam-panel {
+    top: auto;
+    bottom: 0;
+    right: calc(100% + 6px);
+  }
+}

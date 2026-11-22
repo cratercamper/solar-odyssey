@@ -1,0 +1,172 @@
+/* ---------- コロニーの中を歩く（components/walk/WalkView.tsx） ---------- */
+.walk-view > div:first-child canvas {
+  touch-action: none;
+}
+
+.walk-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #eef3f8;
+  font-size: 14px;
+}
+
+.walk-badge {
+  position: absolute;
+  left: 16px;
+  top: calc(env(safe-area-inset-top) + 14px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(10, 16, 26, 0.55);
+  border: 1px solid rgba(160, 210, 255, 0.3);
+  line-height: 1.5;
+}
+
+.walk-badge b {
+  display: block;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.walk-badge small {
+  color: #a9c6e2;
+  font-size: 12px;
+}
+
+.walk-buttons {
+  position: absolute;
+  right: 16px;
+  top: calc(env(safe-area-inset-top) + 14px);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60vw;
+}
+
+.walk-ui button {
+  pointer-events: auto;
+  padding: 8px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(160, 210, 255, 0.55);
+  background: rgba(12, 20, 32, 0.72);
+  color: #e6f1ff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.walk-ui button.on {
+  background: rgba(95, 190, 255, 0.75);
+  color: #06121e;
+}
+
+.walk-ui kbd {
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.walk-sit {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+}
+
+.walk-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(8, 12, 20, 0.5);
+  font-size: 12px;
+  color: #c9dbee;
+  white-space: nowrap;
+}
+
+.walk-pad {
+  display: none;
+}
+
+.walk-speed {
+  position: absolute;
+  right: 20px;
+  bottom: 58px;
+  padding: 4px 14px;
+  border-radius: 12px;
+  background: rgba(8, 12, 20, 0.55);
+  border: 1px solid rgba(110, 220, 255, 0.45);
+  color: #bdf1ff;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+body.touch .walk-speed {
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
+}
+
+body.touch .walk-pad button.walk-ride {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+body.touch .walk-hint {
+  display: none;
+}
+
+body.touch .walk-pad {
+  display: flex;
+  position: absolute;
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom) + 22px);
+  gap: 10px;
+  align-items: flex-end;
+}
+
+body.touch .walk-pad button {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
+body.touch .walk-sit {
+  bottom: calc(env(safe-area-inset-bottom) + 160px);
+}
+
+body.touch .walk-badge {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+body.touch .walk-buttons button {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.walk-note {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 90px);
+  transform: translateX(-50%);
+  max-width: min(560px, 86vw);
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(10, 16, 26, 0.62);
+  text-align: center;
+  line-height: 1.6;
+}
+
+body.touch .walk-buttons {
+  top: calc(env(safe-area-inset-top) + 84px);
+  right: 10px;
+}
+
+body.touch .walk-ui kbd {
+  display: none;
+}

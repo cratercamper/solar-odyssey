@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { QUALITY, currentLevel, looksIntegrated, lowMemory, registerSwitcher, stepDown, stepUp, useQuality, wantedLevel, type Level } from '../state/quality'
+import { QUALITY, SCALE_STEPS, currentLevel, looksIntegrated, lowMemory, registerSwitcher, stepDown, stepUp, useQuality, wantedLevel, type Level } from '../state/quality'
 import { useStore } from '../state/store'
 import { useProgress } from '@react-three/drei'
 import { warpPrepDone } from '../state/flight'
@@ -18,7 +18,7 @@ const PREPARE_LIMIT = 10
 const SETTLE = 3
 
 /** 後処理（PostFx）を通して描く画質か。通すときは、場面を画面ではなく描画先（テクスチャ）に描くので、材質のシェーダーも別物になる */
-function drawsThroughPostFx(level: Level) {
+export function drawsThroughPostFx(level: Level) {
   const fx = useStore.getState().settings.fx
   return QUALITY[level].bloom && (fx.bloom || fx.ao || fx.film)
 }
@@ -81,7 +81,7 @@ export function QualityGovernor() {
   const gl = useThree((s) => s.gl)
   const scene = useThree((s) => s.scene)
   const camera = useThree((s) => s.camera)
-  const m = useRef({ frames: 0, time: 0, slow: 0, fast: 0, lastDown: -Infinity, settleUntil: 0, tooSlow: new Set<Level>() })
+  const m = useRef({ frames: 0, time: 0, slow: 0, fast: 0, lastDown: -Infinity, settleUntil: 0, tooSlow: new Set<Level>(), tooSlowScale: new Set<number>() })
   const job = useRef({ busy: false, warmed: false, scanAt: 0, scanEvery: UPLOAD_SCAN, soon: false, uploads: [] as THREE.Texture[], prep: 'load' as 'load' | 'compile' | 'upload' | 'done', quietSince: -1 })
   // 後処理を通すときのシェーダーを用意するための、形だけの描画先
   const target = useMemo(() => new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }), [])
@@ -235,6 +235,7 @@ export function QualityGovernor() {
     const level = useQuality.getState().auto
     s.slow = fps < SLOW_FPS ? s.slow + 1 : 0
     s.fast = fps > FAST_FPS ? s.fast + 1 : 0
+    const step = useQuality.getState().scaleStep
     if (s.slow >= 2 && level !== 'low') {
       // 一度遅かった画質には、自動ではもう上げない（行ったり来たりすると、そのたびに画面が止まるので）
       s.tooSlow.add(level)
@@ -242,7 +243,20 @@ export function QualityGovernor() {
       s.slow = 0
       s.fast = 0
       s.lastDown = now
-    } else if (s.fast >= 4 && level !== 'high' && !s.tooSlow.has(stepUp(level)) && now - s.lastDown > 10) {
+    } else if (s.slow >= 2 && currentLevel() === 'low' && step < SCALE_STEPS.length - 1) {
+      // 「軽量」でもまだ遅い：画面をもう一段粗く描く（シェーダーは作り直さないので、すぐ切り替わる）
+      s.tooSlowScale.add(step)
+      useQuality.setState({ scaleStep: step + 1 })
+      s.slow = 0
+      s.fast = 0
+      s.lastDown = now
+      s.settleUntil = performance.now() / 1000 + 1
+    } else if (s.fast >= 4 && step > 0 && !s.tooSlowScale.has(step - 1) && now - s.lastDown > 10) {
+      // 余裕が出たら、まず画面の粗さを戻す
+      useQuality.setState({ scaleStep: step - 1 })
+      s.fast = 0
+      s.settleUntil = performance.now() / 1000 + 1
+    } else if (s.fast >= 4 && step === 0 && level !== 'high' && !s.tooSlow.has(stepUp(level)) && now - s.lastDown > 10) {
       useQuality.getState().setAuto(stepUp(level))
       s.fast = 0
     }

@@ -143,9 +143,11 @@ export function coursePrint(line: [number, number][]) {
   return `${line.length}:${len.toFixed(1)}`
 }
 
+import { saveData } from './save'
+
 const VERSION = 1
 /** 自分のベストのゴーストを残す名前（レース場ごと。キーは TRACKS の名前） */
-export const ghostKey = (track: string) => `solar-voyager:rally-ghost:${track}`
+export const ghostKey = (track: string) => `rally-ghost:${track}`
 
 type Stored = { v: number; course: string; time: number; hz: number; b64: string; at?: number }
 
@@ -184,7 +186,7 @@ export function decodeGhost(text: string, course: string): GhostRun | null {
 
 export function loadGhost(track: string, course: string): GhostRun | null {
   try {
-    const text = localStorage.getItem(ghostKey(track))
+    const text = saveData.get(ghostKey(track))
     return text === null ? null : decodeGhost(text, course)
   } catch (e) {
     console.warn(`rally ghost (${track}): stored run not used (${(e as Error).message})`)
@@ -194,7 +196,7 @@ export function loadGhost(track: string, course: string): GhostRun | null {
 
 export function saveGhost(run: GhostRun, track: string, course: string) {
   try {
-    localStorage.setItem(ghostKey(track), encodeGhost(run, course))
+    saveData.set(ghostKey(track), encodeGhost(run, course))
   } catch {
     // 保存できなくても遊べる
   }

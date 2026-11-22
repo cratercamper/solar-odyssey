@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import type { Near } from './proximity'
 import type { ScopeId } from '../data/telescopes'
@@ -91,7 +92,7 @@ export type ThrustFxLevel = 'many' | 'normal' | 'off'
 
 export type PostFxSettings = { bloom: boolean; ao: boolean; film: boolean }
 
-const SETTINGS_KEY = 'solar-voyager:settings'
+const SETTINGS_KEY = 'settings'
 const DEFAULT_SETTINGS: Settings = { banking: true, distance: 0, size: 0, volume: 0.3, muted: false, music: true, lang: null, world: 'real', ship: 'sv01', quality: 'auto', look: 'illustrated', fx: { bloom: true, ao: true, film: true }, thrust: 'normal', beamFx: { flash: true, shake: true } }
 
 // リンクで世界を決めて開ける（#sf や #real）
@@ -106,7 +107,7 @@ const shipFromUrl = /[?&#]ship=(sv01|heron|sorakaze|hakobune|meguri|amatsu|arcad
 function loadSettings(): Settings {
   let saved: Partial<Settings> = {}
   try {
-    saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}')
+    saved = JSON.parse(saveData.get(SETTINGS_KEY) ?? '{}')
   } catch {
     // 読めなければ初めの設定で
   }
@@ -119,11 +120,11 @@ function loadSettings(): Settings {
   return { ...DEFAULT_SETTINGS, ...saved, ...(worldFromUrl ? { world: worldFromUrl } : {}), ...(shipFromUrl ? { ship: shipFromUrl } : {}), ...(lookFromUrl ? { look: lookFromUrl } : {}) }
 }
 
-const VISITED_KEY = 'solar-voyager:visited'
+const VISITED_KEY = 'visited'
 
 function loadVisited(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(VISITED_KEY) ?? '[]')
+    return JSON.parse(saveData.get(VISITED_KEY) ?? '[]')
   } catch {
     return []
   }
@@ -158,7 +159,7 @@ export const useStore = create<State>((set) => ({
       if (s.visited.includes(id)) return s
       const visited = [...s.visited, id]
       try {
-        localStorage.setItem(VISITED_KEY, JSON.stringify(visited))
+        saveData.set(VISITED_KEY, JSON.stringify(visited))
       } catch {
         // 保存できなくても遊べる
       }
@@ -173,7 +174,7 @@ export const useStore = create<State>((set) => ({
     set((s) => {
       const settings = { ...s.settings, ...patch }
       try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+        saveData.set(SETTINGS_KEY, JSON.stringify(settings))
       } catch {
         // 保存できなくても遊べる
       }

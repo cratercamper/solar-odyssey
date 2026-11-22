@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { colliders, sim } from '../../state/registry'
 import { ship } from '../../state/flight'
 import { useStore } from '../../state/store'
@@ -12,6 +11,7 @@ import { RADIO_MOON_ID, SPACE_TEXT, radioMoonName } from '../../data/sfSpace'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // 電波望遠鏡の人工の月（オリジナルのデザイン）。直径約150kmの球に外板を張り、緯度にそって帯を巻く。
 // 北極には直径約50kmのお皿（くぼみ）があり、縁の3本の塔からケーブルで受信機をつり下げる（アレシボ電波望遠鏡と同じしくみ）。
@@ -157,9 +157,7 @@ export function RadioMoon() {
   const { gl } = useThree()
 
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const rand = rng(5)
     const smallDishes = Array.from({ length: 9 }, () => ({ lat: -60 + rand() * 105, lon: rand() * 360 }))
     const ports = Array.from({ length: 8 }, (_, k) => ({ lat: k % 2 ? 12 : -12, lon: k * 45 + rand() * 10 }))

@@ -17,6 +17,10 @@ export type RallyTrack = {
   gates: number[]
   /** 追いかけっこ：ライバルが先に逃げて、ゴールまでにタッチしてつかまえる（月） */
   chase?: boolean
+  /** メダルのタイム（秒）：[金, 銀, 銅]。この時間以内にゴールすればもらえる（追いかけっこは、つかまえた数で決めるので無し） */
+  medals?: [number, number, number]
+  /** 金メダルのごほうびの岩（rockSamples.ts の REWARD_ROCKS の id） */
+  reward?: string
   /** 氷：タイヤの横の力の倍率（1 がふつう）。コンピューターのカーブの速さと、すべる見た目に使う */
   ice?: number
 }
@@ -37,11 +41,16 @@ export const TRACKS: Record<string, RallyTrack> = {
   coprates: {
     body: 'mars',
     ...COPRATES_RACE,
+    // メダルのタイムは、コンピューターを 5 回ずつ走らせて決めた（2026-11-20）：
+    // 金＝「つよい」の 1 位（84〜88 秒）なみ、銀＝「ふつう」のまん中（95〜100 秒）、銅＝ゆっくりでもゴールまで走れば
+    medals: [88, 100, 120],
+    reward: 'layered-sulfate',
   },
   taurus: {
     body: 'moon',
     ...TAURUS_RACE,
     chase: true,
+    reward: 'troctolite',
   },
   // エウロパ：やさしいコース（曲げない・門は約 200 m ごと、cratercamper さん 2026-11-12）と、上級のジグザグのコース
   conamaraEasy: {
@@ -49,12 +58,15 @@ export const TRACKS: Record<string, RallyTrack> = {
     site: 'conamara',
     level: 'easy',
     ...CONAMARA_EASY_RACE,
+    medals: [108, 125, 150],
     ice: 0.2,
   },
   conamara: {
     body: 'europa',
     level: 'hard',
     ...CONAMARA_RACE,
+    medals: [118, 135, 165],
+    reward: 'europa-salt',
     ice: 0.2,
   },
   // id は src/i18n/rallyTracks.ja.ts と同じ：文言のないコース（文言だけのコースも）は型エラー

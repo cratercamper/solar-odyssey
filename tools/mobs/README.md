@@ -1,4 +1,19 @@
-# Park people (MakeHuman / MPFB 2, CC0)
+# Park people
+
+Since 2026-11-18 the park uses **Microsoft Rocketbox** avatars (MIT, `public/walk/mobs/rocketbox/`). The MakeHuman people below are kept for comparison with `?mobset=makehuman`, and the Quaternius trial with `?mobset=quaternius`.
+
+## Rocketbox (default)
+
+1. Get the avatars from https://github.com/microsoft/Microsoft-Rocketbox (`Assets/Avatars/<Adults|Children>/<Name>/Export/<Name>_facial.fbx` and the `Textures/*.tga` it names; `raw.githubusercontent.com` works when github.com is blocked). Put each in `tools/mobs/.rocketbox_stage/<Name>/` (git-ignored) and shrink the textures to 1024 px: colour and normal maps as `.jpg`, `*_opacity_color` as `.png`.
+2. Run vite on 127.0.0.1:5173, then `node tools/mobs/rocketbox/export.cjs <Name> ...`. It loads each FBX in a browser page (`export.html` / `export.ts`), keeps only the blink morphs (`EyeBlinkLeft/Right`), merges vertices and writes `public/walk/mobs/rocketbox/<Name>.glb`.
+3. `python3 -I tools/mobs/rocketbox/pack_images.py public/walk/mobs/rocketbox/*.glb` re-encodes the images (jpg q82, png 256 colours): about 1 MB per person.
+4. Add the person to `LIST.rocketbox` in `src/components/walk/trialPeople.ts` (age, height in m, `phone: true` for the 7 people phones load).
+
+In the app the rig (`Bip01_*`) is mapped to the VRM bone names, raised to a T-pose, and the same Mixamo clips are baked onto it (`bakeClips` in `vrmPeople.ts`). `VrmPerson` blinks with the morphs.
+
+The Rocketbox base bodies are one size per group (men 1.8 m, women 1.74 m, children 1.43 m), so heights come from the list.
+
+## MakeHuman / MPFB 2 (CC0, `?mobset=makehuman`)
 
 How the colony park people in `public/walk/mobs/` are made. Everything is reproducible from the style sheet.
 

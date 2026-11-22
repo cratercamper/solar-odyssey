@@ -1,0 +1,2788 @@
+/* 開拓の画面（ui/pioneer/PioneerPanel.tsx） */
+.pioneer-hud button,
+.pioneer-panel button {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #e8ecf6;
+}
+.pioneer-hud button:hover:not(:disabled),
+.pioneer-panel button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+.pioneer-panel .pio-build:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+:root {
+  --pio-metal: #f0a24a;
+  --pio-ice: #7fd3ff;
+  --pio-gas: #c98af5;
+  --pio-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pioneer-hud {
+  position: fixed;
+  /* PC は右上、航法コンピュータのすぐ左（まん中の船と岩・左の航海日誌と重ならない）。スマホは上のアイコンの下 */
+  right: 286px;
+  top: 92px;
+  z-index: 20;
+  width: min(360px, calc(100vw - 16px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 10px 8px 12px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: rgba(16, 14, 26, 0.82);
+  backdrop-filter: blur(4px);
+  font-size: 13px;
+  color: #e8ecf6;
+  transition: box-shadow 0.3s var(--pio-ease);
+}
+.pioneer-hud.pio-hud-ready {
+  box-shadow: 0 0 0 1px #ffd86b88, 0 0 18px #ffd86b44;
+}
+.pio-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.pioneer-hud .pio-title {
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.pio-pips {
+  display: flex;
+  gap: 3px;
+}
+.pio-pips i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: background 0.3s;
+}
+.pio-pips i.done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pio-pips i.now {
+  border-color: #ffd86b;
+  box-shadow: 0 0 6px #ffd86b88;
+}
+.pioneer-hud .pio-hold {
+  display: flex;
+  flex: 1;
+  min-width: 60px;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+}
+.pioneer-hud .pio-hold.full {
+  box-shadow: 0 0 0 1px #ffc58a;
+  animation: pio-blink 1.2s ease-in-out infinite;
+}
+.pio-bar {
+  height: 100%;
+  transition: width 0.3s var(--pio-ease);
+}
+.pio-metal {
+  background: var(--pio-metal);
+}
+.pio-ice {
+  background: var(--pio-ice);
+}
+.pio-gas {
+  background: var(--pio-gas);
+}
+.pioneer-hud .pio-count {
+  min-width: 46px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.pioneer-hud .pio-open {
+  min-height: 30px;
+  padding: 0 12px;
+}
+.pioneer-hud .pio-help {
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 50%;
+  font-weight: 700;
+}
+.pio-goal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  animation: pio-in 0.35s var(--pio-ease);
+}
+.pio-goal-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.pio-goal-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+.pio-goal-text small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.pio-goal-text b {
+  font-weight: 600;
+}
+.pio-goal-text .pio-goal-hint {
+  color: #9fd0ff;
+  opacity: 1;
+}
+.pioneer-hud .pio-goal-go {
+  flex: none;
+  min-height: 34px;
+  padding: 0 14px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  font-weight: 600;
+}
+.pio-need {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+.pio-need-label {
+  opacity: 0.75;
+}
+.pio-need-row {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+}
+.pio-meter {
+  display: flex;
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+.pio-meter span {
+  height: 100%;
+  transition: width 0.4s var(--pio-ease);
+}
+/* 積み荷の分（まだ納めていない）は、しま模様で薄く */
+.pio-meter-hold {
+  opacity: 0.55;
+  background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgba(0, 0, 0, 0.35) 3px 6px);
+}
+.pio-need-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pio-need-num em {
+  font-style: normal;
+  opacity: 0.7;
+}
+.pio-need-row.ok .pio-need-num::after {
+  content: ' ✓';
+  color: #9ff0b0;
+}
+
+/* 砕ける岩の輪（位置は PioneerScene が動かす） */
+#pio-rings {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+.pio-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  border: 2px solid var(--pio-metal);
+  border-radius: 50%;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pio-metal) 60%, transparent);
+  transition: opacity 0.2s;
+}
+.pio-ring[data-res='ice'] {
+  border-color: var(--pio-ice);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pio-ice) 60%, transparent);
+}
+.pio-ring[data-rich='1'] {
+  border-width: 3px;
+}
+.pio-ring[data-reach='0'] {
+  border-style: dashed;
+  box-shadow: none;
+}
+.pio-ring[data-want='0'] {
+  opacity: 0.45;
+}
+.pio-ring em {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  display: none;
+  margin-top: 3px;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(16, 14, 26, 0.75);
+  font-size: 11px;
+  font-style: normal;
+  color: #e8ecf6;
+  white-space: nowrap;
+}
+/* 珍しい岩：金色の二重の輪がゆっくり光る。名札はいつも出す */
+.pio-ring[data-rare='1'] {
+  border-color: #ffd86b;
+  border-width: 3px;
+  opacity: 1;
+  box-shadow:
+    0 0 0 3px rgba(255, 216, 107, 0.25),
+    0 0 14px rgba(255, 216, 107, 0.7);
+  animation: pio-rare 1.4s ease-in-out infinite;
+}
+@keyframes pio-rare {
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(255, 216, 107, 0.12),
+      0 0 22px rgba(255, 216, 107, 0.9);
+  }
+}
+.pio-ring[data-rare='1'] em {
+  display: none !important;
+}
+.pio-ring[data-rare='1'] .l-rare {
+  display: block !important;
+  color: #ffd86b;
+}
+.pio-ring[data-first='1'][data-reach='1'][data-res='metal'][data-rich='0'] .l-metal,
+.pio-ring[data-first='1'][data-reach='1'][data-res='metal'][data-rich='1'] .l-rich,
+.pio-ring[data-first='1'][data-reach='1'][data-res='ice'] .l-ice,
+.pio-ring[data-first='1'][data-reach='0'] .l-far {
+  display: block;
+}
+
+/* 木星の高さのメーター */
+.pio-gauge {
+  position: fixed;
+  /* 航法コンピュータのすぐ左、開拓のカードの下 */
+  right: 286px;
+  top: 300px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: rgba(16, 14, 26, 0.8);
+  font-size: 11px;
+  color: #e8ecf6;
+  text-align: center;
+  animation: pio-in 0.3s var(--pio-ease);
+}
+.pio-gauge[hidden] {
+  display: none;
+}
+.pio-gauge-track {
+  position: relative;
+  width: 22px;
+  height: 180px;
+  border-radius: 11px;
+  background: linear-gradient(#1c2340, #3a2c40);
+}
+.pio-gauge-band {
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--pio-gas) 55%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pio-gas) 50%, transparent);
+}
+.pio-gauge-deep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0 0 11px 11px;
+  background: repeating-linear-gradient(135deg, #b8463e 0 4px, #7a2b28 4px 8px);
+}
+.pio-gauge-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10px;
+  text-align: left;
+}
+.pio-gauge-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 2px;
+  background: var(--pio-gas);
+}
+.pio-gauge-legend .deep::before {
+  background: #b8463e;
+}
+.pio-gauge-ship {
+  position: absolute;
+  left: 100%;
+  width: 0;
+  height: 0;
+  margin-top: -6px;
+  border: 6px solid transparent;
+  border-right: 10px solid #fff;
+  transition: top 0.15s linear;
+}
+.pio-gauge-speed .slow,
+.pio-gauge[data-fast='1'] .pio-gauge-speed .fast {
+  display: inline;
+}
+.pio-gauge-speed .fast,
+.pio-gauge[data-fast='1'] .pio-gauge-speed .slow {
+  display: none;
+}
+.pio-gauge-speed .slow {
+  color: #ffc58a;
+}
+.pio-gauge-speed .fast {
+  color: #9ff0b0;
+}
+.pio-gauge-on {
+  display: none;
+  color: var(--pio-gas);
+  font-weight: 600;
+}
+.pio-gauge[data-zone='band'][data-fast='1'] .pio-gauge-on {
+  display: block;
+  animation: pio-blink 0.9s ease-in-out infinite;
+}
+.pio-gauge[data-zone='band'][data-fast='1'] .pio-gauge-band {
+  background: color-mix(in srgb, var(--pio-gas) 85%, transparent);
+}
+.pio-gauge[data-zone='deep'] .pio-gauge-ship {
+  border-right-color: #ff7b6b;
+}
+
+/* 遊び方の案内 */
+.pio-guide header {
+  margin-bottom: 4px;
+}
+.pio-guide .pio-skip {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.pio-guide-pic {
+  display: grid;
+  place-items: center;
+  height: 150px;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 30% 40%, #1d2a4a, #0b0f1a 70%);
+  animation: pio-in 0.35s var(--pio-ease);
+}
+.pio-guide-pic svg {
+  width: 100%;
+  max-width: 320px;
+  height: 140px;
+}
+.pio-guide-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 2px !important;
+  font-size: 16px !important;
+  color: #e8ecf6 !important;
+}
+.pio-guide-step span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 13px;
+}
+.pio-guide-text {
+  min-height: 3em;
+}
+.pio-guide-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 0;
+}
+.pio-guide-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: width 0.3s var(--pio-ease), background 0.3s;
+}
+.pio-guide-dots i.done {
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.pio-guide-dots i.now {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+.pio-guide footer .pio-build {
+  min-width: 140px;
+  margin: 0;
+}
+.pio-guide .g-beam {
+  animation: pio-beam 1.6s ease-in-out infinite;
+}
+.pio-guide .g-ring {
+  animation: pio-blink 1.6s ease-in-out infinite;
+}
+.pio-guide .g-shard {
+  animation: pio-shard 1.6s var(--pio-ease) infinite;
+}
+.pio-guide .g-flow {
+  animation: pio-flow 1s linear infinite;
+}
+.pio-guide .g-pulse {
+  animation: pio-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes pio-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes pio-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes pio-beam {
+  0%,
+  20% {
+    opacity: 0;
+  }
+  35%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pio-shard {
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-40px, 16px);
+    opacity: 0;
+  }
+}
+@keyframes pio-flow {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pioneer-hud *,
+  .pio-guide *,
+  .pio-gauge,
+  .pio-gauge * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.pioneer-panel {
+  position: fixed;
+  left: 50%;
+  /* タブを替えても見出しが動かないよう、上をそろえる（高さはタブで変わる） */
+  top: max(12px, calc(50dvh - 340px));
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: 12px 16px 14px;
+  border-top: 5px solid var(--accent);
+  border-radius: 14px;
+  background: rgba(14, 18, 28, 0.97);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e8ecf6;
+}
+.pioneer-panel header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pioneer-panel h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.pioneer-panel h3 {
+  margin: 0 0 2px;
+  font-size: 13px;
+  color: #c9d6ee;
+}
+.pioneer-panel p {
+  margin: 0 0 4px;
+}
+.pioneer-panel .close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  min-width: 40px;
+  min-height: 40px;
+}
+.pioneer-panel .pio-stage {
+  font-size: 12px;
+  opacity: 0.8;
+}
+.pio-steps {
+  display: flex;
+  gap: 4px;
+  margin: 8px 0;
+}
+.pio-steps span {
+  flex: 1;
+  padding: 4px 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.6;
+}
+.pio-steps span.now {
+  outline: 1px solid var(--accent);
+  opacity: 1;
+}
+.pio-steps span.done {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  opacity: 1;
+}
+.pio-next {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.pio-next {
+  margin-top: 8px;
+}
+.pio-short {
+  color: #ffc58a;
+}
+.pio-science {
+  font-size: 12px;
+  opacity: 0.8;
+}
+.pio-build {
+  min-height: 40px;
+  min-width: 120px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.pioneer-panel footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pioneer-panel footer button {
+  min-height: 36px;
+}
+.pio-reset {
+  opacity: 0.7;
+}
+.pio-naming {
+  text-align: center;
+}
+/* 案内と名付けは画面の真ん中 */
+.pioneer-panel.pio-guide,
+.pioneer-panel.pio-naming {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.pio-naming input {
+  width: 80%;
+  margin: 6px 0;
+  padding: 8px 10px;
+  font-size: 16px;
+}
+.label.pioneer-plate span {
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: rgba(20, 16, 30, 0.7);
+}
+
+/* スマホ・タブレット（横向きでも）：下は操縦のボタンがあるので、上のアイコンの下へ */
+/* 狭い PC：左上の操作説明と重なるので、左下の操作ボタンの上へ */
+@media (max-width: 1180px) {
+  .pioneer-hud {
+    top: auto;
+    right: auto;
+    left: 16px;
+    bottom: 132px;
+  }
+}
+body.touch .pioneer-hud {
+  top: 92px;
+  bottom: auto;
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* スマホ：カードは小さめ。木星のメーターは右の操縦ボタンの上 */
+/* スマホ：右は操縦のボタンなので、左（カードの下、スティックの上） */
+body.touch .pio-gauge {
+  right: auto;
+  left: 8px;
+  top: calc(var(--pio-card-bottom, 230px) + 8px);
+}
+body.touch .pio-gauge-track {
+  height: 120px;
+}
+
+@media (max-width: 600px) {
+  .pioneer-hud {
+    top: 92px;
+    bottom: auto;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    gap: 4px;
+    padding: 5px 6px 6px 8px;
+    font-size: 12px;
+  }
+  .pio-top {
+    gap: 6px;
+  }
+  .pio-pips i {
+    width: 7px;
+    height: 7px;
+  }
+  .pio-goal {
+    gap: 8px;
+    padding: 4px 6px;
+  }
+  .pio-goal-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .pioneer-hud .pio-goal-go {
+    min-height: 32px;
+    padding: 0 10px;
+  }
+  .pio-need-row {
+    min-width: 100px;
+  }
+  .pio-gauge {
+    width: 76px;
+  }
+}
+
+/* 手応え：拾った数字・納品のカード */
+.pio-pops {
+  position: fixed;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  overflow: hidden;
+}
+.pio-pop {
+  position: absolute;
+  transform: translate(-50%, 0);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+  animation: pio-pop 1.1s var(--pio-ease) forwards;
+}
+.pio-pop-metal {
+  color: var(--pio-metal);
+}
+.pio-pop-ice {
+  color: var(--pio-ice);
+}
+.pio-pop-gas {
+  color: var(--pio-gas);
+}
+@keyframes pio-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.15);
+  }
+  30% {
+    transform: translate(-50%, -6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -48px);
+  }
+}
+.pio-delivery {
+  position: fixed;
+  left: 50%;
+  /* 開拓のカードと船のあいだ */
+  top: 41%;
+  z-index: 30;
+  transform: translate(-50%, -50%);
+  min-width: 240px;
+  padding: 14px 20px 16px;
+  border-top: 4px solid #ffd86b;
+  border-radius: 14px;
+  background: rgba(14, 18, 28, 0.94);
+  box-shadow: 0 0 30px rgba(255, 216, 107, 0.25);
+  color: #e8ecf6;
+  text-align: center;
+  animation: pio-deliver 3.6s var(--pio-ease) forwards;
+}
+.pio-delivery h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.pio-delivery-rows {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-size: 14px;
+}
+.pio-delivery-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pio-delivery-row b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.pio-delivery .pio-build {
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: #e8ecf6;
+}
+@keyframes pio-deliver {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.9);
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+  14% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pio-delivery {
+    animation: none;
+  }
+  .pio-pop {
+    display: none;
+  }
+}
+
+/* 建設の場面（BuildCinemaUi）：ほかの文字とボタンは隠す（Shift+F12 の画面と同じやり方）。上下に黒い帯 */
+html.pio-cinema
+  body
+  *:not(
+    canvas[data-engine^='three.js'],
+    :has(canvas[data-engine^='three.js']),
+    .pio-cinema-ui,
+    .pio-cinema-ui *,
+    .pioneer-plate,
+    .pioneer-plate *
+  ) {
+  visibility: hidden !important;
+}
+.pio-cinema-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  color: #f1f4fb;
+}
+.pio-bar-top,
+.pio-bar-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9vh;
+  background: #000;
+  animation: pio-bar-in 0.6s var(--pio-ease);
+}
+.pio-bar-top {
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 16px;
+}
+.pio-bar-bottom {
+  bottom: 0;
+  animation-name: pio-bar-in-bottom;
+}
+.pio-cinema-time {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 2px;
+  background: var(--accent);
+}
+.pio-skip-cinema {
+  pointer-events: auto;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8ecf6;
+  font-size: 13px;
+}
+.pio-skip-cinema kbd {
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.6;
+}
+.pio-caption {
+  position: absolute;
+  left: 50%;
+  bottom: calc(9vh + 18px);
+  transform: translateX(-50%);
+  width: min(640px, calc(100vw - 32px));
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+.pio-caption small {
+  display: block;
+  font-size: 13px;
+  letter-spacing: 2px;
+  opacity: 0.85;
+  animation: pio-in 0.6s var(--pio-ease) 0.4s both;
+}
+.pio-caption h2 {
+  margin: 2px 0 6px;
+  font-size: clamp(26px, 5vw, 40px);
+  letter-spacing: 4px;
+  animation: pio-title 1s var(--pio-ease) 0.6s both;
+}
+.pio-cinema-science {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.9;
+  animation: pio-in 0.8s var(--pio-ease) 2.2s both;
+}
+.pio-cinema-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.pio-cinema-steps i {
+  width: 28px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.pio-cinema-steps i.done {
+  background: var(--accent);
+}
+.pio-cinema-steps i.new {
+  background: linear-gradient(90deg, #ffd86b 50%, rgba(255, 255, 255, 0.25) 50%) right / 200% 100%;
+  animation: pio-fill 1.4s var(--pio-ease) 0.8s forwards;
+}
+.pio-gravity {
+  position: absolute;
+  right: max(24px, 6vw);
+  top: calc(9vh + 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 190px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(10, 12, 20, 0.7);
+  text-align: center;
+  animation: pio-in 0.6s var(--pio-ease) 0.8s both;
+}
+.pio-gravity svg {
+  width: 150px;
+  height: 88px;
+}
+.pio-gravity b {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-gravity-title {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.pio-gravity small {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+@keyframes pio-bar-in {
+  from {
+    transform: translateY(-100%);
+  }
+}
+@keyframes pio-bar-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes pio-title {
+  from {
+    opacity: 0;
+    letter-spacing: 14px;
+  }
+}
+@keyframes pio-fill {
+  to {
+    background-position: left;
+  }
+}
+@media (max-width: 600px) {
+  .pio-gravity {
+    right: 10px;
+    width: 128px;
+    padding: 6px 8px;
+  }
+  .pio-gravity svg {
+    width: 100px;
+    height: 58px;
+  }
+  .pio-gravity b {
+    font-size: 18px;
+  }
+  .pio-gravity small {
+    display: none;
+  }
+  .pio-caption {
+    bottom: calc(9vh + 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pio-cinema-ui * {
+    animation: none !important;
+  }
+}
+
+/* 端末の 4 つのタブ（ui/pioneer/terminal/） */
+.pioneer-panel {
+  --pio-surface: rgba(14, 18, 28, 0.97);
+}
+.pio-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 4px 0 10px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.pioneer-panel .pio-tabs button {
+  flex: 1;
+  min-height: 36px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #aab6cc;
+}
+.pioneer-panel .pio-tabs button.on {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: #fff;
+  font-weight: 600;
+}
+.pio-tabpanel {
+  animation: pio-in 0.25s var(--pio-ease);
+}
+.pio-empty {
+  padding: 24px 8px;
+  text-align: center;
+  opacity: 0.8;
+}
+.pio-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: 0;
+}
+.pio-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0 2px;
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-legend i {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.pio-sw-store,
+.pio-sw-hold {
+  width: 16px;
+  height: 9px;
+  border-radius: 2px;
+  background: #c9d6ee;
+}
+.pio-sw-hold {
+  background: repeating-linear-gradient(135deg, #c9d6ee 0 2px, transparent 2px 4px);
+  outline: 1px solid rgba(201, 214, 238, 0.6);
+}
+.pio-sw-cap {
+  width: 16px;
+  border-top: 2px dashed #c9d6ee;
+}
+
+/* 状況 */
+.pio-overall {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pio-donut {
+  flex: none;
+  width: 84px;
+  height: 84px;
+}
+.pio-donut-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 8;
+}
+.pio-donut-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s var(--pio-ease);
+}
+.pio-tick {
+  fill: var(--pio-surface);
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+}
+.pio-tick.done {
+  fill: #ffd86b;
+  stroke: none;
+}
+.pio-donut-num {
+  fill: #fff;
+  font-size: 17px;
+  font-weight: 700;
+}
+.pio-overall-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.pio-overall-text small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-cargo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.pio-cargo-track {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.pio-cargo-track span {
+  height: 100%;
+}
+.pio-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+.pio-bigmeter {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.pio-bigmeter-track {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.pio-bigmeter-track span {
+  height: 100%;
+  transition: width 0.5s var(--pio-ease);
+}
+.pio-bigmeter-num {
+  min-width: 74px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.pio-bigmeter-num em {
+  font-style: normal;
+  color: #c9d6ee;
+  opacity: 0.8;
+}
+.pio-bigmeter-num span {
+  opacity: 0.6;
+}
+.pio-ok {
+  width: 12px;
+  height: 12px;
+  margin-left: 4px;
+  vertical-align: -1px;
+  fill: none;
+  stroke: #8ff0a4;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 航路 */
+.pio-map {
+  display: block;
+  width: min(100%, 300px);
+  margin: 0 auto;
+}
+.pio-map-orbit {
+  fill: none;
+  stroke: rgba(201, 214, 238, 0.2);
+  stroke-width: 1;
+}
+.pio-map-belt {
+  fill: none;
+  stroke: rgba(201, 214, 238, 0.07);
+}
+.pio-map-label {
+  fill: #c9d6ee;
+  font-size: 10px;
+}
+.pio-map-faint {
+  opacity: 0.6;
+}
+.pio-map-route {
+  stroke: #ffd86b;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  animation: pio-route 1s linear infinite;
+}
+@keyframes pio-route {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+.pio-map-place {
+  cursor: pointer;
+}
+.pio-map-hit {
+  fill: transparent;
+}
+.pio-map-node {
+  stroke: var(--pio-surface);
+  stroke-width: 2;
+}
+.pio-place-field .pio-map-node {
+  fill: var(--pio-metal);
+}
+.pio-place-jupiter .pio-map-node {
+  fill: #d9a877;
+}
+.pio-place-dock .pio-map-node {
+  fill: var(--pio-ice);
+}
+.pio-place-site .pio-map-node {
+  fill: #c9d6ee;
+}
+.pio-map-place:hover .pio-map-node,
+.pio-map-place:focus-visible .pio-map-node {
+  stroke: #fff;
+}
+.pio-map-place:focus {
+  outline: none;
+}
+.pio-map-pulse {
+  fill: none;
+  stroke: #ffd86b;
+  stroke-width: 1.5;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: pio-pulse 1.6s ease-out infinite;
+}
+@keyframes pio-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.pio-map-inset-box {
+  fill: rgba(14, 18, 28, 0.92);
+  stroke: rgba(201, 214, 238, 0.35);
+}
+.pio-map-leader {
+  stroke: rgba(201, 214, 238, 0.35);
+  stroke-dasharray: 2 3;
+}
+.pio-map-ship path {
+  fill: #fff;
+  stroke: var(--pio-surface);
+  stroke-width: 1;
+}
+.pio-places {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 8px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.pio-places li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+}
+.pio-places li.next {
+  border-color: #ffd86b;
+}
+.pio-place-icon {
+  flex: none;
+  display: grid;
+}
+.pio-place-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.pio-place-text b {
+  font-size: 12px;
+}
+.pio-place-text small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-place-text em {
+  font-style: normal;
+  font-size: 11px;
+  color: #ffd86b;
+}
+.pio-place-text em.here {
+  color: #8ff0a4;
+}
+.pio-places button {
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+/* 流れ */
+.pio-sankey,
+.pio-bars {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pio-band {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.pio-band:hover {
+  opacity: 0.85;
+}
+.pio-band-metal,
+.pio-node-metal {
+  fill: var(--pio-metal);
+}
+.pio-band-ice,
+.pio-node-ice {
+  fill: var(--pio-ice);
+}
+.pio-band-gas,
+.pio-node-gas {
+  fill: var(--pio-gas);
+}
+.pio-node-sink {
+  fill: #c9d6ee;
+}
+.pio-sankey-label {
+  fill: #e8ecf6;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pio-sankey-sub {
+  fill: #aab6cc;
+  font-size: 10px;
+}
+.pio-table {
+  width: 100%;
+  margin-top: 6px;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-table caption {
+  text-align: left;
+  font-size: 11px;
+  color: #aab6cc;
+  padding-bottom: 2px;
+}
+.pio-table th,
+.pio-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  text-align: right;
+}
+.pio-table thead th {
+  font-weight: 500;
+  color: #aab6cc;
+}
+.pio-table th[scope='row'],
+.pio-table thead th:first-child {
+  text-align: left;
+}
+.pio-built-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.pio-built-chips small {
+  margin-right: 4px;
+  color: #aab6cc;
+}
+.pio-built-chips span {
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* 記録 */
+.pio-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.pio-stats div {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.pio-stats small {
+  font-size: 10px;
+  color: #aab6cc;
+}
+.pio-stats b {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-stats b span {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+.pio-chart-wrap {
+  position: relative;
+}
+.pio-axis {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+.pio-cap-line {
+  stroke: #c9d6ee;
+  stroke-dasharray: 4 3;
+  opacity: 0.6;
+}
+.pio-tick-label {
+  fill: #aab6cc;
+  font-size: 10px;
+}
+.pio-bar-hit {
+  fill: transparent;
+}
+.pio-tbar.hover .pio-bar-hit {
+  fill: rgba(255, 255, 255, 0.06);
+}
+.pio-star {
+  fill: #ffd86b;
+}
+.pio-tip {
+  position: absolute;
+  top: 4px;
+  transform: translate(-50%, 0);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #1f2636;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+.pio-tip em {
+  font-style: normal;
+  color: #ffd86b;
+}
+
+@media (max-width: 600px) {
+  .pio-steps span {
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pio-places {
+    grid-template-columns: 1fr;
+  }
+  .pio-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pio-map-route,
+  .pio-map-pulse,
+  .pio-tabpanel {
+    animation: none;
+  }
+}
+
+/* 船（得意と改造） */
+.pio-tab-ship h3 {
+  margin: 4px 0 6px;
+}
+.pio-upgrades {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pio-upgrade {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.pio-upgrade-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pio-upgrade-text small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-levels {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pio-levels i {
+  width: 16px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.pio-levels i.on {
+  background: #ffd86b;
+  animation: pio-in 0.4s var(--pio-ease);
+}
+.pio-levels em {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 11px;
+}
+.pio-cost .lack {
+  color: #ffc58a;
+}
+.pioneer-panel .pio-upgrade .pio-build {
+  min-width: 96px;
+  margin: 0;
+}
+.pio-maxed {
+  font-size: 11px;
+  color: #8ff0a4;
+  max-width: 96px;
+  text-align: right;
+}
+.pio-ships {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.pio-ships li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 6px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+}
+.pio-ships li.on {
+  border-color: var(--accent);
+}
+.pio-ships span {
+  grid-column: 1;
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-ships em {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pio-ships small {
+  grid-column: 1;
+  font-size: 10px;
+  color: var(--accent);
+}
+@media (max-width: 600px) {
+  .pio-ships {
+    grid-template-columns: 1fr;
+  }
+  .pio-upgrade {
+    flex-wrap: wrap;
+  }
+}
+.pio-tab-ship .pio-science + h3 {
+  margin-top: 12px;
+}
+
+/* 珍しい岩・今日の依頼のカード */
+.pio-card-rare {
+  border-color: #ffd86b;
+  box-shadow: 0 0 24px rgba(255, 216, 107, 0.35);
+}
+.pio-card-rare > small:first-child,
+.pio-card-daily > small:first-child {
+  color: #ffd86b;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.pio-card-rare .pio-science {
+  max-width: 300px;
+  margin: 4px auto;
+}
+.pio-card-rare > small:last-child,
+.pio-card-daily > small:last-child {
+  font-size: 11px;
+  color: #aab6cc;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pio-ring[data-rare='1'] {
+    animation: none;
+  }
+}
+
+/* 今日の依頼 */
+.pio-daily {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 216, 107, 0.35);
+  background: rgba(255, 216, 107, 0.05);
+}
+.pio-daily.done {
+  border-color: rgba(143, 240, 164, 0.5);
+  background: rgba(143, 240, 164, 0.06);
+}
+.pio-daily-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.pio-daily-head small {
+  color: #ffd86b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.pio-daily-bar {
+  display: block;
+  height: 6px;
+  margin: 6px 0 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.pio-daily-bar span {
+  display: block;
+  height: 100%;
+  background: #ffd86b;
+  transition: width 0.5s var(--pio-ease);
+}
+.pio-daily.done .pio-daily-bar span {
+  background: #8ff0a4;
+}
+.pio-daily-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+.pio-daily-foot .pio-cost small,
+.pio-daily-foot > small {
+  color: #aab6cc;
+}
+.pio-rares span {
+  background: rgba(255, 216, 107, 0.2);
+}
+
+/* 配達の仕事（terminal/JobsTab.tsx・カード・飛んでいるあいだの「いまやること」） */
+.pioneer-panel .pio-tabs button {
+  min-width: 0;
+  padding: 0 4px;
+}
+.pio-tab-jobs .pio-note {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: #aab6cc;
+}
+.pio-jobs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.pio-job {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: pio-in 0.3s var(--pio-ease) both;
+}
+.pio-job:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.pio-job:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.pio-job header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pio-job header b {
+  font-size: 14px;
+}
+.pio-job > p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #c3cbdb;
+}
+.pio-job .pio-build {
+  margin-top: auto;
+}
+.pio-job-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pio-job-route li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  line-height: 1.3;
+}
+.pio-job-route li + li::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  width: 4px;
+  height: 2px;
+  background: #6f7c95;
+}
+.pio-job-route li small {
+  font-size: 10px;
+  color: #aab6cc;
+}
+.pio-job-route li.done {
+  opacity: 0.55;
+}
+.pio-job-route li.done small::after {
+  content: ' ✓';
+}
+.pio-job-route li.now {
+  background: color-mix(in srgb, #ffd27a 22%, transparent);
+  box-shadow: inset 0 0 0 1px #ffd27a;
+}
+.pio-job-rule {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px;
+  border-left: 3px solid #ffd27a;
+  border-radius: 4px;
+  background: rgba(255, 210, 122, 0.08);
+  font-size: 12px;
+}
+.pio-job-rule small {
+  font-size: 10.5px;
+  color: #aab6cc;
+}
+.pio-job-reward-label {
+  font-size: 10.5px;
+  color: #aab6cc;
+}
+.pio-jobs-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 4px;
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-job-now {
+  margin-bottom: 10px;
+  border-color: color-mix(in srgb, #ffd27a 60%, transparent);
+  background: rgba(255, 210, 122, 0.06);
+}
+.pio-job-now header > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.pio-job-now header small {
+  font-size: 10.5px;
+  color: #ffd27a;
+}
+.pio-job-now .pio-goal-go {
+  min-height: 32px;
+  padding: 0 14px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  font-weight: 600;
+}
+.pio-job-now .pio-reset {
+  align-self: flex-end;
+}
+.pio-job-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pio-job-time {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.pio-job-time i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #7ed18a;
+  transition: width 0.25s linear;
+}
+.pio-job-time i.over {
+  background: #e0566a;
+}
+.pio-job-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+.pio-job-checks li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pio-job-checks li::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: currentColor;
+  clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%);
+}
+.pio-job-checks li.on::before {
+  background: #ffd86b;
+}
+.pio-job-checks li.off {
+  color: #8d97aa;
+}
+.pio-job-checks li em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  color: #7ed18a;
+}
+.pio-job-checks li.off em {
+  color: #e0566a;
+}
+.pio-stars {
+  display: inline-flex;
+  gap: 1px;
+}
+.pio-star path {
+  fill: none;
+  stroke: #6f7c95;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.pio-star.on path {
+  fill: #ffd86b;
+  stroke: #ffd86b;
+}
+.pio-job-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pio-job-stat {
+  display: grid;
+  grid-template-columns: 26px 7em 1fr 3em auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.pio-job-stat .pio-place-icon {
+  width: 26px;
+  height: 26px;
+}
+.pio-job-stat-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.pio-job-stat-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: #ffd27a;
+}
+.pio-job-stat-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+/* 飛んでいるあいだの「いまやること」：仕事のとき */
+.pio-goal-job {
+  box-shadow: inset 3px 0 0 #ffd27a;
+}
+.pio-goal-job .pio-goal-text small:first-child {
+  color: #ffd27a;
+  opacity: 1;
+}
+.pio-goal-warn .pio-goal-hint {
+  color: #ff9aa8;
+}
+.pio-handoff {
+  display: block;
+  height: 5px;
+  margin-top: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.pio-handoff i {
+  display: block;
+  height: 100%;
+  background: #ffd27a;
+  transition: width 0.12s linear;
+}
+/* カード：積んだ・降ろした（短く）と、配達完了（星が 1 つずつ光る） */
+.pio-card-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top-color: #ffd27a;
+  animation-duration: 1.8s;
+}
+.pio-card-step h3 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.pio-card-job {
+  border-top-color: #ffd27a;
+  animation-duration: 5.2s;
+}
+.pio-card-job > small:nth-child(2) {
+  color: #ffd27a;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.pio-card-stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 2px 0 6px;
+}
+.pio-card-stars > span {
+  display: grid;
+}
+.pio-card-stars > span.on {
+  animation: pio-star-pop 0.45s var(--pio-ease) both;
+}
+.pio-card-stars > span.on .pio-star path {
+  filter: drop-shadow(0 0 6px rgba(255, 216, 107, 0.7));
+}
+@keyframes pio-star-pop {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.4) rotate(-20deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.25) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+.pio-card-checks {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  color: #8d97aa;
+}
+.pio-card-checks li.on {
+  color: #e8ecf6;
+}
+.pio-card-checks li.on::before {
+  content: '★ ';
+  color: #ffd86b;
+}
+.pio-card-checks li:not(.on)::before {
+  content: '☆ ';
+}
+@media (max-width: 600px) {
+  .pio-jobs {
+    grid-template-columns: 1fr;
+  }
+  .pio-job > p {
+    display: none;
+  }
+  .pio-job-stat {
+    grid-template-columns: 22px 6em 1fr 2.6em auto;
+  }
+  .pioneer-panel .pio-tabs button {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pio-job,
+  .pio-card-stars > span.on {
+    animation: none;
+  }
+}
+/* 画面には出さず、読み上げだけ */
+.pio-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* 掲示板のカードは幅がせまいので、行き先を縦に並べる */
+.pio-jobs .pio-job-route {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.pio-jobs .pio-job-route li + li::before {
+  top: -4px;
+  left: 14px;
+  width: 2px;
+  height: 4px;
+}
+/* 歩く場面の上：研究温室までの案内（components/walk/WalkErrandHud.tsx）。配達完了のカードも歩く場面の上に出す */
+.pio-errand {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(92vw, 420px);
+  padding: 8px 14px;
+  border-left: 3px solid #ffd27a;
+  border-radius: 12px;
+  background: rgba(14, 18, 28, 0.86);
+  color: #e8ecf6;
+  pointer-events: none;
+}
+.pio-errand > span:last-child {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+.pio-errand small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pio-errand small:first-child {
+  color: #ffd27a;
+}
+.pio-errand b {
+  font-variant-numeric: tabular-nums;
+}
+.pio-delivery {
+  z-index: 60;
+}
+/* スマホ：上の場所カード・ボタンの列と重ならないよう、ボタンの列の下に小さく出す */
+@media (max-width: 720px) {
+  .pio-errand {
+    top: calc(max(12px, env(safe-area-inset-top)) + 150px);
+    max-width: min(80vw, 300px);
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  .pio-errand b {
+    white-space: nowrap;
+  }
+  .pio-errand-hint {
+    display: none;
+  }
+}
+
+/* ── 端末「経営」（ui/pioneer/terminal/ColonyTab.tsx） ── */
+.pioneer-panel {
+  --col-pop: #9fc3ff;
+  --col-water: #3987e5;
+  --col-power: #d95926;
+  --col-food: #199e70;
+  --col-happy: #c98500;
+  --col-up: #6fd38a;
+  --col-down: #ff8a7a;
+}
+.col-c-pop {
+  color: var(--col-pop);
+  stroke: var(--col-pop);
+  background: var(--col-pop);
+}
+.col-c-water {
+  color: var(--col-water);
+  stroke: var(--col-water);
+  background: var(--col-water);
+}
+.col-c-power {
+  color: var(--col-power);
+  stroke: var(--col-power);
+  background: var(--col-power);
+}
+.col-c-food {
+  color: var(--col-food);
+  stroke: var(--col-food);
+  background: var(--col-food);
+}
+.col-c-happy {
+  color: var(--col-happy);
+  stroke: var(--col-happy);
+  background: var(--col-happy);
+}
+.col-c-jobs {
+  background: #8f9bb3;
+}
+.col-tab h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.col-tab h3 small {
+  font-weight: 400;
+  color: #aab6cc;
+}
+.col-locked,
+.col-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px 4px;
+  text-align: center;
+}
+.col-intro p {
+  max-width: 460px;
+  margin: 0;
+  line-height: 1.6;
+}
+.col-art {
+  width: min(100%, 360px);
+  height: auto;
+}
+.col-art .ground {
+  fill: none;
+  stroke: #6fbf73;
+  stroke-width: 2;
+}
+.col-art .sky {
+  fill: none;
+  stroke: rgba(160, 200, 255, 0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+}
+.col-art .house {
+  fill: #2a3346;
+  stroke: #8a97b0;
+}
+.col-art .roof {
+  fill: none;
+  stroke: #8a97b0;
+  stroke-linejoin: round;
+}
+.col-art .win {
+  fill: #3a4458;
+  transition: fill 0.6s;
+}
+.col-art .win.on {
+  fill: #ffd27a;
+}
+.col-away {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-left: 3px solid #ffd27a;
+  border-radius: 10px;
+  background: rgba(255, 210, 122, 0.08);
+  animation: pio-in 0.35s var(--pio-ease);
+}
+.col-away-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-basis: 100%;
+}
+.col-away-chips em {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  font-style: normal;
+  font-size: 12px;
+}
+.col-away-chips em.up {
+  color: var(--col-up);
+}
+.col-away-chips em.down {
+  color: var(--col-down);
+}
+.col-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.col-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.col-kpi small,
+.col-kpi span {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.col-kpi span.down {
+  color: var(--col-down);
+}
+.col-kpi b {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.col-clock {
+  align-items: flex-start;
+}
+.col-trend {
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+}
+.col-trend.up {
+  border-bottom: 7px solid var(--col-up);
+  margin-top: -6px;
+}
+.col-trend.down {
+  border-top: 7px solid var(--col-down);
+  margin-top: 6px;
+}
+.col-trend.flat {
+  width: 9px;
+  height: 2px;
+  border: none;
+  background: #aab6cc;
+}
+.col-face circle:first-child {
+  fill: none;
+  stroke: var(--col-happy);
+  stroke-width: 1.6;
+}
+.col-face .eye {
+  fill: var(--col-happy);
+}
+.col-face path {
+  fill: none;
+  stroke: var(--col-happy);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  transition: d 0.6s var(--pio-ease);
+}
+.col-dial .ring {
+  fill: rgba(140, 190, 255, 0.12);
+  stroke: rgba(255, 255, 255, 0.2);
+}
+.col-dial .night {
+  fill: rgba(10, 14, 30, 0.6);
+}
+.col-dial .sun {
+  fill: #ffd27a;
+}
+.col-dial .moon {
+  fill: #c9d6ee;
+}
+.col-chart {
+  margin: 4px 0 10px;
+}
+.col-chart figcaption {
+  font-size: 12px;
+  color: #c9d6ee;
+  margin-bottom: 2px;
+}
+.col-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.pio-grid {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+.col-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  animation: col-draw 1.2s var(--pio-ease) both;
+}
+@keyframes col-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.col-area {
+  fill: color-mix(in srgb, var(--col-pop) 16%, transparent);
+  animation: pio-in 0.8s var(--pio-ease) 0.3s both;
+}
+.col-dot {
+  fill: currentColor;
+  stroke: #141a26;
+  stroke-width: 2;
+}
+.col-end-label {
+  fill: #c9d6ee;
+  font-size: 10px;
+}
+.col-cross {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-dasharray: 2 2;
+}
+.col-land {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 3px;
+  margin: 6px 0 8px;
+}
+.col-plot {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #0e121c;
+}
+.col-plot.fresh {
+  animation: col-pop 0.7s var(--pio-ease);
+}
+@keyframes col-pop {
+  0% {
+    transform: scale(0.3);
+    box-shadow: 0 0 0 0 rgba(255, 210, 122, 0.8);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(255, 210, 122, 0);
+  }
+}
+.col-plot.col-z-housing {
+  border: none;
+  background: #9fc3ff;
+}
+.col-plot.col-z-farm {
+  border: none;
+  background: #6fcf8a;
+}
+.col-plot.col-z-factory {
+  border: none;
+  background: #f0a24a;
+}
+.col-plot.col-z-park {
+  border: none;
+  background: #a8e06a;
+}
+.col-plot.col-z-power {
+  border: none;
+  background: #ffd27a;
+}
+.col-plot.col-z-water {
+  border: none;
+  background: #6fd0ff;
+}
+.col-zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+.col-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.col-zone header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.col-zone header > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  line-height: 1.3;
+}
+.col-zone header small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.col-zone-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.col-z-housing .col-zone-icon {
+  color: #9fc3ff;
+}
+.col-z-farm .col-zone-icon {
+  color: #6fcf8a;
+}
+.col-z-factory .col-zone-icon {
+  color: #f0a24a;
+}
+.col-z-park .col-zone-icon {
+  color: #a8e06a;
+}
+.col-z-power .col-zone-icon {
+  color: #ffd27a;
+}
+.col-z-water .col-zone-icon {
+  color: #6fd0ff;
+}
+.col-zone-count {
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.col-why {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8f9bb3;
+}
+.col-zone .pio-cost .short {
+  color: var(--col-down);
+}
+.col-zone-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+.col-zone-actions .pio-build {
+  flex: 1;
+}
+.col-supply,
+.col-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.col-sup,
+.col-part {
+  display: grid;
+  grid-template-columns: 92px 1fr 128px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.col-sup-bar,
+.col-part-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.col-sup-bar i,
+.col-part-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 5px;
+  transition: width 0.6s var(--pio-ease);
+}
+.col-sup-bar em {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: #e8ecf6;
+  border-radius: 1px;
+  transition: left 0.6s var(--pio-ease);
+}
+.col-sup-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #c9d6ee;
+}
+.col-sup-num {
+  white-space: nowrap;
+}
+.col-sup-num strong {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--col-down);
+}
+.col-sup.short .col-sup-bar {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--col-down) 60%, transparent);
+}
+.col-part-bar i.plus {
+  background: var(--col-up);
+}
+.col-part-bar i.minus {
+  background: var(--col-down);
+}
+.col-part-bar i.total {
+  background: var(--col-happy);
+}
+.col-part b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.col-part-total {
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.col-controls {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+}
+.col-seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.pioneer-panel .col-seg button {
+  flex: 1;
+  white-space: nowrap;
+  padding: 0 6px;
+  min-height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #aab6cc;
+}
+.pioneer-panel .col-seg button.on {
+  background: #c79bff;
+  color: #14101e;
+  font-weight: 600;
+}
+.col-policies {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.pioneer-panel .col-policies button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 52px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+}
+.pioneer-panel .col-policies button small {
+  font-size: 11px;
+  color: #aab6cc;
+}
+.pioneer-panel .col-policies button.on {
+  border-color: #c79bff;
+  background: rgba(199, 155, 255, 0.14);
+}
+.col-tree {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, auto);
+  gap: 10px 22px;
+  margin-bottom: 10px;
+}
+.col-tree-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.col-tree-lines path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1.5;
+}
+.col-tree-lines path.on {
+  stroke: #c79bff;
+}
+.col-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #182030;
+  font-size: 12px;
+}
+.col-node-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.col-node small {
+  color: #c9d6ee;
+}
+.col-node small.col-why {
+  color: #8f9bb3;
+}
+.col-node em {
+  font-style: normal;
+  font-size: 11px;
+  color: #aab6cc;
+}
+.col-node.done {
+  border-color: color-mix(in srgb, #c79bff 60%, transparent);
+}
+.col-node.done .col-node-done {
+  color: #c79bff;
+  font-weight: 600;
+}
+.col-node.locked {
+  opacity: 0.55;
+}
+.col-node.studying {
+  border-color: #ffd27a;
+  box-shadow: 0 0 12px rgba(255, 210, 122, 0.25);
+}
+.col-node em.col-node-cost {
+  margin-top: auto;
+  color: #c9d6ee;
+}
+.col-node em.col-node-cost.short {
+  color: var(--col-down);
+}
+.col-node .pio-build {
+  font-size: 11px;
+  padding: 6px 8px;
+}
+.col-node-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.col-node-progress i {
+  display: block;
+  height: 100%;
+  background: #ffd27a;
+  transition: width 0.8s linear;
+}
+@media (max-width: 600px) {
+  .col-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .col-controls {
+    grid-template-columns: 1fr;
+  }
+  .col-sup,
+  .col-part {
+    grid-template-columns: 70px 1fr 112px;
+  }
+  .col-tree {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .col-tree .col-node {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+  .col-tree-lines {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .col-line,
+  .col-area,
+  .col-plot.fresh {
+    animation: none;
+  }
+}

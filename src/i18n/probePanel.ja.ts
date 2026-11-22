@@ -12,5 +12,6 @@ export const probePanelJa = {
   pause: '一時停止',
   play: '再生',
   otherProbes: 'ほかの探査機',
+  realPathNote: '道すじは、NASA JPL Horizons の本物の値です。できごとを押すと、その日へ飛べます。',
   pathsNote: '道すじは、通った天体を太陽のまわりの弧でつないだ、おおよその形です。日付と、通った天体は本物です。',
 }

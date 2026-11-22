@@ -1,0 +1,3 @@
+astronaut.glb — spacesuit used by the gravity jump (src/components/surface/suitModel.ts).
+Source: Sketchfab, "Astronaut - Rigged and Animated", downloaded by the project owner. License: CC0 (public domain).
+Converted from FBX in a browser (three FBXLoader -> GLTFExporter), textures 4K -> 1K WebP, meshopt compressed; animation dropped (poses are driven in code).

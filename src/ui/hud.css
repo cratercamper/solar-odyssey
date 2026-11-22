@@ -1,0 +1,14 @@
+/* 左上の表示（ui/Hud.tsx） */
+.hud-controls-toggle {
+  margin-left: 4px;
+  padding: 1px 8px;
+  border: 1px solid rgba(155, 140, 217, 0.5);
+  border-radius: 10px;
+  background: transparent;
+  color: #c9c0f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+.hud-controls-toggle:hover {
+  background: rgba(155, 140, 217, 0.18);
+}

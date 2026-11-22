@@ -1,0 +1,311 @@
+/* 上昇の後半に入れかわる計器のカード（AscentCards.tsx） */
+.ac-card {
+  position: absolute;
+  left: 16px;
+  bottom: 22px;
+  width: 340px;
+  padding: 10px 12px 9px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.74), rgba(6, 10, 16, 0.62));
+  border: 1px solid rgba(140, 190, 255, 0.22);
+  color: #e8f0ff;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  animation: ac-in 0.5s ease-out;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+/* 自分で操縦するとき（タッチ）は、左下の ◀ ボタンの上へ */
+.ac-card.raised {
+  bottom: 112px;
+}
+/* 地球を回るあいだ、まん中下に「月への窓」が出たら、その上へ */
+.ac-card.high {
+  bottom: 175px;
+}
+/* 広い画面では「月への窓」と横にならぶので、上げなくていい */
+@media (min-width: 1300px) {
+  .ac-card.high {
+    bottom: 22px;
+  }
+}
+/* 背の低い画面では、上げると左上の計器に重なる。細くして「月への窓」の左におさめる */
+@media (max-height: 640px) and (min-width: 701px) and (max-width: 1299px) {
+  .ac-card.high {
+    bottom: 22px;
+    width: min(340px, calc(50vw - 240px));
+  }
+}
+@keyframes ac-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ac-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #ffd98a;
+  margin-bottom: 4px;
+}
+.ac-sub {
+  font-weight: 400;
+  color: #b9c8e0;
+  font-size: 11px;
+}
+.ac-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ac-note,
+.ac-small {
+  font-size: 10.5px;
+  color: #9fb2cc;
+}
+.ac-big {
+  font-size: 14px;
+  font-weight: 700;
+}
+.ac-label {
+  font-size: 10px;
+  fill: #dbe6f7;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 2.5px;
+}
+.ac-label.mid {
+  text-anchor: middle;
+}
+.ac-label.end {
+  text-anchor: end;
+}
+.ac-label.dim {
+  fill: #8ea2bf;
+}
+.ac-label.you {
+  fill: #fff;
+  font-weight: 700;
+}
+.ac-label.s1 {
+  fill: #ffb070;
+}
+
+/* 断面図 */
+.ac-air {
+  fill: rgba(110, 170, 255, 0.16);
+}
+.ac-space {
+  fill: none;
+  stroke: #8fd0ff;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.ac-orbit {
+  fill: none;
+  stroke: rgba(255, 217, 138, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+.ac-ideal {
+  fill: none;
+  stroke: rgba(120, 230, 160, 0.45);
+  stroke-width: 1.2;
+}
+.ac-track {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+}
+.ac-fall {
+  fill: none;
+  stroke: rgba(255, 160, 90, 0.75);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 2;
+}
+.ac-s1 {
+  fill: #ffb070;
+}
+.ac-pad {
+  fill: #ffd98a;
+}
+.ac-you {
+  fill: #fff;
+}
+.ac-you-glow {
+  fill: rgba(255, 230, 170, 0.35);
+}
+
+/* エンジン */
+.ac-engines {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ac-bells {
+  width: 92px;
+  height: 92px;
+  flex: none;
+}
+.ac-base {
+  fill: rgba(30, 40, 56, 0.9);
+  stroke: rgba(160, 180, 210, 0.4);
+}
+.ac-bell {
+  stroke: #c8d2e0;
+  stroke-width: 1.2;
+}
+.ac-bell.off {
+  fill: #2a3240;
+  stroke: #66707e;
+}
+.ac-bell.on.f1 {
+  fill: #ffb347;
+}
+.ac-bell.on.j2 {
+  fill: #cfd8ff;
+}
+.ac-flame {
+  animation: ac-flicker 0.18s infinite alternate;
+}
+.ac-flame.f1 {
+  fill: rgba(255, 140, 40, 0.45);
+}
+.ac-flame.j2 {
+  fill: rgba(150, 170, 255, 0.45);
+}
+@keyframes ac-flicker {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ac-x {
+  stroke: #ff7a6a;
+  stroke-width: 1.6;
+}
+.ac-lines {
+  flex: 1;
+  min-width: 0;
+}
+.ac-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.ac-row span {
+  width: 64px;
+  flex: none;
+  color: #b9c8e0;
+}
+.ac-row b {
+  width: 34px;
+  text-align: right;
+}
+.ac-bar {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.ac-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #5aa9ff, #9fe0ff);
+}
+.ac-bar > i.low {
+  background: linear-gradient(90deg, #ff8a5a, #ffc27a);
+}
+.ac-bar.g > i {
+  background: linear-gradient(90deg, #7ee0a0, #ffd98a);
+}
+
+/* 速さのものさし */
+.ac-rail {
+  fill: rgba(255, 255, 255, 0.12);
+}
+.ac-fill {
+  fill: #5aa9ff;
+}
+.ac-tick {
+  stroke: #8ea2bf;
+}
+.ac-mark {
+  stroke: #ffd98a;
+  stroke-width: 1.2;
+}
+
+@media (max-width: 700px) {
+  .ac-card {
+    left: 8px;
+    bottom: 8px;
+    width: min(250px, calc(100vw - 150px));
+    padding: 7px 9px 6px;
+    font-size: 11px;
+  }
+  .ac-card.raised {
+    bottom: 100px;
+  }
+  .ac-card.high {
+    bottom: 150px;
+  }
+  .ac-bells {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+/* 軌道の図 */
+.ac-earth {
+  fill: #3d7fc4;
+}
+.ac-night {
+  fill: rgba(4, 8, 18, 0.78);
+}
+.ac-sun {
+  fill: #ffe08a;
+  filter: drop-shadow(0 0 4px #ffd060);
+}
+.ac-ring {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+.ac-window {
+  fill: none;
+  stroke: #7ee0a0;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ac-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: #7ee0a0;
+  vertical-align: middle;
+}
+.ac-moon {
+  stroke: #e6e0cc;
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+}
+.ac-moon-head {
+  fill: #e6e0cc;
+}
+.ac-label.moon {
+  fill: #f0ead6;
+}
+.ac-warn {
+  font-size: 11px;
+  color: #ffb070;
+  font-weight: 700;
+}

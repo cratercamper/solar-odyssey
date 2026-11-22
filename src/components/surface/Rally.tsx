@@ -10,9 +10,11 @@ import type { SkyNow } from './skyNow'
 import { PAINT_PARTS, paintUniforms, withPaint } from './paint'
 import { windFor } from './landerFx'
 import { TRACKS } from '../../data/rallyTracks'
-import { COUNT_SEC, RALLY_COLORS, loadBest, rallyArrive, rallyClock, rallyNow, saveBest, setRallyPhase, useRally, type RallyEntry } from '../../state/rally'
+import { COUNT_SEC, RALLY_COLORS, loadBest, rallyArrive, rallyClock, rallyNow, saveBest, setRallyPhase, useRally, type RallyEntry, type RallyLevel } from '../../state/rally'
 import { bookResult } from '../../state/rallyHiscore'
-import { launchRover, roverCtl, roverInput, roverPose, useRover } from '../../state/rover'
+import { awardMedal, medalFor } from '../../state/rallyMedals'
+import { REWARD_ROCKS } from '../../data/rockSamples'
+import { launchRover, roverAutoGas, roverCtl, roverInput, roverPose, useRover, useSampleLog } from '../../state/rover'
 import { useLanding } from '../../state/landing'
 import { lowMemory, useLevel } from '../../state/quality'
 import { MAP_KEYS, shrinkTexture } from './shrinkTexture'
@@ -143,8 +145,18 @@ const TRAITS = [
 /** 追いかけっこ（月）：逃げるローバーの速さ（ふつうのレースに対して）と、タッチしたことにする距離（m） */
 const CHASE_PACE = 0.86
 const CHASE_TOUCH = 3.2
-/** コンピューター全体の速さ（ふつう）。自分の最高速は 16.7 m/s */
-const AI_SKILL = 0.93
+/**
+ * コンピューターの強さ（スタート欄で選ぶ）。自分の最高速は 16.7 m/s。
+ * skill：全体の速さ、form：その日の調子（いちばん低い値と幅）、trip：岩につまずく間隔の倍率（大きいほどミスが少ない）、
+ * chase：追いかけっこで逃げる速さの倍率。
+ * やさしい：いちばん遅い 1 台（pacer）は、自分より前に出るとゆっくりになって待つ。だから自分は最下位にならない。
+ * ほかの台も、自分から離れすぎると待つ
+ */
+export const AI_LEVELS = {
+  easy: { skill: 0.8, form: [0.93, 0.05], trip: 0.8, chase: 0.85 },
+  normal: { skill: 0.93, form: [0.95, 0.09], trip: 1, chase: 1 },
+  hard: { skill: 1.0, form: [0.99, 0.05], trip: 1.7, chase: 1.08 },
+} satisfies Record<RallyLevel, { skill: number; form: [number, number]; trip: number; chase: number }>
 
 type Bot = {
   color: number
@@ -179,6 +191,8 @@ type Bot = {
   finish: number | null
   /** 追いかけっこ（月）：つかまえられた */
   caught: boolean
+  /** やさしい：自分を待つ 1 台 */
+  pacer: boolean
   /** 向きを変える速さ（rad/s、左へ +）と、横すべりで車体の前が曲がる側へ向くずれ（rad） */
   turn: number
   drift: number
@@ -191,7 +205,7 @@ type Bot = {
 /** 作り直しで引き継ぐ走りの状態（モデル・塗り・轍などの部品は除く） */
 const BOT_STATE = [
   's', 'off', 'v', 'x', 'z', 'y', 'vy', 'heading', 'pitch', 'roll', 'spin', 'steer', 'air', 'hopT', 'form', 'phase',
-  'tripT', 'tripping', 'finish', 'caught', 'turn', 'drift', 'squash', 'squashV', 'sway',
+  'tripT', 'tripping', 'finish', 'caught', 'pacer', 'turn', 'drift', 'squash', 'squashV', 'sway',
 ] as const satisfies readonly (keyof Bot)[]
 
 /** コンピューターの姿勢（展開して、アームをたたんだ姿） */
@@ -423,7 +437,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       list.push({
         color: c, slot, model, rig, paint, tracks, glow, pool, s: GRID_S, off: GRID_LANES[slot], v: 0,
         x: 0, z: 0, y: 0, vy: 0, heading: 0, pitch: 0, roll: 0, spin: 0, steer: 0, air: false, hopT: 3 + slot,
-        form: 1, phase: 0, tripT: 10, tripping: 0, finish: null, caught: false, turn: 0, drift: 0, squash: 0, squashV: 0, sway: new Sway(),
+        form: 1, phase: 0, tripT: 10, tripping: 0, finish: null, caught: false, pacer: false, turn: 0, drift: 0, squash: 0, squashV: 0, sway: new Sway(),
       })
       slot++
     }
@@ -449,6 +463,9 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
   const run = useRef({ started: false, prog: GRID_S, lastGate: -1, splits: [] as number[], hud: 0, placed: false })
 
   const placeBots = () => {
+    const lv = AI_LEVELS[useRally.getState().level]
+    // やさしいで自分を待つのは、最高速のいちばん低い 1 台
+    const pacer = bots.list.reduce((a, b) => (TRAITS[b.color].top < TRAITS[a.color].top ? b : a), bots.list[0])
     for (const b of bots.list) {
       // 追いかけっこ：コンピューターは先にスタートして逃げる（60 m・130 m・200 m 先から）
       const ahead = chase ? 60 + 70 * bots.list.indexOf(b) : 0
@@ -457,9 +474,10 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       Object.assign(b, {
         s: GRID_S + ahead, off: ahead ? 0 : GRID_LANES[b.slot], v: 0, x: p.x, z: p.z, heading: p.heading, vy: 0, air: false, finish: null, caught: false, hopT: 3 + b.slot * 1.7,
         // 毎回ちがうレースに：調子・走る位置の波・つまずくまでの時間
-        form: 0.95 + Math.random() * 0.09,
+        form: lv.form[0] + Math.random() * lv.form[1],
         phase: Math.random() * Math.PI * 2,
-        tripT: tr.trip * (0.5 + Math.random()),
+        tripT: tr.trip * lv.trip * (0.5 + Math.random()),
+        pacer: useRally.getState().level === 'easy' && b === pacer,
         tripping: 0,
         turn: 0,
         drift: 0,
@@ -493,6 +511,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
   useEffect(
     () => () => {
       roverCtl.locked = false
+      roverAutoGas.on = false
       useRally.setState({ phase: 'off' })
     },
     [],
@@ -512,7 +531,10 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
   const stepBots = (dt: number, t: number, now: number, moving: boolean, counting: boolean) => {
     const r = run.current
     const me = roverPose
-    const k = AI_SKILL
+    const levelId = useRally.getState().level
+    const lv = AI_LEVELS[levelId]
+    const easy = levelId === 'easy'
+    const k = lv.skill
     const night = sky.night
     const last = course.gates[course.gates.length - 1].s
     for (const b of bots.list) {
@@ -523,7 +545,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
         let target = 0
         if (b.finish === null && !b.caught) {
           // 先のカーブ（40 m 先まで）を見て、出せる速さを決める
-          target = tr.top * k * b.form * (chase ? CHASE_PACE : 1)
+          target = tr.top * k * b.form * (chase ? CHASE_PACE * lv.chase : 1)
           for (let a = 0; a <= 40; a += 10) {
             const curv = Math.abs(pointAt(course, b.s + a).k)
             if (curv > 1e-4) target = Math.min(target, Math.sqrt((tr.lat * k * (0.35 + 0.65 * ice)) / curv) + a * 0.08)
@@ -537,13 +559,20 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
           if (chase) {
             // 追いかけっこ：近づかれると少し速く逃げ、離れすぎると少し待つ
             if (gap < 25 && gap > -5) target *= 1.1
-            else if (gap > 220) target *= 0.9
-          } else if (gap > 120) target *= 0.95
+            else if (gap > (easy ? 130 : 220)) target *= easy ? 0.75 : 0.9
+          } else if (b.pacer) {
+            // やさしい：自分より前に出たら、ゆっくりになって待つ。並んだら自分より遅く、ゴールの手前では自分を待つ
+            if (gap > 8) target *= 0.3
+            else if (gap > -6) target *= 0.75
+            if (gap > -4) target = Math.min(target, Math.max(0, me.speed) * 0.9)
+            if (useRally.getState().phase === 'run' && b.s > last - 15) target = 0
+          } else if (easy && gap > 60) target *= 0.8
+          else if (gap > 120) target *= levelId === 'hard' ? 0.98 : 0.95
           else if (gap < -120) target *= 1.05
           // 岩につまずく：しばらく遅くなってふらつく（ジャンプ好きは跳んでよける）
           b.tripT -= dt
           if (b.tripT < 0 && !b.air) {
-            b.tripT = tr.trip * (0.6 + Math.random() * 0.9)
+            b.tripT = tr.trip * lv.trip * (0.6 + Math.random() * 0.9)
             if (tr.hop) {
               b.vy = 3.4 + b.v * 0.08
               b.air = true
@@ -736,6 +765,7 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       b.tracks.mesh.visible = active
     }
     if (st.phase === 'off' || st.phase === 'deploy') {
+      roverAutoGas.on = false
       roverInput.reset = false
       dust.update(dt)
       return
@@ -753,6 +783,8 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
       }
     } else if (r.started) rallyClock.t += dt // 走り出したフレームは 0 から。そのあとは進めた分だけ
     const running = st.phase === 'run'
+    // 自動アクセル：走っているあいだだけ（ゴールしたら、自分でアクセルを踏む）
+    roverAutoGas.on = running && st.auto
     const t = running || st.phase === 'done' ? rallyClock.t : 0
     const moving = running || st.phase === 'done'
 
@@ -833,8 +865,14 @@ export function Rally({ track, terrain, prepare, dustColor, sky }: { track: stri
     }
     order.sort((a, b) => (a.time ?? 1e9) - (b.time ?? 1e9))
     const place = order.findIndex((e) => e.you) + 1
-    const { at, rank } = bookResult(track, t, place, useRally.getState().color, chase ? (useRally.getState().chase?.caught.length ?? 0) : undefined)
-    useRally.setState({ result: { time: t, place, best: newBest ? t : best!.time, newBest, order, at, rank }, toGate: null, place })
+    const caught = chase ? (useRally.getState().chase?.caught.length ?? 0) : undefined
+    const { at, rank } = bookResult(track, t, place, useRally.getState().color, caught)
+    // メダル（自分のタイムで。コンピューターの強さには関係ない）と、金メダルのごほうびの岩
+    const medal = medalFor(track, t, caught)
+    const newMedal = medal !== null && awardMedal(track, medal)
+    const reward = REWARD_ROCKS.find((x) => x.id === TRACKS[track]?.reward)
+    const rock = medal === 1 && reward && useSampleLog.getState().add(reward.body, reward.id) ? reward.id : null
+    useRally.setState({ result: { time: t, place, best: newBest ? t : best!.time, newBest, order, at, rank, medal, newMedal, rock }, toGate: null, place })
     setRallyPhase('done')
   }
 

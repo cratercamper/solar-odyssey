@@ -144,7 +144,7 @@ export const HOURGLASS_FACTS_EN: Record<string, Facts> = {
     real: [
       'People have long sketched big spinning homes in space: the Bernal sphere (1929), NASA’s Stanford torus (1975, a ring) and Gerard O’Neill’s “Island Three” (1976, long cylinders).',
       'Spin gravity equals (spin rate)² × radius. With a radius of 8 km, turning once about every 3 minutes gives Earth’s gravity (9.8 m/s²).',
-      'At the Sun–Earth L4 and L5 points, the pulls of the Sun and Earth balance so that objects tend to stay there. Two Earth “Trojan asteroids” have been found: 2010 TK7 (found 2011) and 2020 XL5 (found 2021).',
+      'At the Sun–Earth L4 and L5 points, the pulls of the Sun and Earth balance so that objects tend to stay there. Two Earth “Trojan asteroids” have been found: 2010 TK7 (found in 2010, confirmed in 2011) and 2020 XL5 (found in 2020, confirmed in 2021).',
       'NASA’s twin STEREO spacecraft passed near Earth’s L4 and L5 regions around 2009, watching the Sun from the side.',
     ],
     quiz: {

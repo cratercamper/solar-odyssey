@@ -166,5 +166,34 @@ export function samplesFor(bodyId: string): RockSample[] {
   return ROCKY
 }
 
+/**
+ * レースの金メダルのごほうびの岩（採集では出ない。data/rallyTracks.ts の reward）。
+ * body：どの天体の岩として図鑑に載るか（採集の記録もこの天体に入る）
+ */
+export const REWARD_ROCKS: (RockSample & { body: string })[] = [
+  {
+    // マリネリス峡谷の中の、明るい色の層（硫酸塩の地層）。Mars Express・MRO が見つけた
+    id: 'layered-sulfate',
+    body: 'mars',
+    color: '#cdb08a',
+    comp: [['MgSO₄', 40], ['SiO₂', 25], ['Fe₂O₃', 15], ['H₂O', 10], ['other', 10]],
+  },
+  {
+    // アポロ17号の試料 76535（トロクトライト）。約42億年前の、月の地下深くでできた岩
+    id: 'troctolite',
+    body: 'moon',
+    color: '#8f9478',
+    comp: [['SiO₂', 43], ['Al₂O₃', 21], ['MgO', 19], ['CaO', 11], ['FeO', 5], ['other', 1]],
+  },
+  {
+    // エウロパのカオス地形の黄色い塩（放射線で色の付いた食塩。ハッブル宇宙望遠鏡の観測、2019 年）
+    id: 'europa-salt',
+    body: 'europa',
+    color: '#e6d38e',
+    gloss: 0.4,
+    comp: [['ice', 50], ['NaCl', 40], ['other', 10]],
+  },
+]
+
 /** 成分の名前：化学式（'SiO₂'）はそのまま、ことばの成分は id（'clay'）で、文言は src/i18n/rockComp */
 export const compLabel = (label: string): string => ui().rockComp[label] ?? label

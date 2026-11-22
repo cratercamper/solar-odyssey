@@ -1,0 +1,254 @@
+/* SF モード：差し色を紫にして、画面の縁と右上の札で、本物の太陽系のモードと見分けられるようにする */
+:root {
+  --accent: #f2a65a;
+  /* 画面下の操作ボタン（マップ・ブリッジ・発進など）の並びのまん中 */
+  --dock-center: 50%;
+}
+
+/* 幅が狭めのパソコン（960px ほど）では、右の航法パネル（幅 230px＋余白）にボタンが隠れるので、
+   ボタンの並びをパネルの左の空いた所のまん中に寄せる */
+@media (min-width: 721px) and (max-width: 1180px) {
+  :root {
+    --dock-center: calc((100% - 262px) / 2);
+  }
+}
+
+body.sf {
+  --accent: #c79bff;
+}
+
+body.sf::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  border: 2px solid rgba(199, 155, 255, 0.55);
+  pointer-events: none;
+  z-index: 50;
+}
+
+body.sf .nav-panel {
+  border-right-color: #d46cff;
+}
+
+.sf-badge {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  border: 1.5px solid #6c6688;
+  border-radius: 12px;
+  background: rgba(16, 18, 34, 0.82);
+  overflow: hidden;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.sf-badge.on {
+  border-color: #c79bff;
+  background: rgba(40, 18, 60, 0.82);
+}
+
+.sf-badge button {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  color: #a9a4c0;
+  font: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.sf-badge button:hover:not(:disabled):not(.on) {
+  color: #fff;
+}
+
+.sf-badge button.on {
+  background: #3b5a86;
+  color: #fff;
+}
+
+.sf-badge.on button.on {
+  background: #7a4bc0;
+  color: #f2e8ff;
+}
+
+.sf-badge button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sf-badge span {
+  margin-left: 6px;
+  font-weight: normal;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+/* スケールの3段の切りかえ（パソコンでは 現実｜SF の右どなり。せまい画面ではその下） */
+.scale-badge {
+  position: fixed;
+  top: 12px;
+  left: calc(50% + 100px);
+  display: grid;
+  gap: 4px;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+@media (max-width: 1319px) {
+  .scale-badge {
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+.scale-row {
+  display: grid;
+  grid-template-columns: 4.2em repeat(3, auto);
+  align-items: stretch;
+  border: 1px solid rgba(108, 102, 136, 0.8);
+  border-radius: 10px;
+  background: rgba(16, 18, 34, 0.72);
+  overflow: hidden;
+}
+
+.scale-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  color: #8f8aa8;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.scale-row button {
+  min-width: 4.6em;
+  padding: 6px 9px;
+  border: none;
+  border-left: 1px solid rgba(108, 102, 136, 0.45);
+  background: transparent;
+  color: #a9a4c0;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scale-row button:hover:not(:disabled):not(.on) {
+  color: #fff;
+}
+
+.scale-row button.on {
+  background: rgba(242, 166, 90, 0.85);
+  color: #1a1020;
+  font-weight: bold;
+}
+
+.scale-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sf-badge button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+/* 縦長のスマホでは上が名札と航法コンピュータでいっぱいなので、左の空いたところへ */
+@media (max-width: 560px) and (orientation: portrait) {
+  .scale-badge {
+    top: 244px;
+    left: 12px;
+    transform: none;
+  }
+
+  .sf-badge {
+    top: 200px;
+    left: 12px;
+    transform: none;
+  }
+
+  .sf-badge button {
+    padding: 8px 12px;
+  }
+
+  .sf-badge span {
+    display: none;
+  }
+
+  /* 航法コンピュータをひらいたら、その中の切りかえを使う */
+  body:has(.nav-panel:not(.collapsed):not(.gallery-panel)) .sf-badge {
+    display: none;
+  }
+}
+
+.nav-world {
+  display: inline-flex;
+  flex: none;
+  margin-left: 6px;
+  border: 1px solid #5a5470;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nav-world button {
+  padding: 2px 7px;
+  border: none;
+  background: none;
+  color: #cfd8ff;
+  font-size: 11px;
+}
+
+.nav-world button.on {
+  background: rgba(242, 166, 90, 0.3);
+  color: #fff;
+}
+
+.nav-world button.on.sf {
+  background: rgba(199, 155, 255, 0.4);
+}
+
+.log-real {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-left: 4px solid #6fc2ff;
+  border-radius: 0 8px 8px 0;
+  background: rgba(60, 120, 180, 0.15);
+  font-size: 12px;
+}
+
+.log-real h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #9fd4ff;
+}
+
+.log-real ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.log-fiction {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid #c79bff;
+  border-radius: 8px;
+  color: #e6d4ff;
+  font-size: 10px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+.nav-head {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}

@@ -1,0 +1,294 @@
+/* ---- 月ミッション第2弾の計器（LunarHud.tsx） ---- */
+.lh-ideal {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(200, 255, 220, 0.9);
+}
+.lh-badge {
+  display: inline-block;
+  margin-top: 6px;
+  margin-right: 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.lh-badge.los {
+  background: rgba(255, 90, 60, 0.25);
+  border: 1px solid rgba(255, 120, 90, 0.6);
+  color: #ffb8a8;
+}
+.lh-badge.burn {
+  background: rgba(255, 170, 60, 0.22);
+  border: 1px solid rgba(255, 190, 90, 0.6);
+  color: #ffe0b0;
+}
+.lh-prog {
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: #b8ffd0;
+  margin-bottom: 6px;
+}
+.lh-fuel > i {
+  background: linear-gradient(90deg, #ff6040, #ffc060 15%, #7fe0a0 40%) !important;
+}
+.lh-fuel > i.low {
+  animation: lh-blink 0.8s steps(2) infinite;
+}
+.lh-hover {
+  font-size: 12px;
+  color: #c8e8ff;
+  margin-top: 2px;
+}
+.lh-hover.low {
+  color: #ff9a80;
+}
+.lh-approach {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.lh-instruments {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(6, 10, 16, 0.55);
+  border: 1px solid rgba(140, 190, 255, 0.22);
+}
+.lh-cross {
+  width: 150px;
+  height: 150px;
+}
+.lh-cross-bg {
+  fill: rgba(0, 0, 0, 0.35);
+  stroke: rgba(255, 255, 255, 0.25);
+}
+.lh-cross-axis {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-dasharray: 3 4;
+}
+.lh-cross-site {
+  fill: #7fe0a0;
+}
+.lh-cross-needle {
+  stroke: #ffd060;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.lh-cross-needle.good {
+  stroke: #fff;
+}
+/* ふちの矢印：いま押している向き（操作が効いているのが分かるように） */
+.lh-cross-in {
+  fill: rgba(255, 255, 255, 0.16);
+}
+.lh-cross-in.on {
+  fill: #7fe0a0;
+}
+.lh-crossbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.lh-cross-scale {
+  font-size: 10.5px;
+  color: #9fb2cc;
+  white-space: nowrap;
+}
+/* 手で操縦するあいだの「いま、やること」 */
+.lh-coach {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(6, 10, 16, 0.6);
+  border: 1px solid rgba(255, 208, 96, 0.5);
+  color: #ffe6a8;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.lh-tape {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 150px;
+}
+.lh-tape-bar {
+  position: relative;
+  width: 14px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.lh-tape-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(120, 190, 255, 0.35);
+}
+.lh-tape-rate {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 3px;
+}
+.lh-tape-rate.good {
+  background: #7fe0a0;
+}
+.lh-tape-rate.ok {
+  background: #ffd060;
+}
+.lh-tape-rate.bad {
+  background: #ff6050;
+}
+.lh-tape-num {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 12px;
+  min-width: 92px;
+}
+.lh-tape-num b {
+  font-size: 20px;
+  font-weight: 500;
+}
+.lh-rod {
+  color: #b8ffd0;
+}
+.lh-manual-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.lh-pad {
+  position: absolute;
+  left: 14px;
+  bottom: 18px;
+  width: 168px;
+  height: 168px;
+}
+.lh-pad button {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 20px;
+}
+.lh-pad .up {
+  left: 56px;
+  top: 0;
+}
+.lh-pad .down {
+  left: 56px;
+  bottom: 0;
+}
+.lh-pad .left {
+  left: 0;
+  top: 56px;
+}
+.lh-pad .right {
+  right: 0;
+  top: 56px;
+}
+.lh-rod-buttons {
+  position: absolute;
+  left: 196px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lh-interlude {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  animation: lh-veil 3.4s ease-in-out forwards;
+}
+.lh-interlude-head {
+  font-size: 26px;
+  letter-spacing: 6px;
+}
+.lh-interlude-line {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #a9bbd0;
+}
+@keyframes lh-veil {
+  0% {
+    opacity: 0;
+  }
+  18%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lh-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+@media (max-width: 700px) {
+  .lh-instruments {
+    right: 8px;
+    bottom: 8px;
+    padding: 6px;
+    gap: 6px;
+  }
+  .lh-cross {
+    width: 110px;
+    height: 110px;
+  }
+  .lh-tape {
+    height: 110px;
+  }
+  .lh-tape-num {
+    min-width: 70px;
+  }
+  .lh-tape-num b {
+    font-size: 16px;
+  }
+  .lh-pad {
+    bottom: 140px;
+  }
+  .lh-rod-buttons {
+    left: auto;
+    right: 10px;
+    bottom: 140px;
+  }
+}
+
+/* 着陸のあとの結果は下に（着陸船が見えるように） */
+.mm-end.lh-end {
+  top: auto;
+  bottom: 16px;
+  transform: translateX(-50%);
+}

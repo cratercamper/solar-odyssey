@@ -1,0 +1,3 @@
+probe-voyager.glb — Voyager 2 in the probe journey (components/probeCam/ProbeCamCanvas.tsx).
+Source: NASA 3D Resources, "Voyager Probe (B)" (https://github.com/nasa/NASA-3D-Resources). NASA 3D Resources are free to use (no copyright); NASA's media guidelines apply (no endorsement, no NASA insignia).
+Converted with tools/probes/import-nasa-voyager.mjs: Draco removed, unused PNG copies dropped, the NASA logo and label on one panel painted over, then meshopt (tools/glb/compress.mjs).

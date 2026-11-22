@@ -1,11 +1,22 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ColonyModel } from '../sf/ColonyModel'
-import { AVENUE, M, colonyDay, treeInstancesWhere, sharedInstancedMesh, treeGeometry, treeMaterial } from '../sf/colonyCity'
+import { rootGeometry, rootShade, trunkRadius } from './treeRoots'
+import { AVENUE, M, colonyDay, treeInstancesWhere, sharedInstancedMesh, treeLiteGeometry, treeMaterial } from '../sf/colonyCity'
 import { Batch, place, seeded } from '../sf/batch'
 import { currentLevel, lowMemory } from '../../state/quality'
-import { EW_END, EW_Y, FADE, G, GROUND_LIFT, LOOP, NS_S, PATCH, PATH_W, PLAY, PLAZA, POND, frameAt, inBoundsTree, landPoint, parkLayout, upAt } from './park'
+import { EW_END, EW_Y, FADE, G, GROUND_LIFT, HALF_L, LOOP, NS_S, PATCH, PATH_W, PLAY, PLAZA, POND, STREETS, STREET_W, frameAt, inBoundsTree, landPoint, parkLayout, streetRect, upAt } from './park'
+import { WalkTown } from './WalkTown'
+import { WalkJungle } from './WalkJungle'
+import { FOREST_ON } from './forestLayout'
+
+/** 「本格的な森」に作り直したラボの森（?forest=old のときは前の森のまま）。森に近づいたときに初めて読み込む */
+const WalkForest = lazy(() => import('./WalkForest'))
+import { JUNGLE, TRAIL_W, jungleLayout } from './jungle'
+import { WalkChunks } from './WalkChunks'
+import { WalkBridges } from './WalkBridges'
+import { WalkAxis } from './WalkAxis'
 
 // コロニーの中を歩く場面の、動かないもの：遠くのコロニー全体（宇宙の場面の形を 1/M 倍）、
 // 公園の地面・池・木・ベンチ・街灯・遊具・噴水、空気のかすみ、昼と夜の光。
@@ -42,10 +53,10 @@ export function standAt(s: number, y: number, h: number, yaw: number, scale: num
 // 区分けの絵 B：R = アスファルト（大通り）、G = 池の岸の砂利、B = 道路の白線
 // 何もないところは芝生。境目は少しぼかして、さらに細かいまだらで崩す。
 
-const PX_PER_M = () => (lowMemory() || currentLevel() === 'low' ? 0.9 : currentLevel() === 'medium' ? 1.3 : 1.7)
+export const PX_PER_M = () => (lowMemory() || currentLevel() === 'low' ? 0.9 : currentLevel() === 'medium' ? 1.3 : 1.7)
 
 /** 質感 1 枚が何 m 四方か（Poly Haven の実寸に近く） */
-const TILE = { grass: 2.2, path: 3, paving: 2.5, sand: 2.1, shore: 2.5, asphalt: 3 }
+export const TILE = { grass: 2.2, path: 3, paving: 2.5, sand: 2.1, shore: 2.5, asphalt: 3 }
 
 const textureLoader = new THREE.TextureLoader()
 const parkTextures = new Map<string, THREE.Texture>()
@@ -95,6 +106,13 @@ function maskCanvases() {
   a.g.beginPath()
   a.g.ellipse(X(LOOP.s), Yc(LOOP.y), LOOP.rs * k, LOOP.ry * k, 0, 0, Math.PI * 2)
   a.g.stroke()
+  // ジャングルの中の小道（輪）
+  a.g.lineWidth = TRAIL_W * k
+  a.g.lineJoin = 'round'
+  a.g.beginPath()
+  jungleLayout().trail.forEach((p, i) => (i ? a.g.lineTo(X(p.s), Yc(p.y)) : a.g.moveTo(X(p.s), Yc(p.y))))
+  a.g.closePath()
+  a.g.stroke()
   // 石畳（G）：広場と大通りの歩道。広場は小道を消して上書き
   a.g.globalCompositeOperation = 'source-over'
   a.g.fillStyle = '#0f0'
@@ -102,6 +120,10 @@ function maskCanvases() {
   a.g.arc(X(PLAZA.s), Yc(PLAZA.y), PLAZA.r * k, 0, Math.PI * 2)
   a.g.fill()
   for (const side of [-1, 1]) a.g.fillRect(X(side > 0 ? AVENUE - 2 : -AVENUE - 6), 0, 8 * k, H)
+  // 住宅街：道の歩道（車道は下のアスファルト）と、門から玄関までの敷石
+  const rect = (g: CanvasRenderingContext2D, r: { s0: number; s1: number; y0: number; y1: number }) => g.fillRect(X(r.s0), Yc(r.y1), (r.s1 - r.s0) * k, (r.y1 - r.y0) * k)
+  for (const st of STREETS) rect(a.g, streetRect(st))
+  for (const w of parkLayout().town.walks) rect(a.g, w)
   // 砂（B）：遊び場
   a.g.fillStyle = '#00f'
   a.g.beginPath()
@@ -120,6 +142,8 @@ function maskCanvases() {
     b.g.stroke()
   }
   b.g.setLineDash([])
+  b.g.fillStyle = '#f00'
+  for (const st of STREETS) rect(b.g, streetRect(st, STREET_W / 2))
   // 池の岸（G）
   b.g.fillStyle = '#0f0'
   b.g.beginPath()
@@ -142,7 +166,7 @@ function maskCanvases() {
 }
 
 /** 境目を崩す・くり返しを目立たなくする細かいまだら（6 m ごとにくり返す） */
-function detailTexture() {
+export function detailTexture() {
   const N = 256
   const c = document.createElement('canvas')
   c.width = c.height = N
@@ -163,7 +187,7 @@ function detailTexture() {
 }
 
 /** 曲がった地面の一枚（円筒の内側に沿う）。uv は範囲の (0,0)〜(1,1) */
-function patchGeometry(segS: number, segY: number, lift: number) {
+export function patchGeometry(segS: number, segY: number, lift: number) {
   const geo = new THREE.PlaneGeometry(1, 1, segS, segY)
   const pos = geo.attributes.position
   const nor = geo.attributes.normal
@@ -207,6 +231,8 @@ function Ground() {
       // 芝生を刈りそろえた緑に寄せる色（線形）
       uLawn: { value: new THREE.Color('#4f8a38').convertSRGBToLinear() },
       uFade: { value: new THREE.Vector2(FADE / size.x, FADE / size.y) },
+      // ジャングルの範囲（地面の板の上の m）。中は落ち葉と苔の、暗い土の床にする
+      uJungle: { value: new THREE.Vector4(JUNGLE.s0 - PATCH.s0, JUNGLE.y0 - PATCH.y0, JUNGLE.s1 - PATCH.s0, JUNGLE.y1 - PATCH.y0) },
     }
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms)
@@ -224,7 +250,8 @@ uniform sampler2D uShore;
 uniform sampler2D uAsphalt;
 uniform vec2 uSize;
 uniform vec3 uLawn;
-uniform vec2 uFade;`,
+uniform vec2 uFade;
+uniform vec4 uJungle;`,
         )
         .replace(
           '#include <map_fragment>',
@@ -239,6 +266,12 @@ vec3 g2 = texture2D(uGrass, wp / ${(TILE.grass * 3.7).toFixed(1)} + 0.21).rgb;
 vec3 gr = mix(g1, g2, 0.35);
 float lum = dot(gr, vec3(0.3, 0.59, 0.11));
 vec3 col = mix(gr, uLawn * lum / 0.265, 0.75) * (0.75 + n2 * 0.55);
+// ジャングルの床：暗い土に、苔のまだら（ふちは少しはみ出してぼかす）
+float jd = min(min(wp.x - uJungle.x, uJungle.z - wp.x), min(wp.y - uJungle.y, uJungle.w - wp.y));
+float wJ = smoothstep(-4.0, 5.0, jd + (n2 - 0.6) * 10.0);
+vec3 soil = texture2D(uPath, wp / 2.2).rgb * vec3(0.42, 0.34, 0.26);
+vec3 moss = col * vec3(0.5, 0.68, 0.42);
+col = mix(col, mix(soil, moss, smoothstep(0.45, 0.85, n1 * 0.7 + n2 * 0.45)), wJ);
 // 境目をまだらで崩す
 float edge = (n1 - 0.67) * 0.9;
 float wPath = clamp(mA.r + edge * mA.r * (1.0 - mA.r) * 4.0, 0.0, 1.0);
@@ -247,7 +280,7 @@ float wSand = clamp(mA.b + edge * mA.b * (1.0 - mA.b) * 4.0, 0.0, 1.0);
 float wAsph = smoothstep(0.3, 0.7, mB.r);
 float wShore = clamp(mB.g + edge * mB.g * (1.0 - mB.g) * 4.0, 0.0, 1.0);
 col = mix(col, texture2D(uShore, wp / ${TILE.shore.toFixed(1)}).rgb, wShore);
-col = mix(col, texture2D(uPath, wp / ${TILE.path.toFixed(1)}).rgb * 1.05, wPath);
+col = mix(col, texture2D(uPath, wp / ${TILE.path.toFixed(1)}).rgb * mix(1.05, 0.7, wJ), wPath);
 col = mix(col, texture2D(uSand, wp / ${TILE.sand.toFixed(1)}).rgb * 1.35, wSand);
 col = mix(col, texture2D(uPaving, wp / ${TILE.paving.toFixed(1)}).rgb * 1.6, wPave);
 col = mix(col, texture2D(uAsphalt, wp / ${TILE.asphalt.toFixed(1)}).rgb, wAsph);
@@ -257,7 +290,7 @@ vec2 e = min(vMapUv, 1.0 - vMapUv) / uFade;
 diffuseColor.a *= smoothstep(0.0, 1.0, min(e.x, e.y));`,
         )
     }
-    mat.customProgramCacheKey = () => 'walk-ground-2'
+    mat.customProgramCacheKey = () => 'walk-ground-3'
     mat.userData.maskB = masks.b
     // 池の水：楕円の網（中心から外へ）
     const ring = 40
@@ -333,15 +366,16 @@ function useInstanced(geo: THREE.BufferGeometry, mat: THREE.Material, list: THRE
 }
 
 /** 木の幹の皮（ケヤキ）。幹の円柱に、周りに 2 回・高さに 3 回くり返す */
-function barkTexture() {
+export function barkTexture() {
   const t = parkTexture('bark')
   t.repeat.set(2, 3)
   return t
 }
 
 /** 幹のある木（近くの木）。樹冠は 2 つの丸を重ねて、上が明るい */
-function crownGeometry() {
-  const a = new THREE.IcosahedronGeometry(0.5, 2)
+export function crownGeometry() {
+  // スマホや「軽量」では、大きい丸を一段粗く（三角形 320 → 80 枚）。公園の木は 600 本あるので、ここが効く
+  const a = new THREE.IcosahedronGeometry(0.5, lowMemory() || currentLevel() === 'low' ? 1 : 2)
   const b = new THREE.IcosahedronGeometry(0.36, 1).translate(0.18, 0.28, 0.08)
   const c = new THREE.IcosahedronGeometry(0.32, 1).translate(-0.2, 0.18, -0.12)
   const batch = new Batch()
@@ -363,10 +397,11 @@ function crownGeometry() {
 
 /**
  * 公園の木。近く（NEAR m 以内）は ez-tree（MIT）で作った枝と葉のある木、遠くは幹＋丸い樹冠の軽い木。
- * ez-tree は大きい（質感こみで 4 MB）ので、歩く場面に来たときに読み込む。読み終わるまでは全部を軽い木で描く。
+ * 枝と葉のある木は、前もって tools/trees/bake.mjs で glb に書き出してある（ez-tree の 4 MB の JS は読まない）。
+ * 歩く場面に来たときに読み込み、読み終わるまでは全部を軽い木で描く。
  * 木の種類は、型（カシ・トネリコ・ポプラ）と乱数の種を変えて 6 種類。1 本ごとに向きと大きさも変える
  */
-/** [ez-tree の型, 種, 出る割合]。Aspen は葉が秋の色なので使わない。松はところどころに */
+/** [ez-tree の型, 種, 出る割合]（tools/trees/bake.mjs と同じ順）。Aspen は葉が秋の色なので使わない。松はところどころに */
 const TREE_KINDS: [string, number, number][] = [
   ['Oak Medium', 11, 3],
   ['Oak Medium', 23, 3],
@@ -375,6 +410,8 @@ const TREE_KINDS: [string, number, number][] = [
   ['Oak Large', 67, 2],
   ['Pine Medium', 53, 1],
 ]
+/** 葉の揺れの時刻（秒） */
+const wind = { value: 0 }
 const KIND_TOTAL = TREE_KINDS.reduce((a, k) => a + k[2], 0)
 function pickKind(r: number) {
   let x = r * KIND_TOTAL
@@ -383,7 +420,7 @@ function pickKind(r: number) {
 }
 const nearDistance = () => (lowMemory() || currentLevel() === 'low' ? 70 : currentLevel() === 'medium' ? 110 : 150)
 
-type TreeKind = { branches: THREE.InstancedMesh; leaves: THREE.InstancedMesh; update: (t: number) => void; height: number }
+type TreeKind = { branches: THREE.InstancedMesh; leaves: THREE.InstancedMesh; roots: THREE.InstancedMesh; update: (t: number) => void; height: number; base: number; radius: number }
 
 function Trees({ follow }: { follow: { current: THREE.Vector3 } }) {
   const park = parkLayout()
@@ -395,6 +432,8 @@ function Trees({ follow }: { follow: { current: THREE.Vector3 } }) {
       return {
         t,
         yaw,
+        /** 幹の根元の半径 m（軽い木の円柱の下の半径） */
+        r: 0.5 * (0.16 + t.h * 0.012),
         kind: pickKind(rand()),
         trunk: standAt(t.s, t.y, t.h * 0.22, yaw, [0.16 + t.h * 0.012, t.h * 0.44, 0.16 + t.h * 0.012], new THREE.Matrix4()),
         crown: standAt(t.s, t.y, t.h * 0.62, yaw, [w, t.h * 0.62, w], new THREE.Matrix4()),
@@ -415,61 +454,118 @@ function Trees({ follow }: { follow: { current: THREE.Vector3 } }) {
       m.castShadow = m.receiveShadow = true
       m.frustumCulled = false
     }
-    return { items, trunks, crowns, crownMat }
+    // 根元：根張り（近くの木だけ）と、根元の土のしみ（全部の木）。軽い木の幹の根元の太さは、幹の円柱の下の半径
+    const rootGeo = rootGeometry()
+    const roots = new THREE.InstancedMesh(rootGeo, trunkMat, n)
+    roots.castShadow = roots.receiveShadow = true
+    roots.frustumCulled = false
+    roots.count = 0
+    const shade = rootShade()
+    const shades = new THREE.InstancedMesh(shade.geo, shade.mat, n)
+    shades.frustumCulled = false
+    // 地面（renderOrder 1、半透明の扱い）より後、池の水（2）より前に描く
+    shades.renderOrder = 1.5
+    // 奥行きが対数（logarithmicDepthBuffer）で polygonOffset が効かないので、地面から 4 cm 浮かせる
+    items.forEach((it, i) => shades.setMatrixAt(i, standAt(it.t.s, it.t.y, 0.04, it.yaw, it.t.h * 0.42, new THREE.Matrix4())))
+    return { items, trunks, crowns, crownMat, rootGeo, roots, shades }
   }, [park])
   const group = useRef<THREE.Group>(null!)
   const kinds = useRef<TreeKind[] | null>(null)
   const st = useRef({ next: 0, near: new Uint8Array(data.items.length) })
 
-  // ez-tree を読み込んで、種類ごとの木を作る
+  // 枝と葉のある木の形（public/models/park-trees.glb。ez-tree で作って書き出したもの）を読み込んで、種類ごとの木を作る
   useEffect(() => {
     let dead = false
     const made: TreeKind[] = []
-    void import('@dgreenheck/ez-tree')
-      .then(({ Tree }) => {
+    // メモリの少ない端末（スマホ）では読まない。軽い木だけで描く
+    if (lowMemory()) return
+    void Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')])
+      .then(async ([{ GLTFLoader }, { MeshoptDecoder }]) => {
+        const loader = new GLTFLoader()
+        loader.setMeshoptDecoder(MeshoptDecoder)
+        const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/park-trees.glb`)
         if (dead) return
-        for (const [preset, seed] of TREE_KINDS) {
-          const tree = new Tree()
-          tree.loadPreset(preset)
-          tree.options.seed = seed
-          tree.generate()
-          const box = new THREE.Box3().setFromObject(tree)
-          const cap = data.items.length
-          const branches = new THREE.InstancedMesh(tree.branchesMesh.geometry, tree.branchesMesh.material, cap)
-          // ez-tree の葉の材質は、風で揺らすために project_vertex を書き換えていて、instanceMatrix を掛けない。
-          // そのままだと葉がぜんぶ原点に集まって見えないので、書き換えのあとに instanceMatrix を足す
-          const leafMat = tree.leavesMesh.material as THREE.Material
-          const ezCompile = leafMat.onBeforeCompile.bind(leafMat)
-          leafMat.onBeforeCompile = (shader, renderer) => {
-            ezCompile(shader, renderer)
-            shader.vertexShader = shader.vertexShader.replace(
-              'mvPosition = modelViewMatrix * mvPosition;',
-              '#ifdef USE_INSTANCING\n mvPosition = instanceMatrix * mvPosition;\n#endif\n mvPosition = modelViewMatrix * mvPosition;',
-            )
+        const cap = data.items.length
+        const mats = new Map<THREE.Material, THREE.Material>()
+        // glb の材質を、軽い Lambert に置きかえる（同じ画像の材質は 1 つにまとめる）
+        const lambert = (src: THREE.Material, leaves: boolean) => {
+          let m = mats.get(src)
+          if (m) return m
+          const s = src as THREE.MeshStandardMaterial
+          const mat = new THREE.MeshLambertMaterial({ color: s.color, map: s.map, side: leaves ? THREE.DoubleSide : THREE.FrontSide, alphaTest: leaves ? 0.5 : 0 })
+          if (leaves) {
+            // 葉を風で少し揺らす（高い所ほど大きく、木ごとに位相をずらす）
+            mat.onBeforeCompile = (shader) => {
+              shader.uniforms.uWind = wind
+              shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform float uWind;').replace(
+                '#include <begin_vertex>',
+                `#include <begin_vertex>
+float ph = 0.0;
+#ifdef USE_INSTANCING
+ph = instanceMatrix[3].x * 0.37 + instanceMatrix[3].y * 0.11;
+#endif
+float sw = max(0.0, position.y) * 0.012;
+transformed.x += sin(uWind * 1.3 + ph + position.y * 0.6) * sw;
+transformed.z += sin(uWind * 1.7 + ph * 1.3 + position.x * 0.8) * sw * 0.7;`,
+              )
+            }
+            mat.customProgramCacheKey = () => 'park-tree-leaves-1'
           }
-          leafMat.customProgramCacheKey = () => 'eztree-leaves-instanced'
-          const leaves = new THREE.InstancedMesh(tree.leavesMesh.geometry, leafMat, cap)
-          for (const m of [branches, leaves]) {
+          mats.set(src, mat)
+          return mat
+        }
+        gltf.scene.children.forEach((g, i) => {
+          if (i >= TREE_KINDS.length) return
+          const [bm, lm] = g.children as THREE.Mesh[]
+          g.updateMatrixWorld(true)
+          const box = new THREE.Box3().setFromObject(g)
+          // 量子化した形は、部品の拡大・移動で元の大きさに戻すので、それを形に焼きこむ（木の根元が原点）
+          const bake = (m: THREE.Mesh) => {
+            const geo = new THREE.BufferGeometry()
+            for (const [name, attr] of Object.entries(m.geometry.attributes)) {
+              const a = attr as THREE.BufferAttribute
+              const arr = new Float32Array(a.count * a.itemSize)
+              const get = [a.getX, a.getY, a.getZ, a.getW].map((f) => f.bind(a))
+              for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) arr[i * a.itemSize + c] = get[c](i)
+              geo.setAttribute(name, new THREE.BufferAttribute(arr, a.itemSize))
+            }
+            geo.setIndex(m.geometry.index)
+            geo.applyMatrix4(m.matrixWorld)
+            m.geometry.dispose()
+            return geo
+          }
+          const bark = lambert(bm.material as THREE.Material, false)
+          const branchGeo = bake(bm)
+          const branches = new THREE.InstancedMesh(branchGeo, bark, cap)
+          const leaves = new THREE.InstancedMesh(bake(lm), lambert(lm.material as THREE.Material, true), cap)
+          // 根張りは、この木の樹皮で。上から光を受けて幹より明るく見えるので、少し暗くする（土で汚れた色）
+          const roots = new THREE.InstancedMesh(data.rootGeo, bark, cap)
+          for (let i = 0; i < cap; i++) roots.setColorAt(i, rootTint)
+          for (const m of [branches, leaves, roots]) {
             m.count = 0
             m.castShadow = m.receiveShadow = true
             m.frustumCulled = false
           }
-          made.push({ branches, leaves, update: (t) => tree.update(t), height: Math.max(1, box.max.y - box.min.y) })
-          group.current?.add(branches, leaves)
-        }
+          const height = Math.max(1, box.max.y - box.min.y)
+          made.push({ branches, leaves, roots, update: (t) => (wind.value = t), height, base: box.min.y, radius: trunkRadius(branchGeo, box.min.y + height * 0.015, height) })
+          group.current?.add(branches, leaves, roots)
+        })
         kinds.current = made
         st.current.next = 0
       })
-      .catch((e) => console.error('[walk] ez-tree failed, keeping simple trees', e))
+      .catch((e) => console.error('[walk] park trees failed, keeping simple trees', e))
     return () => {
       dead = true
       for (const k of made) {
         k.branches.removeFromParent()
         k.leaves.removeFromParent()
+        k.roots.removeFromParent()
         k.branches.geometry.dispose()
         k.leaves.geometry.dispose()
         ;(k.branches.material as THREE.Material).dispose()
         ;(k.leaves.material as THREE.Material).dispose()
+        ;(k.branches.material as THREE.MeshLambertMaterial).map?.dispose()
+        ;(k.leaves.material as THREE.MeshLambertMaterial).map?.dispose()
       }
       kinds.current = null
     }
@@ -488,40 +584,53 @@ function Trees({ follow }: { follow: { current: THREE.Vector3 } }) {
     const near = nearDistance()
     const p = follow.current
     let far = 0
-    if (ks) for (const k of ks) k.branches.count = k.leaves.count = 0
+    if (ks) for (const k of ks) k.branches.count = k.leaves.count = k.roots.count = 0
+    const rootNear = Math.min(near, 90)
+    data.roots.count = 0
     data.items.forEach((it) => {
       landPoint(it.t.s, it.t.y, 0, v)
-      const close = !!ks && v.distanceTo(p) < near
+      const dist = v.distanceTo(p)
+      const close = !!ks && dist < near
       if (close && ks) {
         const k = ks[it.kind]
         const sc = (it.t.h / k.height) * 1.15
         standAt(it.t.s, it.t.y, -0.2, it.yaw, sc, m)
         k.branches.setMatrixAt(k.branches.count++, m)
         k.leaves.setMatrixAt(k.leaves.count++, m)
+        if (dist < rootNear && k.radius > 0) {
+          // 形の中の地面の高さでの幹の太さに合わせる（幹は地面より 0.2 m 下から生えている）
+          standAt(it.t.s, it.t.y, 0, it.yaw + 0.7, k.radius * sc, m)
+          k.roots.setMatrixAt(k.roots.count++, m)
+        }
         return
       }
+      if (dist < rootNear) data.roots.setMatrixAt(data.roots.count++, standAt(it.t.s, it.t.y, 0, it.yaw, it.r, m))
       data.trunks.setMatrixAt(far, it.trunk)
       data.crowns.setMatrixAt(far, it.crown)
       data.crowns.setColorAt(far, c.setHex(it.t.color))
       far++
     })
     data.trunks.count = data.crowns.count = far
-    data.trunks.instanceMatrix.needsUpdate = data.crowns.instanceMatrix.needsUpdate = true
+    data.trunks.instanceMatrix.needsUpdate = data.crowns.instanceMatrix.needsUpdate = data.roots.instanceMatrix.needsUpdate = true
     if (data.crowns.instanceColor) data.crowns.instanceColor.needsUpdate = true
     if (ks)
       for (const k of ks) {
         k.branches.instanceMatrix.needsUpdate = true
         k.leaves.instanceMatrix.needsUpdate = true
+        k.roots.instanceMatrix.needsUpdate = true
       }
   })
   return (
     <group ref={group}>
       <primitive object={data.trunks} />
       <primitive object={data.crowns} />
+      <primitive object={data.roots} />
+      <primitive object={data.shades} />
     </group>
   )
 }
 const c = new THREE.Color()
+const rootTint = new THREE.Color(0.62, 0.56, 0.5)
 
 function benchGeometry() {
   const box = new THREE.BoxGeometry(1, 1, 1)
@@ -685,7 +794,8 @@ function PlayAndPlaza() {
 /* ---------- 遠くのコロニー ---------- */
 
 function FarColony() {
-  const trees = useMemo(() => sharedInstancedMesh(treeGeometry(), treeMaterial, treeInstancesWhere((k, t) => !(k === 0 && inBoundsTree(t)))), [])
+  // 向こう側の街の木は数 km 先で、1 本が数ピクセル。粗い形（三角形 20 枚）で十分（細かい形だと 2 万本で 150 万枚になっていた）
+  const trees = useMemo(() => sharedInstancedMesh(treeLiteGeometry(), treeMaterial, treeInstancesWhere((k, t) => !(k === 0 && inBoundsTree(t)))), [])
   useEffect(() => () => trees.dispose(), [trees])
   return (
     <group scale={1 / M}>
@@ -697,6 +807,8 @@ function FarColony() {
 
 /* ---------- 光と空気 ---------- */
 
+const Y25 = new THREE.Vector3(0, 0.25, 0)
+
 /** 昼と夜の光。follow の位置（自分）のまわりだけ影を作る */
 function Lights({ follow }: { follow: { current: THREE.Vector3 } }) {
   const { scene } = useThree()
@@ -706,12 +818,10 @@ function Lights({ follow }: { follow: { current: THREE.Vector3 } }) {
   const glow = useRef<THREE.AmbientLight>(null!)
   const level = currentLevel()
   const shadows = level !== 'low' && !lowMemory()
-  const center = useMemo(() => {
-    const s = (PATCH.s0 + PATCH.s1) / 2
-    return { up: upAt(s), east: new THREE.Vector3(Math.cos(s / G), 0, -Math.sin(s / G)) }
-  }, [])
-  // 光は窓（大地の帯のとなり）から斜めに入ってくる：上から東へ 35°、少し太陽の側（北）から
-  const dir = useMemo(() => center.up.clone().multiplyScalar(Math.cos(0.6)).addScaledVector(center.east, Math.sin(0.6)).add(new THREE.Vector3(0, 0.25, 0)).normalize(), [center])
+  // 光は窓（大地の帯のとなり）から斜めに入ってくる：上から東へ 35°、少し太陽の側（北）から。
+  // 円筒のどこを歩いても同じ見え方になるよう、自分のいる所の上と東から決める
+  const center = useMemo(() => ({ up: new THREE.Vector3(), east: new THREE.Vector3() }), [])
+  const dir = useMemo(() => new THREE.Vector3(), [])
   useEffect(() => {
     scene.fog = new THREE.FogExp2(HAZE_DAY.clone(), 0.000055)
     scene.background = HAZE_DAY.clone()
@@ -721,6 +831,10 @@ function Lights({ follow }: { follow: { current: THREE.Vector3 } }) {
     }
   }, [scene])
   useFrame(() => {
+    const a = Math.atan2(follow.current.x, follow.current.z)
+    center.up.set(-Math.sin(a), 0, -Math.cos(a))
+    center.east.set(Math.cos(a), 0, -Math.sin(a))
+    dir.copy(center.up).multiplyScalar(Math.cos(0.6)).addScaledVector(center.east, Math.sin(0.6)).add(Y25).normalize()
     const n = colonyDay.night
     const fog = scene.fog as THREE.FogExp2
     fog.color.lerpColors(HAZE_DAY, HAZE_NIGHT, n)
@@ -773,6 +887,26 @@ function Debug() {
   return null
 }
 
+/** 森の絵と形（約 1〜3 MB）は、森のふちから NEAR m 以内に来たときに読み込む。一度読んだら、離れても残す */
+const NEAR = 180
+function NearForest({ follow }: { follow: { current: THREE.Vector3 } }) {
+  const [near, setNear] = useState(false)
+  useFrame(() => {
+    if (near) return
+    const p = follow.current
+    const s = Math.atan2(p.x, p.z) * G
+    const y = p.y + HALF_L
+    const ds = Math.max(JUNGLE.s0 - s, 0, s - JUNGLE.s1)
+    const dy = Math.max(JUNGLE.y0 - y, 0, y - JUNGLE.y1)
+    if (Math.hypot(ds, dy) < NEAR) setNear(true)
+  })
+  return near ? (
+    <Suspense fallback={null}>
+      <WalkForest />
+    </Suspense>
+  ) : null
+}
+
 export function WalkWorld({ follow }: { follow: { current: THREE.Vector3 } }) {
   return (
     <>
@@ -780,9 +914,15 @@ export function WalkWorld({ follow }: { follow: { current: THREE.Vector3 } }) {
       <Lights follow={follow} />
       <FarColony />
       <Ground />
+      <WalkChunks follow={follow} />
+      <WalkBridges />
+      <WalkAxis />
       <Trees follow={follow} />
       <Furniture />
       <PlayAndPlaza />
+      <WalkTown />
+      <WalkJungle />
+      {FOREST_ON && <NearForest follow={follow} />}
     </>
   )
 }

@@ -1,0 +1,217 @@
+/* 訪問スタンプ帳 */
+.stamp-book {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: 16px 18px;
+  border-top: 6px solid #e8b04a;
+  border-radius: 14px;
+  background: rgba(20, 16, 30, 0.98);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.stamp-book header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stamp-book h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.stamp-book h3 {
+  margin: 12px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cfd8ff;
+}
+
+.stamp-book .close {
+  border: none;
+  background: none;
+  font-size: 18px;
+}
+
+.stamp-book p {
+  margin: 6px 0;
+}
+
+.stamp-summary strong {
+  color: #ffd27a;
+}
+
+.stamp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 76px;
+  padding: 8px 2px 4px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stamp:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stamp:disabled {
+  cursor: default;
+}
+
+.stamp-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 52px;
+  height: 52px;
+  border: 2px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+}
+
+/* もらったスタンプ：天体の色の玉を、二重の輪で囲んで少し傾けて押したように */
+.stamp.got .stamp-face {
+  padding: 4px;
+  border: 4px double var(--c);
+  background: radial-gradient(circle at 36% 32%, color-mix(in srgb, var(--c), #fff 45%), var(--c) 42%, color-mix(in srgb, var(--c), #000 55%));
+  background-clip: content-box;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c), transparent 65%);
+  transform: rotate(var(--r));
+}
+
+.stamp.got .stamp-face[data-id='saturn']::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  right: -7px;
+  top: 41%;
+  height: 18%;
+  border: 2px solid color-mix(in srgb, var(--c), #fff 35%);
+  border-radius: 50%;
+  transform: rotate(-14deg);
+}
+
+.stamp.got .stamp-face[data-id='cube'] {
+  border-radius: 10px;
+}
+
+.stamp-star {
+  position: absolute;
+  top: -8px;
+  right: -9px;
+  color: #ffd27a;
+  font-size: 15px;
+  text-shadow: 0 0 4px #000;
+  transform: rotate(calc(-1 * var(--r)));
+}
+
+.stamp-name {
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.stamp:not(.got) .stamp-name {
+  opacity: 0.55;
+}
+
+.stamp-date {
+  min-height: 1.3em;
+  font-size: 10px;
+  color: #9aa3c7;
+}
+
+.title-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.title-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  opacity: 0.72;
+}
+
+.title-list li.got {
+  background: rgba(232, 176, 74, 0.12);
+  opacity: 1;
+}
+
+.medal {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+}
+
+.title-list li.got .medal {
+  border-color: #ffd27a;
+  background: radial-gradient(circle at 35% 30%, #fff3c4, #e8b04a 55%, #a8701c);
+}
+
+.title-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.title-list li.got strong {
+  color: #ffd27a;
+}
+
+.title-count {
+  font-size: 12px;
+  color: #cfd8ff;
+}
+
+@media (max-width: 720px), (max-height: 500px) {
+  .stamp-book {
+    padding: 12px 12px;
+  }
+
+  .stamp {
+    width: 66px;
+  }
+
+  .stamp-face {
+    width: 44px;
+    height: 44px;
+  }
+
+  .title-list {
+    grid-template-columns: 1fr;
+  }
+}

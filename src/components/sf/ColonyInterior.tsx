@@ -14,6 +14,7 @@ import {
   onLand,
   sharedInstancedMesh,
   treeGeometry,
+  treeLiteGeometry,
   treeInstances,
   treeMaterial,
   updateColonyDay,
@@ -144,10 +145,12 @@ export function ColonyInterior({ trees = true }: { trees?: boolean }) {
   const meshes = useMemo(() => {
     const buildings = sharedInstancedMesh(buildingGeometry(), buildingMaterial, buildingInstances())
     const trees = sharedInstancedMesh(treeGeometry(), treeMaterial, treeInstances())
+    // コロニーの外から窓ごしに見るときは、木を粗い形で（木は 2 万本以上あるので、細かいままだと 200 万三角形近くになる）
+    const treesLite = sharedInstancedMesh(treeLiteGeometry(), treeMaterial, treeInstances())
     const trains = new THREE.InstancedMesh(buildingGeometry(), trainMaterial, 6)
     const cars = new THREE.InstancedMesh(buildingGeometry(), carMaterial, 6)
     trains.frustumCulled = cars.frustumCulled = false
-    return { buildings, trees, trains, cars, infra: infraGeometry().geometry }
+    return { buildings, trees, treesLite, trains, cars, infra: infraGeometry().geometry }
   }, [])
   useEffect(() => () => {
     // 形と配置は共有なので捨てない。列車とかごの行列だけ
@@ -167,6 +170,9 @@ export function ColonyInterior({ trees = true }: { trees?: boolean }) {
     g.worldToLocal(camLocal)
     g.visible = camLocal.length() < 1.3
     if (!g.visible) return
+    const inside = Math.hypot(camLocal.x, camLocal.z) < R && Math.abs(camLocal.y) < L / 2
+    meshes.trees.visible = inside
+    meshes.treesLite.visible = !inside
     const t = clock.elapsedTime
     // 列車：帯ごとに上りと下り
     const len = meters.length * (0.95 - 0.012)
@@ -208,6 +214,7 @@ export function ColonyInterior({ trees = true }: { trees?: boolean }) {
     <group ref={group}>
       <primitive object={meshes.buildings} />
       {trees && <primitive object={meshes.trees} />}
+      {trees && <primitive object={meshes.treesLite} />}
       <primitive object={meshes.trains} />
       <primitive object={meshes.cars} />
       <mesh geometry={meshes.infra} material={infraMaterial} />

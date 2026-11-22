@@ -1,0 +1,46 @@
+/* 司令船の窓：角の丸い四角の窓と、厚い枠。まわりは船内の暗い壁 */
+.cabin-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cabin-glass {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(78vw, 112vh);
+  height: min(64vh, 58vw);
+  transform: translate(-50%, -50%);
+  border-radius: 22% / 26%;
+  /* 窓の外は見せ、外側は大きな影で船内の壁にする */
+  box-shadow:
+    0 0 0 14px #1c2026,
+    0 0 0 18px #3a4048,
+    0 0 0 200vmax #0d1014,
+    inset 0 0 60px rgba(0, 0, 0, 0.55),
+    inset 0 0 6px rgba(150, 190, 230, 0.25);
+}
+.cabin-bolt {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #8a929c, #2a2e34 70%);
+}
+.cabin-bolt.a {
+  left: calc(50% - min(39vw, 56vh) - 9px);
+  top: calc(50% - min(32vh, 29vw) - 9px);
+}
+.cabin-bolt.b {
+  right: calc(50% - min(39vw, 56vh) - 9px);
+  top: calc(50% - min(32vh, 29vw) - 9px);
+}
+.cabin-bolt.c {
+  left: calc(50% - min(39vw, 56vh) - 9px);
+  bottom: calc(50% - min(32vh, 29vw) - 9px);
+}
+.cabin-bolt.d {
+  right: calc(50% - min(39vw, 56vh) - 9px);
+  bottom: calc(50% - min(32vh, 29vw) - 9px);
+}

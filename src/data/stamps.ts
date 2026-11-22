@@ -2,7 +2,10 @@ import { PLANETS, SUN } from './bodies'
 import { CUBE_ID } from './cube'
 import { COLONY_ID, SF_OBJECTS, sfEntry } from './sf'
 import { HUBBLE_ID, WEBB_ID } from './telescopes'
+import { TRACKS } from './rallyTracks'
 import { ui } from '../i18n'
+import { useRallyMedals, type Medal } from '../state/rallyMedals'
+import { saveData } from '../state/save'
 import type { StampTitlesJa } from '../i18n/stampTitles.ja'
 
 // 訪問スタンプ帳：天体のそばまで行くとスタンプがもらえる。決まった組をそろえたり、たくさん集めたりすると称号がもらえる
@@ -46,7 +49,10 @@ export type Title = {
   /** この中から count 個（stamp：行った天体、quiz：航海日誌のクイズに正解した天体） */
   ids: string[]
   count: number
-  source: 'stamp' | 'quiz'
+  source: 'stamp' | 'quiz' | 'medal' | 'event'
+  /** medal：このメダルより良いもの（1 金・3 銅）を、ids のコース（TRACKS）で count 個 */
+  medal?: Medal
+  /** event：ids の出来事（saveData の名前。'moon-lap' なら着陸船で月を一周した）を count 個 */
   /** 数を集める称号（いちばん上のものを「今の称号」にする） */
   rank?: boolean
   /** もらうまで名前を伏せる */
@@ -88,13 +94,26 @@ export const TITLES: Title[] = [
   set('scopes', group('scopes')),
   { ...set('mystery', [CUBE_ID], true), sf: true },
   { ...set('colonist', [COLONY_ID]), sf: true },
+  // ローバーレースのメダル（state/rallyMedals.ts）
+  { id: 'race-debut', ids: Object.keys(TRACKS), count: 1, source: 'medal', medal: 3 },
+  { id: 'race-champion', ids: Object.keys(TRACKS), count: Object.keys(TRACKS).length, source: 'medal', medal: 1 },
+  // 出来事（着陸船で月を一周した：state/skyFlight.ts）
+  { id: 'moon-lap', ids: ['moon-lap'], count: 1, source: 'event' },
   { id: 'scholar', ids: NATURAL, count: 10, source: 'quiz' },
   { id: 'professor', ids: NATURAL, count: NATURAL.length, source: 'quiz' },
 ]
 
 /** 称号のための数（集めた数、いる数） */
 export function titleProgress(title: Title, stamps: Record<string, number>, explored: string[]) {
-  const have = title.source === 'stamp' ? title.ids.filter((id) => id in stamps).length : title.ids.filter((id) => explored.includes(id)).length
+  const medals = useRallyMedals.getState().medals
+  const have =
+    title.source === 'stamp'
+      ? title.ids.filter((id) => id in stamps).length
+      : title.source === 'event'
+        ? title.ids.filter((id) => saveData.get(id) !== null).length
+        : title.source === 'medal'
+        ? title.ids.filter((id) => medals[id] && medals[id].medal <= (title.medal ?? 3)).length
+        : title.ids.filter((id) => explored.includes(id)).length
   return { have: Math.min(have, title.count), need: title.count }
 }
 

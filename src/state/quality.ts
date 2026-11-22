@@ -26,6 +26,19 @@ const touchMedium = () => typeof matchMedia !== 'undefined' && matchMedia('(poin
 export const dprFor = (level: Level) => Math.min(window.devicePixelRatio || 1, level === 'medium' && touchMedium() ? 1.25 : QUALITY[level].dpr)
 
 /**
+ * 「軽量」でもまだ遅いとき（古いノートやスマホで重い場面）に、さらに画面を粗く描く倍率の段。
+ * 自動のときだけ使い、余裕が出たら 1 に戻す
+ */
+export const SCALE_STEPS = [1, 0.8, 0.65, 0.5]
+
+/** Canvas の dpr：画質と、遅いときの倍率から（cap はその場面の上限） */
+export function useDpr(cap = Infinity) {
+  const level = useQuality((q) => q.level)
+  const scale = useQuality((q) => SCALE_STEPS[q.scaleStep])
+  return Math.min(cap, dprFor(level)) * scale
+}
+
+/**
  * メモリの少ない端末（スマホ）か。iPhone の Safari は、ページが使うメモリが上限を超えると、
  * 警告なしにページごと落として読み込み直す（「問題が繰り返し起きました」）。
  * そうした端末では、4K テクスチャや大きなテクスチャを使わない。#phone を付けると、パソコンでも試せる
@@ -46,6 +59,8 @@ type QualityState = {
   level: Level
   /** 直近の FPS（測れていなければ 0） */
   fps: number
+  /** 「軽量」でも遅いときに、画面を粗くしている段（SCALE_STEPS の番号。0 でそのまま） */
+  scaleStep: number
   setAuto: (auto: Level) => void
   setFps: (fps: number) => void
 }
@@ -65,6 +80,7 @@ export const useQuality = create<QualityState>((set) => ({
   auto: 'high',
   level: initialWanted(),
   fps: 0,
+  scaleStep: 0,
   setAuto: (auto) => set({ auto }),
   setFps: (fps) => set({ fps }),
 }))
@@ -84,6 +100,10 @@ const applyIfAlone = () => {
 }
 useStore.subscribe(applyIfAlone)
 useQuality.subscribe(applyIfAlone)
+// 画質の設定を手で変えたら、粗くした分は元に戻す
+useStore.subscribe((s, prev) => {
+  if (s.settings.quality !== prev.settings.quality && useQuality.getState().scaleStep !== 0) useQuality.setState({ scaleStep: 0 })
+})
 
 /** 内蔵 GPU やスマホの GPU か（はじめから「標準」で始める） */
 export function looksIntegrated(renderer: string) {

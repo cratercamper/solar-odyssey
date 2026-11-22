@@ -4,7 +4,7 @@ import { buildCourse } from './Rally'
 import { TRACKS } from '../../data/rallyTracks'
 import { APOLLO17, APOLLO17_TRAVERSE } from '../../data/apollo17'
 import { useHistoric } from '../../state/historic'
-import { jumpCharge, roverMouse, useRover, useRoverCruise, ROVER_RANGE, ROVER_TOP } from '../../state/rover'
+import { jumpCharge, roverMouse, useRover, useRoverCruise, ROVER_RANGE, ROVER_TOP, CREW_TOP, LRV_TOP } from '../../state/rover'
 import { LANDER_POS } from './terrain'
 import { useMapTerrain, useRelief, type ReliefLayer } from './mapRelief'
 import { useLang } from '../../i18n/lang'
@@ -14,25 +14,29 @@ import { ui } from '../../i18n'
 // ローバーの計器：速度計（0〜60 km/h の弧）と、向き・傾き・着陸船からの距離・宙に浮いているかの表示
 
 const TOP_KMH = Math.round(ROVER_TOP * 3.6)
+/** 与圧ローバーの速度計は 0〜20 km/h */
+const CREW_KMH = Math.round(CREW_TOP * 3.6)
+/** アポロの月面車は 0〜18 km/h */
+const LRV_KMH = Math.round(LRV_TOP * 3.6)
 const CX = 100
 const CY = 92
 const R = 78
 const SWEEP = 240
 const START = 210 // 0 km/h の向き（度、右が 0、上が 90）
 
-function at(kmh: number, r: number) {
-  const a = ((START - (SWEEP * kmh) / TOP_KMH) * Math.PI) / 180
+function at(kmh: number, r: number, top = TOP_KMH) {
+  const a = ((START - (SWEEP * kmh) / top) * Math.PI) / 180
   return [CX + r * Math.cos(a), CY - r * Math.sin(a)] as const
 }
 
-function arc(from: number, to: number, r: number) {
-  const [x0, y0] = at(from, r)
-  const [x1, y1] = at(to, r)
-  const large = ((to - from) / TOP_KMH) * SWEEP > 180 ? 1 : 0
+function arc(from: number, to: number, r: number, top = TOP_KMH) {
+  const [x0, y0] = at(from, r, top)
+  const [x1, y1] = at(to, r, top)
+  const large = ((to - from) / top) * SWEEP > 180 ? 1 : 0
   return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`
 }
 
-const TICKS = Array.from({ length: TOP_KMH / 5 + 1 }, (_, i) => i * 5)
+const ticks = (top: number, step: number) => Array.from({ length: top / step + 1 }, (_, i) => i * step)
 const DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
 export function RoverHud() {
@@ -40,9 +44,17 @@ export function RoverHud() {
   const kmh = useRover((r) => r.kmh)
   const hud = useRover((r) => r.hud)
   const next = useRover((r) => r.next)
-  const v = Math.min(kmh, TOP_KMH)
-  const [nx, ny] = at(v, R - 16)
-  const [bx, by] = at(v, R - 34)
+  const vehicle = useRover((r) => r.vehicle)
+  // 人が乗る車（与圧ローバー・アポロの月面車）は、遅い速度計
+  const crew = vehicle !== 'orv7'
+  const battery = useRover((r) => r.battery)
+  const TOP = vehicle === 'lrv' ? LRV_KMH : crew ? CREW_KMH : TOP_KMH
+  // 目盛り：無人ローバーは 5 km/h ごと（数字は 10 ごと）、与圧ローバーは 1 km/h ごと（数字は 5 ごと）
+  const step = crew ? 1 : 5
+  const major = crew ? 5 : 10
+  const v = Math.min(kmh, TOP)
+  const [nx, ny] = at(v, R - 16, TOP)
+  const [bx, by] = at(v, R - 34, TOP)
   return (
     <div className={`rover-hud${hud.air ? ' air' : ''}`}>
       <svg className="rover-gauge" viewBox="0 0 200 140" aria-label={`${kmh} km/h`}>
@@ -61,18 +73,18 @@ export function RoverHud() {
           </filter>
         </defs>
         {/* 弧の地と、速さのぶんだけ光る弧 */}
-        <path d={arc(0, TOP_KMH, R)} className="g-track" />
-        <path d={arc(TOP_KMH * 0.83, TOP_KMH, R)} className="g-red" />
-        {v > 0.2 && <path d={arc(0, v, R)} className="g-fill" filter="url(#rover-glow)" />}
-        {TICKS.map((k) => {
-          const major = k % 10 === 0
-          const [x0, y0] = at(k, R - 9)
-          const [x1, y1] = at(k, R - (major ? 19 : 14))
-          const [tx, ty] = at(k, R - 29)
+        <path d={arc(0, TOP, R, TOP)} className="g-track" />
+        <path d={arc(TOP * 0.83, TOP, R, TOP)} className="g-red" />
+        {v > 0.2 && <path d={arc(0, v, R, TOP)} className="g-fill" filter="url(#rover-glow)" />}
+        {ticks(TOP, step).map((k) => {
+          const big = k % major === 0
+          const [x0, y0] = at(k, R - 9, TOP)
+          const [x1, y1] = at(k, R - (big ? 19 : 14), TOP)
+          const [tx, ty] = at(k, R - 29, TOP)
           return (
             <g key={k}>
-              <line x1={x0} y1={y0} x2={x1} y2={y1} className={major ? 'g-tick major' : 'g-tick'} />
-              {major && (
+              <line x1={x0} y1={y0} x2={x1} y2={y1} className={big ? 'g-tick major' : 'g-tick'} />
+              {big && (
                 <text x={tx} y={ty + 3.5} className="g-num">
                   {k}
                 </text>
@@ -112,6 +124,27 @@ export function RoverHud() {
             {hud.dist} <small>m</small>
           </span>
         </div>
+        {crew ? (
+          <>
+            {vehicle === 'crew' && (
+              <div className="rr-row">
+                <span className="rr-k">{ui().crewRover.pressure}</span>
+                <span className="rr-v small">{ui().crewRover.pressureValue}</span>
+              </div>
+            )}
+            <div className="rr-row">
+              <span className="rr-k">{ui().crewRover.crew}</span>
+              <span className="rr-v small">{vehicle === 'lrv' ? ui().apolloEva.crewValue : ui().crewRover.crewValue}</span>
+            </div>
+            <div className="rr-airrow">
+              <div className={`rr-fuel${battery < 0.2 ? ' low' : ''}`}>
+                <span>{ui().crewRover.battery}</span>
+                <i style={{ width: `${Math.round(battery * 100)}%` }} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
         <div className="rr-row">
           <span className="rr-k">{ui().roverHud.rock}</span>
           {next ? (
@@ -134,9 +167,11 @@ export function RoverHud() {
             <i style={{ width: `${Math.round(hud.fuel * 100)}%` }} />
           </div>
         </div>
+          </>
+        )}
       </div>
-      <div className="rover-badge">ORV-7</div>
-      {hud.air && <AirGauge fuel={hud.fuel} />}
+      <div className="rover-badge">{vehicle === 'lrv' ? ui().apolloEva.badge : crew ? ui().crewRover.badge : 'ORV-7'}</div>
+      {hud.air && !crew && <AirGauge fuel={hud.fuel} />}
       <MouseDrive />
     </div>
   )

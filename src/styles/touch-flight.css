@@ -1,0 +1,327 @@
+/* タッチ操作（スマホ・タブレット） */
+html {
+  touch-action: manipulation;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+canvas {
+  touch-action: none;
+}
+
+.hud-hint {
+  font-size: 12px;
+}
+
+.touch-stick {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(20, 16, 30, 0.35);
+  touch-action: none;
+}
+
+.touch-knob {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(242, 166, 90, 0.8);
+  box-shadow: 0 0 12px rgba(242, 166, 90, 0.5);
+  pointer-events: none;
+}
+
+.touch-buttons {
+  position: fixed;
+  right: 288px;
+  bottom: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.touch-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.touch-button {
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(20, 16, 30, 0.6);
+  font-size: 20px;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.touch-button.wide {
+  width: auto;
+  padding: 0 14px;
+  border-radius: 26px;
+  font-size: 14px;
+}
+
+.touch-button.beam {
+  border-color: rgba(242, 166, 90, 0.8);
+  color: #f6c48f;
+}
+
+.touch-button.launch {
+  border-color: rgba(110, 170, 255, 0.85);
+  color: #bcd6ff;
+}
+
+.touch-button.launch:disabled {
+  opacity: 0.4;
+}
+
+.touch-button:active {
+  background: rgba(155, 140, 217, 0.5);
+}
+
+/* 指で操作する端末では、航海日誌をスティックの上に出す */
+@media (hover: none) and (pointer: coarse) {
+  .log-panel {
+    bottom: 176px;
+    max-height: calc(100vh - 360px);
+  }
+}
+
+@media (max-width: 720px) {
+  .touch-stick {
+    left: 16px;
+    bottom: 80px;
+    width: 120px;
+    height: 120px;
+  }
+
+  .touch-buttons {
+    right: 12px;
+    bottom: 80px;
+  }
+
+  .log-panel {
+    bottom: 262px;
+    max-height: none;
+  }
+}
+
+/* 指で操作する端末では、キーの印は出さない */
+@media (hover: none) and (pointer: coarse) {
+  kbd {
+    display: none;
+  }
+}
+
+/* 横向きのスマホ（高さが低い画面）：両手の親指が届く左右の下すみに操作をまとめ、航法コンピュータは右上にたたむ */
+@media (max-height: 500px) {
+  .hud {
+    top: 8px;
+    left: 8px;
+    max-width: calc(100% - 236px);
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .hud h1 {
+    font-size: 12px;
+  }
+
+  .nav-panel {
+    top: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: 300px;
+    max-height: none;
+    padding: 8px 10px;
+    gap: 6px;
+    overflow-y: auto;
+    z-index: 5;
+  }
+
+  .nav-panel:not(.collapsed):not(.gallery-panel) {
+    left: auto;
+    width: 300px;
+    background: rgba(20, 16, 30, 0.95);
+  }
+
+  .nav-panel .nav-list {
+    flex: none;
+    overflow: visible;
+  }
+
+  /* たたんだときは、目標とワープ・自動航行だけ（ボタンは横に並べる） */
+  .nav-panel.collapsed {
+    bottom: auto;
+    width: 210px;
+    flex-flow: row wrap;
+    overflow: visible;
+  }
+
+  .nav-panel.collapsed > * {
+    flex: 1 1 100%;
+  }
+
+  .nav-panel.collapsed .engage,
+  .nav-panel.collapsed .nav-auto {
+    flex: 1 1 0;
+    padding: 6px 4px;
+  }
+
+  .nav-panel.collapsed .nav-list,
+  .nav-panel.collapsed .nav-warp,
+  .nav-panel.collapsed .race-start,
+  .nav-panel.collapsed .mission-start,
+  .nav-panel.collapsed .quiz-start,
+  .nav-panel.collapsed .probe-start,
+  .nav-panel.collapsed .eclipse-start,
+  .nav-panel.collapsed .stamp-start,
+  .nav-panel.collapsed .nav-date,
+  .nav-panel.collapsed .nav-time,
+  .nav-panel.collapsed .nav-settings,
+  .nav-panel.collapsed .nav-log {
+    display: none;
+  }
+
+  .nav-panel.gallery-panel {
+    top: 8px;
+    bottom: 8px;
+    left: auto;
+    width: 260px;
+    max-height: none;
+  }
+
+  .log-panel {
+    top: 8px;
+    left: 50%;
+    right: auto;
+    bottom: 64px;
+    width: min(360px, 46vw);
+    max-height: none;
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+
+  .race-bar {
+    top: 8px;
+    bottom: auto;
+  }
+
+  .mode-button,
+  .gallery-button {
+    bottom: 18px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .mode-button {
+    left: 50%;
+    transform: translateX(calc(-100% - 4px));
+  }
+
+  .gallery-button {
+    left: calc(50% + 4px);
+    right: auto;
+  }
+
+  .touch-stick {
+    left: 16px;
+    bottom: 14px;
+    width: 112px;
+    height: 112px;
+  }
+
+  .touch-knob {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* 右手のボタンは、回転・上下・カメラとビームを縦2つずつの3列に */
+  .touch-buttons {
+    right: 12px;
+    bottom: 14px;
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .touch-row {
+    flex-direction: column;
+  }
+
+  .touch-button {
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
+  }
+
+  .touch-button.wide {
+    height: 46px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .probe-panel {
+    top: 8px;
+    left: 8px;
+    right: auto;
+    bottom: 60px;
+    width: min(300px, 42vw);
+    max-height: none;
+    padding: 8px 12px;
+    gap: 4px;
+  }
+
+  .quiz-run {
+    max-height: calc(100% - 12px);
+    padding: 8px 14px 10px;
+    border-top-width: 4px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .quiz-status {
+    margin: 2px 0;
+  }
+
+  .quiz-dots {
+    margin-bottom: 6px;
+  }
+
+  .quiz-run .quiz-choices {
+    gap: 4px;
+    margin: 6px 0;
+  }
+
+  .quiz-run .quiz-choices button {
+    padding: 4px 10px;
+  }
+
+  .quiz-run .quiz-a {
+    margin-bottom: 6px;
+  }
+
+  .quiz-run .engage {
+    padding: 6px;
+  }
+
+  .credit {
+    left: 50%;
+    right: auto;
+    bottom: 1px;
+    transform: translateX(-50%);
+    font-size: 9px;
+    white-space: nowrap;
+  }
+}

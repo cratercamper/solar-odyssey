@@ -62,7 +62,7 @@ export const FACTS_EN: Record<string, Facts> = {
       'In the real universe, no ships or objects made by other civilizations have been found yet.',
       'Scientists have been listening for radio signals from civilizations beyond Earth (SETI) since 1960, and they still are.',
       'In 2017, ‘Oumuamua, an object that came from outside the solar system, was discovered. Its long, thin shape caused a stir, but it is thought to be natural.',
-      'The farthest thing people have ever made is the Voyager 1 probe. It is still flying, nearly 25 billion km from the Sun.',
+      'The farthest thing people have ever made is the Voyager 1 probe. It is still flying, more than 25 billion km from the Sun.',
     ],
     quiz: {
       question: 'Which was the first object confirmed to come from outside the solar system?',
@@ -575,7 +575,7 @@ export const FACTS_EN: Record<string, Facts> = {
     diameter: '6,779 km',
     temperature: 'Average about −63 °C',
     gravity: '0.38 × Earth',
-    day: '24 hours 37 minutes',
+    day: 'About 24 hours 40 minutes (sunrise to sunrise)',
     year: '687 days',
     moons: '2 (Phobos, Deimos)',
     notes: ['It looks red because of iron oxide (rust) in the ground.', 'Olympus Mons, the biggest volcano in the solar system, is about 22 km high, more than twice the height of Everest.'],
@@ -588,8 +588,8 @@ export const FACTS_EN: Record<string, Facts> = {
     day: 'About 9 hours 56 minutes (the fastest in the solar system)',
     year: 'About 11.9 years',
     moons: '95 or more',
-    notes: ['The Great Red Spot is a giant storm big enough to swallow Earth, and it has lasted for hundreds of years.', 'There is no solid ground. It is a gas giant made mostly of hydrogen and helium.'],
-    quiz: { question: 'What is Jupiter’s Great Red Spot?', choices: ['A giant volcano', 'A giant storm', 'A big crater'], answer: 1, explanation: 'The Great Red Spot is a high-pressure storm larger than Earth that has lasted at least several hundred years.' },
+    notes: ['The Great Red Spot is a giant storm big enough to swallow Earth, and it has been on record for almost 190 years.', 'There is no solid ground. It is a gas giant made mostly of hydrogen and helium.'],
+    quiz: { question: 'What is Jupiter’s Great Red Spot?', choices: ['A giant volcano', 'A giant storm', 'A big crater'], answer: 1, explanation: 'The Great Red Spot is a high-pressure storm larger than Earth that has been watched without a break since the 1830s.' },
   },
   saturn: {
     diameter: '116,460 km',
@@ -607,7 +607,7 @@ export const FACTS_EN: Record<string, Facts> = {
     gravity: 'About 0.9 × Earth',
     day: 'About 17 hours 14 minutes (backwards)',
     year: 'About 84 years',
-    moons: '28 or more',
+    moons: '29 or more',
     notes: ['Its axis is tilted about 98 degrees, so it goes around the Sun lying on its side.', 'Methane in its atmosphere absorbs red light, so it looks blue-green.'],
     quiz: { question: 'What is unusual about Uranus?', choices: ['It spins on its side', 'It has no rings at all', 'It goes around the Sun backwards'], answer: 0, explanation: 'Its axis is tilted about 98 degrees, so at times one pole points at the Sun. Uranus does have thin rings too.' },
   },
@@ -674,7 +674,7 @@ export const FACTS_EN: Record<string, Facts> = {
     temperature: 'About −160 °C',
     gravity: 'About 0.15 × Earth',
     year: 'Circles Jupiter in about 7.2 days',
-    notes: ['It is the biggest moon in the solar system.', 'It is the only moon known to have its own magnetic field.'],
+    notes: ['It is the biggest moon in the solar system.', 'It is the only moon known to make its own magnetic field.'],
     quiz: { question: 'Which is the biggest moon in the solar system?', choices: ['The Moon', 'Titan', 'Ganymede'], answer: 2, explanation: 'Ganymede is about 5,268 km across, a little bigger than Titan in second place, and bigger than Mercury.' },
   },
   callisto: {
@@ -767,7 +767,7 @@ export const FACTS_EN: Record<string, Facts> = {
   },
   ariel: {
     diameter: '1,158 km',
-    gravity: 'About 0.027 × Earth',
+    gravity: 'About 0.025 × Earth',
     year: 'Circles Uranus in about 2.5 days',
     notes: [
       'It is the brightest of Uranus’s large moons, with a young surface that has few big craters.',
@@ -778,7 +778,7 @@ export const FACTS_EN: Record<string, Facts> = {
   },
   umbriel: {
     diameter: '1,169 km',
-    gravity: 'About 0.023 × Earth',
+    gravity: 'About 0.025 × Earth',
     year: 'Circles Uranus in about 4.1 days',
     notes: [
       'It is the darkest of Uranus’s large moons.',
@@ -789,7 +789,7 @@ export const FACTS_EN: Record<string, Facts> = {
   },
   titania: {
     diameter: '1,577 km',
-    gravity: 'About 0.039 × Earth',
+    gravity: 'About 0.037 × Earth',
     year: 'Circles Uranus in about 8.7 days',
     notes: [
       'It is Uranus’s largest moon.',

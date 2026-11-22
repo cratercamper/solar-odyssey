@@ -1,0 +1,243 @@
+/* 鑑賞モード */
+.gallery-button {
+  position: fixed;
+  left: calc(var(--dock-center) + 96px);
+  bottom: 24px;
+  padding: 10px 18px;
+  border: 1px solid rgba(242, 166, 90, 0.7);
+  border-radius: 20px;
+  background: rgba(20, 16, 30, 0.75);
+  color: #f6c48f;
+}
+
+.bridge-button {
+  position: fixed;
+  right: calc(100% - var(--dock-center) + 96px);
+  bottom: 24px;
+  padding: 10px 18px;
+  border: 1px solid rgba(95, 211, 230, 0.7);
+  border-radius: 20px;
+  background: rgba(8, 14, 20, 0.75);
+  color: #bfeaf2;
+}
+
+.bridge-button.inside {
+  border-color: #f2b45a;
+  background: #f2b45a;
+  color: #1b1325;
+  font-weight: 600;
+}
+
+.bridge-button:disabled {
+  opacity: 0.4;
+}
+
+/* 船外活動（ブリッジのボタンの上）：ボタン一つでツムギを出す */
+.eva-button {
+  position: fixed;
+  right: calc(100% - var(--dock-center) + 96px);
+  bottom: 72px;
+  padding: 10px 18px;
+  border: 1px solid rgba(120, 220, 200, 0.75);
+  border-radius: 20px;
+  background: rgba(8, 20, 22, 0.75);
+  color: #bff2e4;
+}
+
+.eva-button:disabled {
+  opacity: 0.4;
+}
+
+/* アルカディアの「着陸船を発進」（船を眺めるボタンの上） */
+.launch-button {
+  position: fixed;
+  left: calc(var(--dock-center) + 96px);
+  bottom: 72px;
+  padding: 10px 18px;
+  border: 1px solid rgba(110, 170, 255, 0.75);
+  border-radius: 20px;
+  background: rgba(10, 16, 34, 0.75);
+  color: #bcd6ff;
+}
+
+.launch-button:disabled {
+  opacity: 0.4;
+}
+
+@media (max-width: 720px) {
+  .launch-button {
+    left: auto;
+    right: 12px;
+    bottom: 128px;
+    padding: 10px 12px;
+  }
+}
+
+/* 鑑賞モードの「艦橋の中に入る」 */
+.bridge-enter {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(95, 211, 230, 0.7);
+  border-radius: 8px;
+  background: rgba(95, 211, 230, 0.16);
+  color: #d8f3f8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bridge-enter:hover {
+  background: rgba(95, 211, 230, 0.3);
+}
+
+@media (max-width: 720px) {
+  .gallery-button {
+    left: auto;
+    right: 12px;
+    padding: 10px 12px;
+  }
+
+  .bridge-button {
+    right: 12px;
+    bottom: 76px;
+    padding: 10px 12px;
+  }
+}
+
+.gallery-panel h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--accent);
+}
+
+.gallery-modes {
+  display: flex;
+  gap: 6px;
+}
+
+.gallery-modes button {
+  flex: 1;
+  padding: 6px 2px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 船が透けて見えないよう、鑑賞モードの画面は濃いめ */
+.nav-panel.gallery-panel {
+  background: rgba(20, 16, 30, 0.92);
+}
+
+.gallery-info p {
+  margin: 4px 0 0;
+  line-height: 1.6;
+}
+
+.gallery-compare {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.gallery-parts {
+  flex: 1;
+  min-height: 80px;
+}
+
+.gallery-labels {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gallery-anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  /* 最初の位置が決まるまでは隠す */
+  visibility: hidden;
+}
+
+.gallery-anchor button {
+  position: absolute;
+  left: 12px;
+  /* 重なりをよけて上下にずらす量（点は元の位置に残す） */
+  top: var(--dy, 0px);
+  padding: 2px 8px;
+  transform: translateY(-50%);
+  border: 1px solid rgba(155, 140, 217, 0.7);
+  border-radius: 10px;
+  background: rgba(20, 16, 30, 0.72);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.gallery-anchor button::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - var(--dy, 0px));
+  left: -12px;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.gallery-anchor.left button {
+  left: auto;
+  right: 12px;
+}
+
+.gallery-anchor.left button::before {
+  left: auto;
+  right: -12px;
+}
+
+.gallery-anchor button.on {
+  background: #9b8cd9;
+  color: #1b1325;
+}
+
+.gallery-anchor.compare span {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(20, 16, 30, 0.6);
+  color: #cfd8ff;
+  font-size: 12px;
+  white-space: nowrap;
+  text-shadow: 0 0 4px #000;
+}
+
+.nav-collapse {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+.nav-collapse span {
+  color: #9aa0b4;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.nav-log {
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(155, 140, 217, 0.5);
+  border-radius: 8px;
+  background: none;
+  font-size: 12px;
+}

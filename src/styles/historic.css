@@ -1,0 +1,147 @@
+/* ---- アポロ17号の史跡（HistoricPanel.tsx・HistoricBook.tsx） ---- */
+.historic-status {
+  position: absolute;
+  left: 50%;
+  bottom: 122px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.historic-count {
+  pointer-events: auto;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #ffe7c4;
+  background: rgba(30, 22, 10, 0.7);
+  border: 1px solid rgba(255, 210, 122, 0.55);
+}
+
+.historic-guide {
+  border-color: rgba(255, 210, 122, 0.6);
+}
+
+body.touch .historic-status {
+  left: auto;
+  right: 14px;
+  transform: none;
+  bottom: calc(env(safe-area-inset-bottom) + 196px);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.historic-card {
+  border-color: rgba(255, 210, 122, 0.6);
+  box-shadow: 0 0 26px rgba(255, 210, 122, 0.22);
+}
+
+.historic-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 22px;
+  background: radial-gradient(circle at 50% 40%, #4a3c24, #1d1810);
+  border: 1px solid rgba(255, 210, 122, 0.5);
+}
+
+.historic-icon.big {
+  width: 96px;
+  height: 96px;
+  font-size: 50px;
+}
+
+.historic-when {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #ffd27a;
+  letter-spacing: 1px;
+}
+
+.historic-item {
+  align-items: center;
+  padding: 10px 6px;
+}
+
+.historic-item:not(.got) .historic-icon {
+  color: rgba(255, 255, 255, 0.35);
+  background: #1d2028;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.historic-detail {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.historic-book {
+  border-top-color: #d8b25a;
+}
+
+.rover-map .m-trav {
+  fill: none;
+  stroke: rgba(255, 210, 122, 0.55);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 3;
+}
+
+.rover-map .m-hist {
+  fill: #ffd27a;
+  stroke: #2a1d08;
+  stroke-width: 1.2;
+}
+
+.rover-map .m-hist.got {
+  fill: #8f8778;
+}
+
+.rover-map .m-hist-name {
+  fill: #ffe7c4;
+  font-size: 10px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 3px;
+}
+
+/* 史跡の当時の写真（アポロ17号のカードとずかん） */
+.historic-photo {
+  margin: 8px 0 4px;
+}
+.historic-photo img {
+  display: block;
+  max-width: 100%;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 210, 122, 0.35);
+}
+.historic-photo figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 0.92em;
+  line-height: 1.4;
+}
+.historic-photo small {
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+.historic-photo a {
+  color: inherit;
+}
+
+.sample-card .historic-photo img {
+  max-height: 180px;
+}

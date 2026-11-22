@@ -1,0 +1,76 @@
+/* 本物の交信音声の字幕 */
+.radio-sub {
+  position: absolute;
+  left: 50%;
+  top: 25vh;
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 32px));
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+.radio-sub-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fd8b0;
+  background: rgba(8, 14, 22, 0.55);
+  border: 1px solid rgba(159, 216, 176, 0.35);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.radio-sub-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7be39a;
+  animation: radio-sub-blink 1s steps(2) infinite;
+}
+.radio-sub-line {
+  margin-top: 8px;
+  animation: radio-sub-in 0.25s ease-out;
+}
+.radio-sub-who {
+  font-size: 11px;
+  color: #a9b9cc;
+}
+.radio-sub-orig {
+  font-size: 17px;
+  font-style: italic;
+  color: #fff;
+  margin-top: 2px;
+}
+.radio-sub-tr {
+  font-size: 14px;
+  color: #d5e2f0;
+  margin-top: 3px;
+}
+@keyframes radio-sub-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes radio-sub-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (max-width: 700px), (max-height: 500px) {
+  .radio-sub {
+    top: 15vh;
+  }
+  .radio-sub-orig {
+    font-size: 14px;
+  }
+  .radio-sub-tr {
+    font-size: 12px;
+  }
+}
+.radio-sub-line {
+  background: rgba(8, 14, 22, 0.5);
+  border-radius: 10px;
+  padding: 6px 12px 8px;
+}

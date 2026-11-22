@@ -75,9 +75,9 @@ export type CityPlan = {
 
 /** 大通り（鉄道を含む）の半分の幅 */
 export const AVENUE = 40
-const STREET = 14
-const RIVER_W = 70
-const EDGE = 140
+export const STREET = 14
+export const RIVER_W = 70
+export const EDGE = 140
 
 const BUILD_COLORS = [0xe9e6de, 0xd9d4c8, 0xc9ccd0, 0xb8c2cc, 0xe4dccb, 0xd0c4b0, 0xa9b6c4, 0xf2f0ea, 0xc2b8a6]
 const HOUSE_COLORS = [0xeae4d8, 0xd8cfbf, 0xc9b9a0, 0xb9c3c8, 0xe6dfd3, 0xb7a68c]
@@ -261,10 +261,25 @@ export function updateColonyDay(elapsed: number) {
 
 /* ---------- 立体の建物 ---------- */
 
+/**
+ * コロニーの中を歩く場面で、歩く人のまわりを細かく描いている範囲（そこにある遠くの建物と木は消す）。
+ * x = 角度の中心、y = 角度の半分の幅（0 なら何も消さない）、z = コロニーの座標の長さの向きの中心、w = その半分の幅
+ */
+export const farHide = { value: new THREE.Vector4(0, 0, 0, 0) }
+const FAR_HIDE = `
+#ifdef USE_INSTANCING
+if (uFarHide.y > 0.0) {
+  vec3 ic = instanceMatrix[3].xyz;
+  float da = atan(ic.x, ic.z) - uFarHide.x;
+  da -= 6.2831853 * floor((da + 3.14159265) / 6.2831853);
+  if (abs(da) < uFarHide.y && abs(ic.y - uFarHide.z) < uFarHide.w) transformed = vec3(0.0);
+}
+#endif`
+
 /** 建物の材質：昼は窓の並ぶ壁、夜は暗い壁にともる窓。形は 1×1×1 の箱を、置き場所ごとの大きさに引き伸ばす */
 export const buildingMaterial = (() => {
   const mat = new THREE.MeshBasicMaterial({ color: 0xffffff })
-  const uniforms = { uNight: { value: 0 }, uCell: { value: new THREE.Vector2(4.2 * M, 3.6 * M) } }
+  const uniforms = { uNight: { value: 0 }, uCell: { value: new THREE.Vector2(4.2 * M, 3.6 * M) }, uFarHide: farHide }
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms)
     shader.vertexShader = shader.vertexShader
@@ -272,6 +287,7 @@ export const buildingMaterial = (() => {
         '#include <common>',
         `#include <common>
 uniform vec2 uCell;
+uniform vec4 uFarHide;
 varying vec2 vFac;
 varying float vRoof;
 varying float vShade;
@@ -290,7 +306,8 @@ vSeed = vec2(0.0);
 vec3 p = position * sc;
 vRoof = step(0.5, abs(normal.y));
 vShade = normal.y > 0.5 ? 1.0 : normal.y < -0.5 ? 0.4 : abs(normal.x) > 0.5 ? 0.8 : 0.66;
-vFac = vec2(abs(normal.x) > 0.5 ? p.z : p.x, p.y + 0.5 * sc.y) / uCell;`,
+vFac = vec2(abs(normal.x) > 0.5 ? p.z : p.x, p.y + 0.5 * sc.y) / uCell;
+${FAR_HIDE}`,
       )
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -327,7 +344,15 @@ diffuseColor.rgb = mix(dayC, nightC, uNight);`,
 })()
 
 /** 木：丸い樹冠（上が明るい）。夜は暗くなる */
-export const treeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true })
+export const treeMaterial = (() => {
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true })
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uFarHide = farHide
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uFarHide;').replace('#include <begin_vertex>', `#include <begin_vertex>\n${FAR_HIDE}`)
+  }
+  mat.customProgramCacheKey = () => 'colony-tree'
+  return mat
+})()
 const TREE_DAY = new THREE.Color(1, 1, 1)
 const TREE_NIGHT = new THREE.Color(0.06, 0.07, 0.1)
 
@@ -421,10 +446,20 @@ export function buildingGeometry() {
   return (boxGeo ??= new THREE.BoxGeometry(1, 1, 1))
 }
 
+let treeLiteGeo: THREE.BufferGeometry | null = null
+
 /** 樹冠：少しつぶれた丸。上が明るく、下が暗い（頂点の色） */
 export function treeGeometry() {
-  if (treeGeo) return treeGeo
-  const g = new THREE.IcosahedronGeometry(0.5, 1)
+  return (treeGeo ??= crownGeometry(1))
+}
+
+/** 樹冠の粗い版（三角形 20 枚。細かい版の 4 分の 1）。コロニーの外から窓ごしに見るとき用 */
+export function treeLiteGeometry() {
+  return (treeLiteGeo ??= crownGeometry(0))
+}
+
+function crownGeometry(detail: number) {
+  const g = new THREE.IcosahedronGeometry(0.5, detail)
   g.translate(0, 0.1, 0)
   const p = g.attributes.position
   const c = new Float32Array(p.count * 3)
@@ -433,7 +468,7 @@ export function treeGeometry() {
     c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = Math.min(1.1, v)
   }
   g.setAttribute('color', new THREE.BufferAttribute(c, 3))
-  return (treeGeo = g)
+  return g
 }
 
 /** 共有の配置（行列と色）を使う InstancedMesh。コロニーごとに 1 つ作るが、中身は共有 */

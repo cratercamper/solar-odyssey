@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { PLANETS } from '../data/bodies'
 import { TIME_RATES } from '../data/scale'
 import { useStore, type ThrustFxLevel } from '../state/store'
@@ -6,19 +7,8 @@ import { bodyInfo, engage, travelFacts, useWarpPrep } from '../state/flight'
 import { SF_OBJECTS, setWorld } from '../data/sf'
 import { HUBBLE_ID, scopeName, WEBB_ID } from '../data/telescopes'
 import { useRace } from '../state/race'
-import { QUIZ_LENGTH, startQuiz, useQuiz } from '../state/quiz'
-import { openProbes, useProbes } from '../state/probes'
 import { sim } from '../state/registry'
 import { formatDate, simDate, SIM_SECONDS_PER_HOUR } from '../data/ephemeris'
-import { closeMissions, openMissions, useMission } from '../state/mission'
-import { openCampaign, useCampaign } from '../state/campaign'
-import { CAMPAIGN_STAGES } from '../data/campaign'
-import { closeEclipses, openEclipses, useEclipse } from '../state/eclipse'
-import { openStamps, useStamps } from '../state/stamps'
-import { openRocks, useRockBook } from '../state/rockBook'
-import { ROCK_TOTAL, rockCount } from '../data/rockCollection'
-import { useSampleLog } from '../state/rover'
-import { NATURAL } from '../data/stamps'
 import { ui } from '../i18n'
 import { ShipSection } from './ShipPicker'
 import { scaleFacts, scalePatch, stepName, stepOf } from './ScaleToggle'
@@ -29,8 +19,12 @@ import { isTouchDevice } from '../state/input'
 import { useTouchUI } from '../state/touchUI'
 import { ThrottleMeter } from './Throttle'
 import { toggleObserve, useObserve } from '../state/observe'
-import { startEva, startRepairEva } from '../state/eva'
-import { startWalkDirect } from '../state/walk'
+import { SaveDataPanel } from './SaveDataPanel'
+import { NAV_TABS, navEntries, openNavTab, useNavTab, type NavTab } from './nav/registry'
+import { NavEntryButton } from './nav/NavEntryButton'
+
+// 入口の登録（ui/nav/entries/*.ts）をまとめて読み込む
+import.meta.glob('./nav/entries/*.ts', { eager: true })
 
 const fmtDistance = (d: number | null) => (d === null ? '—' : d < 10 ? d.toFixed(1) : Math.round(d).toString())
 
@@ -287,10 +281,70 @@ function SimDate() {
   )
 }
 
+/** 目標の名前・距離・航海日誌（距離は毎フレーム変わるので、ここだけ描き直す） */
+function TargetBox({ touch }: { touch: boolean }) {
+  const targetId = useStore((s) => s.targetId)
+  const distance = useStore((s) => s.telemetry.distance)
+  const logOpen = useStore((s) => s.logOpen)
+  const setLogOpen = useStore((s) => s.setLogOpen)
+  const setSheet = useTouchUI((u) => u.setSheet)
+  const info = targetId ? bodyInfo(targetId) : null
+  const facts = info && info.au > 0 ? travelFacts(info.au) : null
+  return (
+    <div className="nav-target">
+      {info ? (
+        <>
+          <div className="nav-target-name">
+            {ui().navPanel.target}
+            {info.name}
+            {info.parent && <span className="muted">{ui().navPanel.moonOf(info.parent)}</span>}
+          </div>
+          <div className="muted">
+            {ui().navPanel.distance} {fmtDistance(distance)}
+          </div>
+          {facts && <div className="muted">{ui().navPanel.lightMinutes(Math.round(facts.lightMinutes))}</div>}
+          {!logOpen && (
+            <button className="nav-log" onClick={() => (setLogOpen(true), touch && setSheet('log'))}>
+              {ui().navPanel.openShipsLog} <kbd>I</kbd>
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="muted">{ui().navPanel.chooseTarget}</div>
+      )}
+    </div>
+  )
+}
+
+/** 行く・見る・遊ぶ・学ぶ のタブ */
+function NavTabs() {
+  useLang()
+  const tab = useNavTab((t) => t.tab)
+  return (
+    <div className="nav-tabs" role="tablist" aria-label={ui().navPanel.tabsLabel}>
+      {NAV_TABS.map((t) => (
+        <button key={t} role="tab" aria-selected={tab === t} className={`nav-tab${tab === t ? ' on' : ''}`} data-tab={t} onClick={() => openNavTab(t)}>
+          {ui().navPanel.tabs[t]}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** そのタブの入口のボタン（ui/nav/entries/ の登録表から） */
+function Entries({ tab, sf, onPick }: { tab: NavTab; sf: boolean; onPick: () => void }) {
+  return (
+    <>
+      {navEntries(tab, sf ? 'sf' : 'real').map((e) => (
+        <NavEntryButton key={e.id} entry={e} onPick={onPick} />
+      ))}
+    </>
+  )
+}
+
 export function NavPanel() {
   const [open, setOpen] = useState<string | null>('saturn')
-  // スマホでは、ふだんは目標とワープのボタンだけの小さな形にたたんでおく
-  // スマホ・タブレットでは、画面下のボタンから引き出す（ふだんは目標とワープだけの小さな形）
+  // スマホ・タブレットでは、画面下のボタンから引き出す。小さい画面では、ふだんは目標とワープだけの小さな形にたたんでおく
   const touch = isTouchDevice()
   const small = useSmallScreen() || touch
   const [localExpanded, setLocalExpanded] = useState(false)
@@ -300,48 +354,53 @@ export function NavPanel() {
   const setExpanded = (on: boolean) => (touch ? setSheet(on ? 'nav' : null) : setLocalExpanded(on))
   const collapsed = small && !expanded
   const pick = () => small && setExpanded(false)
-  const s = useStore()
-  const info = s.targetId ? bodyInfo(s.targetId) : null
-  const facts = info && info.au > 0 ? travelFacts(info.au) : null
+  // 毎フレーム変わる値（距離など）はここで読まない（TargetBox が読む）。パネル全体を毎フレーム描き直さないように
+  const s = useStore(
+    useShallow((st) => ({
+      mode: st.mode,
+      targetId: st.targetId,
+      warpFactor: st.warpFactor,
+      setWarpFactor: st.setWarpFactor,
+      warpPhase: st.warpPhase,
+      autopilot: st.autopilot,
+      setAutopilot: st.setAutopilot,
+      timeScale: st.timeScale,
+      setTimeScale: st.setTimeScale,
+      world: st.settings.world,
+    })),
+  )
   const racePhase = useRace((r) => r.phase)
-  const startRace = useRace((r) => r.start)
   const racing = racePhase === 'countdown' || racePhase === 'running'
   const busy = s.warpPhase !== 'idle' || racing
   const pendingWarp = useWarpPrep((w) => w.pending)
   const observing = useObserve((o) => o.id !== null)
-  const quizOpen = useQuiz((q) => q.open)
-  const probesOpen = useProbes((p) => p.open)
-  const eclipsesOpen = useEclipse((e) => e.open)
-  const stampsOpen = useStamps((b) => b.open)
-  const rocksOpen = useRockBook((r) => r.open)
-  const rocksGot = useSampleLog((l) => rockCount(l.log))
-  const stampCount = useStamps((b) => NATURAL.filter((id) => id in b.stamps).length)
-  const missionPhase = useMission((m) => m.phase)
-  const onMission = missionPhase === 'active'
-  const campaignOn = useCampaign((c) => c.active)
-  const campaignStage = useCampaign((c) => c.stage)
+  const chosenTab = useNavTab((t) => t.tab)
   const lang = useLang()
   if (s.mode === 'gallery') return null
-  const sf = s.settings.world === 'sf'
+  const sf = s.world === 'sf'
+  // たたんだ小さな形では、いつも「行く」（目標とワープ）
+  const tab: NavTab = collapsed ? 'go' : chosenTab
   const other = (
     <>
       <button className="nav-lang" onClick={() => setLang(lang === 'en' ? 'ja' : 'en')} lang={lang === 'en' ? 'ja' : 'en'} title={ui().navPanel.switchLanguage}>
         {lang === 'en' ? '日本語' : 'English'}
       </button>
-      {/* 本物の太陽系だけか、架空の船や構造物も出す SF モードか */}
-      <span className="nav-world" role="group" aria-label={ui().navPanel.world}>
-        <button className={sf ? '' : 'on'} onClick={() => setWorld('real')} disabled={racing} title={ui().navPanel.realWorldTip}>
-          {ui().navPanel.real}
-        </button>
-        <button className={sf ? 'on sf' : 'sf'} onClick={() => setWorld('sf')} disabled={racing} title={ui().navPanel.sfWorldTip}>
-          SF
-        </button>
-      </span>
+      {/* 本物の太陽系だけか、架空の船や構造物も出す SF モードか。パソコンでは画面上の切り替え（SFBadge）、スマホではアイコン列にあるので、タッチでない小さい画面だけ */}
+      {small && !touch && (
+        <span className="nav-world" role="group" aria-label={ui().navPanel.world}>
+          <button className={sf ? '' : 'on'} onClick={() => setWorld('real')} disabled={racing} title={ui().navPanel.realWorldTip}>
+            {ui().navPanel.real}
+          </button>
+          <button className={sf ? 'on sf' : 'sf'} onClick={() => setWorld('sf')} disabled={racing} title={ui().navPanel.sfWorldTip}>
+            SF
+          </button>
+        </span>
+      )}
     </>
   )
 
   return (
-    <aside className={`nav-panel${collapsed ? ' collapsed' : ''}`}>
+    <aside className={`nav-panel nav-tab-${tab}${collapsed ? ' collapsed' : ''}`}>
       {small ? (
         <h2 className="nav-head">
           <button className="nav-collapse" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
@@ -356,119 +415,84 @@ export function NavPanel() {
           {other}
         </h2>
       )}
-      <div className="nav-list">
-        <TargetButton id="sun" name={ui().navPanel.sun} onPick={pick} />
-        {PLANETS.map((p) => (
-          <div key={p.id}>
-            {p.dwarf && <div className="nav-heading">{ui().navPanel.dwarfPlanet}</div>}
-            <div className="nav-row">
-              <TargetButton id={p.id} name={ui().bodies[p.id].name} onPick={pick} />
-              {p.moons.length > 0 && (
-                <button className="nav-toggle" onClick={() => setOpen(open === p.id ? null : p.id)} aria-label={ui().navPanel.moonsOf(ui().bodies[p.id].name)}>
-                  {open === p.id ? '−' : `+${p.moons.length}`}
-                </button>
-              )}
-            </div>
-            {open === p.id && p.moons.map((m) => <TargetButton key={m.id} id={m.id} name={ui().bodies[m.id].name} sub onPick={pick} />)}
-          </div>
-        ))}
-        <div className="nav-heading">{ui().navPanel.spaceTelescopes}</div>
-        <TargetButton id={HUBBLE_ID} name={scopeName(HUBBLE_ID)} onPick={pick} />
-        <TargetButton id={WEBB_ID} name={scopeName(WEBB_ID)} onPick={pick} />
-        {sf && (
-          <>
-            <div className="nav-heading">{ui().navPanel.sfImaginary}</div>
-            {SF_OBJECTS.map((e) => (
-              <TargetButton key={e.id} id={e.id} name={e.name()} onPick={pick} />
+      {!collapsed && <NavTabs />}
+      {!collapsed && <div className="nav-tab-note muted small">{ui().navPanel.tabNotes[tab]}</div>}
+
+      {tab === 'go' && (
+        <>
+          <div className="nav-list">
+            <TargetButton id="sun" name={ui().navPanel.sun} onPick={pick} />
+            {PLANETS.map((p) => (
+              <div key={p.id}>
+                {p.dwarf && <div className="nav-heading">{ui().navPanel.dwarfPlanet}</div>}
+                <div className="nav-row">
+                  <TargetButton id={p.id} name={ui().bodies[p.id].name} onPick={pick} />
+                  {p.moons.length > 0 && (
+                    <button className="nav-toggle" onClick={() => setOpen(open === p.id ? null : p.id)} aria-label={ui().navPanel.moonsOf(ui().bodies[p.id].name)}>
+                      {open === p.id ? '−' : `+${p.moons.length}`}
+                    </button>
+                  )}
+                </div>
+                {open === p.id && p.moons.map((m) => <TargetButton key={m.id} id={m.id} name={ui().bodies[m.id].name} sub onPick={pick} />)}
+              </div>
             ))}
-          </>
-        )}
-      </div>
-
-      <div className="nav-target">
-        {info ? (
-          <>
-            <div className="nav-target-name">
-              {ui().navPanel.target}
-              {info.name}
-              {info.parent && <span className="muted">{ui().navPanel.moonOf(info.parent)}</span>}
-            </div>
-            <div className="muted">
-              {ui().navPanel.distance} {fmtDistance(s.telemetry.distance)}
-            </div>
-            {facts && <div className="muted">{ui().navPanel.lightMinutes(Math.round(facts.lightMinutes))}</div>}
-            {!s.logOpen && (
-              <button className="nav-log" onClick={() => (s.setLogOpen(true), touch && setSheet('log'))}>
-                {ui().navPanel.openShipsLog} <kbd>I</kbd>
-              </button>
+            <div className="nav-heading">{ui().navPanel.spaceTelescopes}</div>
+            <TargetButton id={HUBBLE_ID} name={scopeName(HUBBLE_ID)} onPick={pick} />
+            <TargetButton id={WEBB_ID} name={scopeName(WEBB_ID)} onPick={pick} />
+            {sf && (
+              <>
+                <div className="nav-heading">{ui().navPanel.sfImaginary}</div>
+                {SF_OBJECTS.map((e) => (
+                  <TargetButton key={e.id} id={e.id} name={e.name()} onPick={pick} />
+                ))}
+              </>
             )}
-          </>
-        ) : (
-          <div className="muted">{ui().navPanel.chooseTarget}</div>
-        )}
-      </div>
+          </div>
 
-      {!touch && <ThrottleMeter />}
-      <label className="nav-warp">
-        {ui().navPanel.warpSpeed} {s.warpFactor}
-        <input type="range" min={1} max={9} step={1} value={s.warpFactor} onChange={(e) => s.setWarpFactor(Number(e.target.value))} disabled={busy} />
-      </label>
-      <button className="engage" onClick={engage} disabled={!s.targetId || busy}>
-        {pendingWarp ? ui().navPanel.gettingReady : <>{ui().navPanel.warp} <kbd>Enter</kbd></>}
-      </button>
-      <button className={`secondary nav-auto${s.autopilot ? ' on' : ''}`} onClick={() => s.setAutopilot(!s.autopilot)} disabled={!s.targetId || busy}>
-        {ui().navPanel.autopilot} <kbd>G</kbd>
-      </button>
-      <button className={`secondary nav-observe${observing ? ' on' : ''}`} onClick={toggleObserve} disabled={!s.targetId || busy || racing}>
-        {observing ? ui().navPanel.stopObserving : ui().navPanel.observe} <kbd>O</kbd>
-      </button>
-      <button className={`secondary mission-start${missionPhase !== 'closed' ? ' on' : ''}`} onClick={() => (pick(), missionPhase !== 'active' && closeEclipses(), openMissions())} disabled={racing}>
-        {ui().missionsButton}
-      </button>
-      <button className={`secondary campaign-open mission-start${campaignOn ? ' on' : ''}`} onClick={() => (pick(), closeEclipses(), openCampaign())} disabled={racing || onMission}>
-        {campaignOn && campaignStage < CAMPAIGN_STAGES.length ? ui().campaign.navButtonActive(campaignStage + 1, CAMPAIGN_STAGES.length) : ui().campaign.navButton}
-      </button>
-      <button className="secondary race-start" onClick={startRace} disabled={busy || onMission}>
-        {ui().navPanel.race}
-      </button>
-      <button className={`secondary quiz-start${quizOpen ? ' on' : ''}`} onClick={() => (pick(), closeEclipses(), startQuiz())} disabled={racing}>
-        {ui().navPanel.quizRun(QUIZ_LENGTH)}
-      </button>
-      <button className="secondary eva-start" onClick={() => (pick(), closeEclipses(), startEva())} disabled={busy || racing || s.mode !== 'flight'}>
-        {ui().navPanel.spacewalk} <kbd>K</kbd>
-      </button>
-      <button className="secondary eva-start repair" onClick={() => (pick(), closeEclipses(), startRepairEva())} disabled={busy || racing || s.mode !== 'flight'}>
-        {ui().navPanel.spacewalkRepair}
-      </button>
-      {sf && (
-        <button className="secondary walk-start" onClick={() => (pick(), closeEclipses(), startWalkDirect())} disabled={busy || racing || s.mode !== 'flight'}>
-          {ui().navPanel.walkPark}
-        </button>
-      )}
-      <button className={`secondary stamp-start${stampsOpen ? ' on' : ''}`} onClick={() => (pick(), openStamps())}>
-        {ui().navPanel.stampBook} <span className="muted">{stampCount}/{NATURAL.length}</span>
-      </button>
-      <button className={`secondary rock-start${rocksOpen ? ' on' : ''}`} onClick={() => (pick(), openRocks())}>
-        {ui().navPanel.rockCollection} <span className="muted">{rocksGot}/{ROCK_TOTAL}</span>
-      </button>
-      <button className={`secondary probe-start${probesOpen ? ' on' : ''}`} onClick={() => (pick(), closeEclipses(), openProbes())} disabled={busy}>
-        {ui().navPanel.probeJourneys}
-      </button>
-      <button className={`secondary eclipse-start${eclipsesOpen ? ' on' : ''}`} onClick={() => (pick(), closeMissions(), openEclipses())} disabled={busy || onMission}>
-        {ui().navPanel.eclipsesFromSpace}
-      </button>
-      {/* 1秒にどれだけ時間が進むか */}
-      <div className="nav-time">
-        <span className="nav-time-label">{ui().navPanel.timeSpeed}</span>
-        {TIME_RATES.map((k) => (
-          <button key={k} className={s.timeScale === k ? 'on' : ''} onClick={() => s.setTimeScale(k)} disabled={racing}>
-            {rateName(k)}
+          <TargetBox touch={touch} />
+
+          {!touch && <ThrottleMeter />}
+          <label className="nav-warp">
+            {ui().navPanel.warpSpeed} {s.warpFactor}
+            <input type="range" min={1} max={9} step={1} value={s.warpFactor} onChange={(e) => s.setWarpFactor(Number(e.target.value))} disabled={busy} />
+          </label>
+          <button className="engage" onClick={engage} disabled={!s.targetId || busy}>
+            {pendingWarp ? ui().navPanel.gettingReady : <>{ui().navPanel.warp} <kbd>Enter</kbd></>}
           </button>
-        ))}
-      </div>
-      <SimDate />
-      <ShipSection />
+          <button className={`secondary nav-auto${s.autopilot ? ' on' : ''}`} onClick={() => s.setAutopilot(!s.autopilot)} disabled={!s.targetId || busy}>
+            {ui().navPanel.autopilot} <kbd>G</kbd>
+          </button>
+          <Entries tab="go" sf={sf} onPick={pick} />
+        </>
+      )}
+
+      {tab === 'see' && (
+        <>
+          <div className="nav-target muted small">{s.targetId ? <>{ui().navPanel.target}{bodyInfo(s.targetId)?.name}</> : ui().navPanel.noTarget}</div>
+          <button className={`secondary nav-observe${observing ? ' on' : ''}`} onClick={() => (pick(), toggleObserve())} disabled={!s.targetId || busy || racing}>
+            {observing ? ui().navPanel.stopObserving : ui().navPanel.observe} <kbd>O</kbd>
+          </button>
+          <Entries tab="see" sf={sf} onPick={pick} />
+          {/* 1秒にどれだけ時間が進むか */}
+          <div className="nav-time">
+            <span className="nav-time-label">{ui().navPanel.timeSpeed}</span>
+            {TIME_RATES.map((k) => (
+              <button key={k} className={s.timeScale === k ? 'on' : ''} onClick={() => s.setTimeScale(k)} disabled={racing}>
+                {rateName(k)}
+              </button>
+            ))}
+          </div>
+          <SimDate />
+          <ShipSection />
+        </>
+      )}
+
+      {tab === 'play' && <Entries tab="play" sf={sf} onPick={pick} />}
+      {tab === 'learn' && <Entries tab="learn" sf={sf} onPick={pick} />}
+
+      {/* 設定とセーブは、どのタブでも一番下に */}
       <Settings racing={racing} />
+      <SaveDataPanel />
     </aside>
   )
 }

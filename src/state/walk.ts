@@ -18,9 +18,13 @@ export const RUN_SPEED = 4.2
 /** ジャンプの初速（m/s）。コロニーの地面では重力が 1G なので、地球と同じ高さまで跳べる */
 export const JUMP_SPEED = 3.6
 export const GRAVITY = 9.8
-/** ホバースクーターの速さ（m/s）：ふつう・ブースト（Shift／スマホの「ブースト」）。公園は 1 km ほどあるので、ブーストなら 1 分で端から端まで */
-export const HOVER_SPEED = 9
-export const HOVER_BOOST = 16
+/** ホバースクーターの速さ（m/s）：ふつう・ブースト（Shift／スマホの「ブースト」）。ブーストなら時速 115 km */
+export const HOVER_SPEED = 18
+export const HOVER_BOOST = 32
+/** 空を飛ぶ（高速）：高さ m と、速さ m/s（ふつう・ブースト）。ブーストなら円筒の 1 周（約 25 km）を 4 分ほどで回る */
+export const SKY_HEIGHT = 30
+export const SKY_SPEED = 45
+export const SKY_BOOST = 100
 
 type WalkState = {
   phase: WalkPhase
@@ -37,9 +41,36 @@ type WalkState = {
   benchNear: boolean
   /** ホバースクーターに乗っている */
   riding: boolean
+  /** ホバースクーターで空を飛んでいる（高速） */
+  flying: boolean
   /** 水の上で降りようとした時刻（お知らせを少し出す） */
   waterNote: number
+  /** 窓の上（橋の外）で地面へ降りようとした時刻 */
+  skyNote: number
+  /** 今いる所（左上の名前） */
+  area: WalkArea
+  /** 今いる大地の帯（0〜2。窓の帯の橋の上は -1） */
+  land: number
+  /** 今の重さ（G。地面で 1、回転の軸で 0） */
+  gee: number
+  /** 軸へのエレベーターの扉の近く（up = 地面から上へ、down = 軸の駅から下へ） */
+  elevNear: 'up' | 'down' | null
+  /** エレベーターに乗っている */
+  inElev: boolean
+  /** 軸の駅に着いた時刻（「現実の科学では」を少し出す） */
+  axisNote: number
+  /** 人の模型を読み終えたか（それまでは人を出さず、「読み込み中」を出す） */
+  peopleReady: boolean
+  /** 次に歩く場面を始めるとき、軸へのエレベーターの前から始める */
+  startAtTower: boolean
+  /** 翼をつけている */
+  wings: boolean
+  /** 翼をつけられる所（軸の駅）にいる */
+  wingsHere: boolean
 }
+
+/** 今いる所の種類：公園・住宅街・ジャングル（お試しの場所）と、街の計画の区画、窓の帯の橋 */
+export type WalkArea = 'park' | 'town' | 'jungle' | 'parkZone' | 'townZone' | 'downtown' | 'urban' | 'suburb' | 'farm' | 'lake' | 'hill' | 'bridge' | 'axis' | 'elevator'
 
 export const walkNow = () => performance.now() / 1000
 
@@ -53,7 +84,19 @@ export const useWalk = create<WalkState>(() => ({
   sitting: false,
   benchNear: false,
   riding: false,
+  flying: false,
   waterNote: 0,
+  skyNote: 0,
+  area: 'park',
+  land: 0,
+  gee: 1,
+  elevNear: null,
+  inElev: false,
+  axisNote: 0,
+  peopleReady: false,
+  startAtTower: false,
+  wings: false,
+  wingsHere: false,
 }))
 
 /** 歩く場面を出している（宇宙の場面は止める） */
@@ -89,10 +132,17 @@ export function startWalkDirect() {
   beginWalk(colonyWalk.inside ?? { id: COLONY_ID, name: colonyName })
 }
 
+/** 歩く場面を、回転の軸へのエレベーターの前から始める */
+export function startWalkAtTower() {
+  if (!canWalkDirect()) return
+  useWalk.setState({ startAtTower: true })
+  startWalkDirect()
+}
+
 function beginWalk(c: { id: string; name: () => string }) {
   if (document.pointerLockElement) document.exitPointerLock()
   resetWalkInput()
-  useWalk.setState({ colonyId: c.id, colonyName: c.name(), view: 'chase', run: false, sitting: false, benchNear: false, riding: false, waterNote: 0 })
+  useWalk.setState({ colonyId: c.id, colonyName: c.name(), view: 'chase', run: false, sitting: false, benchNear: false, riding: false, flying: false, waterNote: 0, skyNote: 0, gee: 1, elevNear: null, inElev: false, axisNote: 0, wings: false, wingsHere: false, peopleReady: false })
   setPhase('fadeIn')
   window.setTimeout(() => {
     if (useWalk.getState().phase === 'fadeIn') setPhase('walk')
@@ -126,8 +176,12 @@ export const walkInput = {
   jump: false,
   /** 座る・立つ（読んだら false にもどす） */
   sit: false,
+  /** 翼をつける・はずす（読んだら false にもどす） */
+  wings: false,
   /** ホバースクーターに乗る・降りる（読んだら false にもどす） */
   ride: false,
+  /** 空を飛ぶ・地面へ降りる（スクーターに乗っているとき。読んだら false にもどす） */
+  sky: false,
   /** カメラの距離を変えたぶん（ホイール。+ で遠く） */
   zoom: 0,
   /** スマホのスティック（-1..1） */
@@ -137,7 +191,7 @@ export const walkInput = {
 }
 
 export function resetWalkInput() {
-  Object.assign(walkInput, { fwd: 0, right: 0, lookX: 0, lookY: 0, jump: false, sit: false, ride: false, zoom: 0, stickX: 0, stickY: 0, shift: false })
+  Object.assign(walkInput, { fwd: 0, right: 0, lookX: 0, lookY: 0, jump: false, sit: false, wings: false, ride: false, sky: false, zoom: 0, stickX: 0, stickY: 0, shift: false })
   keys.clear()
 }
 
@@ -154,7 +208,7 @@ const HOLD_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown
 
 export const toggleWalkView = () => useWalk.setState({ view: useWalk.getState().view === 'chase' ? 'eye' : 'chase' })
 
-/** キーボード：WASD/矢印 歩く・Shift 走る・スペース ジャンプ・E 座る/立つ・F ホバースクーター・V 見方・J/Esc 船へもどる・マウス 向き・ホイール 距離 */
+/** キーボード：WASD/矢印 歩く・Shift 走る・スペース ジャンプ・E 座る/立つ・F ホバースクーター・G 空を飛ぶ・V 見方・J/Esc 船へもどる・マウス 向き・ホイール 距離 */
 export function bindWalkKeys() {
   const down = (e: KeyboardEvent) => {
     if (useWalk.getState().phase !== 'walk') return
@@ -174,6 +228,16 @@ export function bindWalkKeys() {
     if (e.code === 'KeyF') {
       e.stopPropagation()
       if (!e.repeat) walkInput.ride = true
+      return
+    }
+    if (e.code === 'KeyG') {
+      e.stopPropagation()
+      if (!e.repeat) walkInput.sky = true
+      return
+    }
+    if (e.code === 'KeyR') {
+      e.stopPropagation()
+      if (!e.repeat) walkInput.wings = true
       return
     }
     if (e.code === 'KeyV') {

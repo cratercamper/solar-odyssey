@@ -6,6 +6,7 @@ import { PROFILE_N, dayProfile, sampleAt, type DayProfile } from './dayProfile'
 import { WEATHER_BODIES, useWeather, type WeatherMode } from './weather'
 import { ui } from '../../i18n'
 import type { timeBarJa } from '../../i18n/timeBar.ja'
+import { sunriseOf, watchSunrise } from './sunrise'
 
 // 地表の時計：現地の時刻と、時間の速さ（止める・1 秒で 1 時間・1 日を 1 分で）。
 // 月では「地球から見た今の月」の小窓も出す。月面の昼と夜は、地球から見た月の満ち欠けと同じ周期で巡る。
@@ -225,6 +226,11 @@ export function TimeBar({ def }: { def: SurfaceDef }) {
         ))}
       </div>
       <div className="time-rates time-jump">
+        {sunriseOf(def) && (
+          <button className="sunrise-go" onClick={() => watchSunrise(def)} title={ui().sunrise.button}>
+            🌅 {ui().sunrise.button}
+          </button>
+        )}
         {JUMPS.map((j) => (
           <button key={j.key} onClick={() => jumpTo(def.id, clock, j.at)}>
             {ui().timeBar.jump[j.key]}

@@ -1,0 +1,197 @@
+/* アポロ17号の追体験・章7（EvaPanel.tsx） */
+.ae-head {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+.ae-chapter {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #ffd27a;
+}
+.ae-no {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ae-no small {
+  font-weight: 400;
+  color: #b9c6d6;
+}
+
+.ae-card {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(10, 14, 22, 0.78);
+  border: 1px solid rgba(255, 210, 122, 0.35);
+  pointer-events: auto;
+  line-height: 1.5;
+}
+.ae-card p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+.ae-card button {
+  margin-top: 12px;
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 15px;
+}
+.ae-card .primary {
+  border: none;
+  background: #f2a65a;
+  color: #1a1206;
+  font-weight: 600;
+}
+.ae-card .primary:disabled {
+  opacity: 0.45;
+}
+.ae-card .secondary {
+  background: rgba(10, 14, 22, 0.65);
+  border-color: rgba(200, 220, 255, 0.4);
+}
+.ae-k {
+  font-size: 12px;
+  color: #ffd27a;
+  letter-spacing: 1px;
+}
+.ae-name {
+  font-size: 18px;
+  font-weight: 600;
+}
+.ae-note {
+  font-size: 12px;
+  color: #b9c6d6;
+  margin-top: 4px;
+}
+
+/* 次の場所：右上 */
+.ae-target {
+  top: 104px;
+  right: 16px;
+  width: min(300px, calc(100vw - 32px));
+}
+.ae-dist {
+  margin-top: 4px;
+  font-size: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ae-dir {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: #cfe3ff;
+}
+.ae-arrow {
+  display: inline-block;
+  color: #ffd27a;
+  transition: transform 0.2s linear;
+}
+.ae-skip {
+  font-size: 13px !important;
+  padding: 6px 14px !important;
+}
+
+/* 着いた・採った・最後の言葉・おわり：下のまんなか */
+.ae-big {
+  left: 50%;
+  bottom: 86px;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 32px));
+}
+.ae-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.ae-done,
+.ae-closeout {
+  text-align: center;
+}
+
+/* 離陸：テレビカメラの映像の感じ（走査線・四すみの暗さ） */
+.ae-tv {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+.ae-tv-cap {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px));
+  text-align: center;
+  font-size: 13px;
+  color: #dfe8f2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+.ae-tv-cap small {
+  display: block;
+  color: #ffd27a;
+  margin-top: 4px;
+}
+
+@media (max-width: 700px) {
+  .ae-target {
+    top: auto;
+    bottom: 100px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+  .ae-big {
+    bottom: 96px;
+  }
+  .ae-card p {
+    font-size: 13px;
+  }
+}
+
+/* 章の始まりの幕 */
+.ae-title {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #000;
+  color: #e8eef6;
+  text-align: center;
+  padding: 0 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.ae-title.on {
+  opacity: 1;
+  transition: none;
+}
+.ae-title-k {
+  font-size: 28px;
+  letter-spacing: 6px;
+}
+.ae-title-date {
+  font-size: 14px;
+  color: #c9b48a;
+  letter-spacing: 2px;
+}
+.ae-title-line {
+  font-size: 13px;
+  color: #93a6bd;
+  max-width: 520px;
+}

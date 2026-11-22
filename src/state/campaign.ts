@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import { CAMPAIGN_STAGES, isLockedBody } from '../data/campaign'
 import { ui } from '../i18n'
@@ -20,12 +21,12 @@ type CampaignState = {
   card: CampaignCard
 }
 
-const KEY = 'solar-voyager:campaign'
+const KEY = 'campaign'
 type Saved = { v: 1; stage: number; counts: Record<string, number> }
 
 function load(): Saved {
   try {
-    const s = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Saved | null
+    const s = JSON.parse(saveData.get(KEY) ?? 'null') as Saved | null
     if (s && s.v === 1 && Number.isInteger(s.stage) && s.stage >= 0 && s.counts && typeof s.counts === 'object')
       return { v: 1, stage: Math.min(s.stage, CAMPAIGN_STAGES.length), counts: s.counts }
   } catch {
@@ -37,7 +38,7 @@ function load(): Saved {
 function save() {
   const { stage, counts } = useCampaign.getState()
   try {
-    localStorage.setItem(KEY, JSON.stringify({ v: 1, stage, counts } satisfies Saved))
+    saveData.set(KEY, JSON.stringify({ v: 1, stage, counts } satisfies Saved))
   } catch {
     // 保存できなくても遊べる
   }

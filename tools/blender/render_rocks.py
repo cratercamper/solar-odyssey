@@ -63,6 +63,10 @@ ROCKS = {
     'salt': dict(shape='slab', c='#d4dce4', c2='#8a5a3a', rough=0.3, feat='streaks', ice=True),
     # タイタン
     'titan-pebble': dict(shape='pebble', c='#9a8466', c2='#6e5c44', rough=0.6, feat='speckle', sc='#b8a586'),
+    # レースの金メダルのごほうび（TRACKS の reward）
+    'layered-sulfate': dict(shape='rock', c='#d6bb92', c2='#9a7454', rough=0.9, feat='layers', bands=11),
+    'troctolite': dict(shape='rock', c='#8f9478', c2='#55603f', rough=0.8, feat='speckle', sc='#ebe7da'),
+    'europa-salt': dict(shape='crust', c='#e6d38e', c2='#b98f55', rough=0.4, feat='streaks', ice=True),
     # そのほか
     'regolith-rock': dict(shape='rock', c='#6a655f', c2='#47433e', rough=0.9, feat='speckle', sc='#85807a'),
 }

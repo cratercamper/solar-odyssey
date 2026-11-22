@@ -1,12 +1,13 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 
 // アポロ17号の史跡（data/apollo17.ts）：訪ねた記録と、いま見せているカード・図鑑の画面
 
-const KEY = 'solar-voyager:apollo17'
+const KEY = 'apollo17'
 
 function load(): string[] {
   try {
-    const v = JSON.parse(localStorage.getItem(KEY) ?? '[]')
+    const v = JSON.parse(saveData.get(KEY) ?? '[]')
     return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []
   } catch {
     return []
@@ -30,7 +31,7 @@ export function visitHistoric(id: string) {
   if (s.found.includes(id)) return false
   const found = [...s.found, id]
   try {
-    localStorage.setItem(KEY, JSON.stringify(found))
+    saveData.set(KEY, JSON.stringify(found))
   } catch {
     /* 保存できなくても続ける */
   }

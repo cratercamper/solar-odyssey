@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { bodies } from '../../state/registry'
 import { ship } from '../../state/flight'
 import { useStore } from '../../state/store'
@@ -10,6 +9,7 @@ import { SF_TEXT, SOLAR_PLANT_ID, solarPlantName } from '../../data/sf'
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z, useHideBehindSun } from '../labels'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // 太陽光ミラー発電所（オリジナルのデザイン）。太陽と地球の L1 点（地球から太陽の側）に浮かぶ。
 // 浅いお椀の形に並べた約3800枚の鏡が太陽の光を焦点の受光部へ集め、受光部で電気に変えて、
@@ -27,6 +27,8 @@ const MIRROR = 0.0044
 const L1_DISTANCE = 7
 /** この距離より近いと、鏡のきらめきを動かす */
 const NEAR_DETAIL = 4
+/** これより近いと（カメラから、表示単位）鏡を 1 枚ずつ描く。遠くではなめらかなお椀 1 つ */
+const MIRROR_DETAIL = 5
 
 const Z = new THREE.Vector3(0, 0, 1)
 const earth = new THREE.Vector3()
@@ -103,6 +105,7 @@ export function SolarPlant() {
   const { gl } = useThree()
   const group = useRef<THREE.Group>(null!)
   const beam = useRef<THREE.Mesh>(null!)
+  const dish = useRef<THREE.Mesh>(null!)
   const label = useRef<HTMLSpanElement>(null)
   useHideBehindSun(label, group)
   const moved = useSite(group, {
@@ -113,9 +116,7 @@ export function SolarPlant() {
   })
 
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     const layout = mirrorLayout()
     const mirrors = new THREE.InstancedMesh(
       new THREE.CylinderGeometry(MIRROR, MIRROR, 0.0004, 6),
@@ -127,6 +128,14 @@ export function SolarPlant() {
       mirrors.setColorAt(i, color.setScalar(0.7))
     })
     mirrors.frustumCulled = false
+    // 遠くでは、鏡 3800 枚の代わりに、同じ形のなめらかなお椀を 1 つ描く（鏡 1 枚が 1 ピクセルより小さいので見た目は同じ）
+    const bowl: THREE.Vector2[] = []
+    for (let k = 0; k <= 12; k++) {
+      const r = HOLE + ((DISH - HOLE) * k) / 12
+      bowl.push(new THREE.Vector2(r, (r * r) / (4 * FOCUS)))
+    }
+    const dish = new THREE.LatheGeometry(bowl, 48)
+    dish.rotateX(Math.PI / 2)
     // 集めた光の円すい（お椀の縁から焦点へ）
     const rimZ = (DISH * DISH) / (4 * FOCUS)
     const cone = new THREE.ConeGeometry(DISH, FOCUS - rimZ, 64, 1, true)
@@ -142,6 +151,8 @@ export function SolarPlant() {
     return {
       env,
       mirrors,
+      dish,
+      dishMat: new THREE.MeshStandardMaterial({ color: new THREE.Color().setScalar(0.62), metalness: 0.95, roughness: 0.2, envMap: env, envMapIntensity: 1.1, side: THREE.DoubleSide }),
       radii: layout.map((m) => m.r),
       cone,
       coneMat: new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.8, 0.4), transparent: true, opacity: 0.03, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }),
@@ -162,7 +173,6 @@ export function SolarPlant() {
 
   useEffect(
     () => () => {
-      parts.env.dispose()
       parts.mirrors.geometry.dispose()
       ;(parts.mirrors.material as THREE.Material).dispose()
       parts.mirrors.dispose()
@@ -171,7 +181,7 @@ export function SolarPlant() {
     [parts],
   )
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const e = bodies.get('earth')
     if (!e) return
     e.object.getWorldPosition(earth)
@@ -189,8 +199,12 @@ export function SolarPlant() {
     parts.beamMat.uniforms.time.value = t
     parts.beamMat.uniforms.length.value = length
 
-    // 近くでは、鏡のきらめきが波のようにお椀を横切る（鏡が少しずつ向きを直しているところ）
+    // 近くでは鏡を 1 枚ずつ、遠くではなめらかなお椀を描く
     g.getWorldPosition(here)
+    const detail = camera.position.distanceTo(here) < MIRROR_DETAIL
+    parts.mirrors.visible = detail
+    dish.current.visible = !detail
+    // 近くでは、鏡のきらめきが波のようにお椀を横切る（鏡が少しずつ向きを直しているところ）
     if (ship.position.distanceTo(here) < NEAR_DETAIL && useStore.getState().mode !== 'map') {
       const m = parts.mirrors
       parts.radii.forEach((r, i) => {
@@ -211,6 +225,7 @@ export function SolarPlant() {
   return (
     <group ref={group}>
       <primitive object={parts.mirrors} />
+      <mesh ref={dish} geometry={parts.dish} material={parts.dishMat} visible={false} />
       {/* 鏡を支える裏の骨組み：同心の輪と放射状の梁 */}
       {[0.1, 0.2, DISH].map((r) => (
         <mesh key={`r${r}`} geometry={parts.ring(r)} material={parts.frameMat} position={[0, 0, (r * r) / (4 * FOCUS) - 0.004]} />

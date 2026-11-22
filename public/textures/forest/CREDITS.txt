@@ -1,0 +1,30 @@
+Lab jungle rebuilt as a realistic forest (?forest=jungle, also ?forest=sample) — sources
+
+All of the following are from Poly Haven (https://polyhaven.com), licensed CC0 1.0.
+They were simplified, re-packed into atlases and resized for this app by
+tools/forest/bake.mjs and tools/forest/images.py.
+
+Models (public/models/forest-kit.glb)
+  fern_02                 -> fern_a, fern_b              (leaves: leavesB cell 0)
+  calathea_orbifolia_01   -> calathea_a..c               (leaves: leavesA cell 0)
+  anthurium_botany_01     -> anthurium_a..c              (leaves: leavesA cell 1)
+  pachira_aquatica_01     -> pachira                     (leaves: leavesA cell 2, bark: props cell 0)
+  potted_plant_02         -> arrow (leaves only)         (leaves: leavesA cell 3)
+  weed_plant_02           -> creeper_a, creeper_b        (leaves: leavesB cell 1)
+  shrub_04                -> shrub (one of the four)     (leaves: leavesB cell 2)
+  root_cluster_01         -> roots                       (props cell 1)
+  tree_stump_01           -> stump                       (props cell 2)
+  dead_tree_trunk_02      -> log                         (props cell 3)
+  dead_tree_trunk         -> log_b                       (props cell 5)
+  rock_moss_set_01        -> rock_a, rock_b              (props cell 4)
+  rock_moss_set_02        -> rock_c, rock_d              (props cell 6)
+  island_tree_02          -> canopy.webp (leaf clusters rendered by tools/forest/canopy.mjs)
+
+Atlases: leavesA.webp (+ leavesA_n.webp normals), leavesB.webp, props.webp
+(and their .half versions for phones).
+
+Textures
+  chinese_hackberry_bark  -> bark.webp, bark_n.webp
+  forest_leaves_04        -> floor_leaves.webp
+  forrest_ground_01       -> floor_moss.webp
+  mud_forest              -> floor_mud.webp

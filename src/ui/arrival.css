@@ -1,0 +1,277 @@
+/* 到着の瞬間（ui/ArrivalMoment.tsx）。映画の字幕のように、左の空いたところに大きく出す */
+.arrival {
+  position: fixed;
+  left: 18px;
+  top: max(250px, 36vh);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  /* まん中の星にかからない幅（星は画面のまん中に、高さの 3 割ほどの半径で見える） */
+  width: min(400px, calc(50vw - 30vh - 30px));
+  min-width: 330px;
+  padding: 16px 20px 18px 16px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(8, 10, 22, 0.88) 0%, rgba(8, 10, 22, 0.78) 80%, rgba(8, 10, 22, 0.35) 100%);
+  backdrop-filter: blur(3px);
+  color: #f2f2fa;
+  pointer-events: none;
+  animation: arr-in 0.6s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.arrival button {
+  pointer-events: auto;
+}
+@keyframes arr-in {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+.arr-text {
+  flex: 1;
+  min-width: 0;
+}
+.arr-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.arr-head {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+}
+.arr-head-text {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  animation: arr-up 0.45s ease-out both;
+}
+.arr-what {
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #cfe8ff;
+}
+.arr-count {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  color: #9fd4ff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px rgba(120, 190, 255, 0.7);
+  animation: arr-tick 0.25s ease-out both;
+}
+@keyframes arr-tick {
+  from {
+    transform: scale(1.35);
+    opacity: 0.4;
+  }
+}
+@keyframes arr-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.arr-wow {
+  margin: 6px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #e4e6f4;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s 0.35s,
+    transform 0.5s 0.35s;
+}
+.arr-wow.on {
+  opacity: 1;
+  transform: none;
+}
+.arr-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.arrival .arr-more {
+  padding: 6px 14px;
+  border: 1px solid rgba(159, 212, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(40, 70, 110, 0.55);
+  color: #e8f4ff;
+  font-size: 14px;
+}
+.arrival .arr-close {
+  width: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ccd;
+  font-size: 18px;
+}
+/* 消えるまでの時間（下の細い線が縮む） */
+.arr-timer {
+  position: absolute;
+  left: 16px;
+  right: 30%;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(159, 212, 255, 0.5);
+  transform-origin: left;
+  animation: arr-timer linear both;
+}
+@keyframes arr-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* 絵：2D の球 */
+.arr-pic {
+  position: relative;
+  flex: none;
+}
+.arr-globe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background-size: 200% 100%;
+  background-position: 25% 50%;
+  box-shadow:
+    inset -10px -8px 18px rgba(0, 0, 0, 0.62),
+    inset 4px 3px 10px rgba(255, 255, 255, 0.16);
+}
+.arr-earth {
+  opacity: 0.8;
+  filter: saturate(0.8) brightness(0.8);
+  outline: 1.5px solid rgba(159, 212, 255, 0.75);
+  outline-offset: 2px;
+}
+.arr-slot {
+  position: absolute;
+  overflow: hidden;
+  transform: scale(0);
+  transition: transform 0.32s cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+.arr-slot.on {
+  transform: scale(1);
+}
+.arr-slot .arr-globe {
+  box-shadow:
+    inset -4px -3px 7px rgba(0, 0, 0, 0.6),
+    0 0 6px rgba(255, 255, 255, 0.35);
+}
+.arr-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -20px;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: #9fd4ff;
+}
+
+/* とても小さい星：まわりを歩く点 */
+.arr-walk .arr-tiny,
+.arr-path,
+.arr-walker {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.arr-path {
+  position: absolute;
+  border: 1.5px dashed rgba(159, 212, 255, 0.6);
+  border-radius: 50%;
+}
+.arr-walker {
+  position: absolute;
+  animation: arr-walk 6s linear infinite;
+}
+.arr-walker i {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: #ffd27a;
+  box-shadow: 0 0 10px #ffd27a;
+}
+@keyframes arr-walk {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* 地球より大きい星は 3D でならべるので、絵はなし */
+/* スマホ・タブレット：画面の上（下と右は操作ボタンでいっぱい） */
+@media (max-width: 720px), (pointer: coarse) {
+  .arrival {
+    left: 8px;
+    right: 8px;
+    /* 上のアイコンの列のすぐ下。右の推進の −/＋ やワープのボタン（画面のまん中より下）にかからない高さ */
+    top: calc(56px + env(safe-area-inset-top));
+    z-index: 6;
+    width: auto;
+    min-width: 0;
+    gap: 12px;
+    padding: 12px 14px 14px 12px;
+    background: rgba(8, 10, 22, 0.8);
+  }
+  .arr-head-text {
+    font-size: 17px;
+  }
+  .arr-name {
+    font-size: 13px;
+  }
+  .arr-actions {
+    margin-top: 6px;
+  }
+  .arrival .arr-more {
+    padding: 4px 12px;
+    font-size: 13px;
+  }
+  .arrival .arr-close {
+    width: 28px;
+  }
+  .arr-what {
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #cfe8ff;
+}
+.arr-count {
+    font-size: 34px;
+  }
+  .arr-wow {
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .arr-head {
+    min-height: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival,
+  .arr-count,
+  .arr-head-text,
+  .arr-walker {
+    animation: none;
+  }
+}

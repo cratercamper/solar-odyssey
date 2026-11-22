@@ -22,6 +22,9 @@ export const stampTitlesEn: Translation<StampTitlesJa> = {
   scopes: { name: 'Telescope Spotter', how: () => 'Visit both space telescopes, Hubble and Webb' },
   mystery: { name: 'Mystery Finder', how: () => 'Find the strange ship floating somewhere out there' },
   colonist: { name: 'Colony Visitor', how: () => 'Visit the L5 Space Colony' },
+  'race-debut': { name: 'Rover Racer', how: () => 'Win a medal in any rover race' },
+  'race-champion': { name: 'Solar System Rover Champion', how: (count: number) => `Win gold on all ${count} rover race courses` },
+  'moon-lap': { name: 'Lunar Circumnavigator', how: () => 'Fly the lander all the way around the Moon' },
   scholar: { name: 'Budding Scientist', how: (count: number) => `Answer ${count} ship’s log quizzes correctly` },
   professor: { name: 'Solar System Professor', how: (count: number) => `Answer the ship’s log quiz for every sun, planet and moon (${count})` },
 }

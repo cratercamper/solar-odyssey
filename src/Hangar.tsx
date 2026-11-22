@@ -124,7 +124,7 @@ export default function Hangar() {
         ) : MODEL === "asteroid" ? (
           <AsteroidSamples />
         ) : MODEL === "hubble" ? (
-          <HubbleTelescope />
+          <HubbleTelescope eager />
         ) : MODEL === "hubble-handmade" ? (
           <HubbleModel />
         ) : MODEL === "webb" ? (

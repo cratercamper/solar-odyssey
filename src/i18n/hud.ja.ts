@@ -20,6 +20,8 @@ export const hudJa = {
   mapMouseHint: 'ドラッグで回転・ホイールで拡大縮小・名前をクリックで目標設定',
   galleryMouseHint: '鑑賞モード：ドラッグで回転・ホイールで拡大縮小・V でもどる',
   clickToFly: 'クリックで操縦開始（Escで解除）',
+  showControls: '操作を見る',
+  hideControls: '操作をたたむ',
   moveKeysHint: 'W/S 前後・A/D 左右・Space/Shift 上下・Q/E 回転・マウスで向き',
   actionKeysHint: 'F またはクリックでビーム（長押しでチャージ）・I で航海日誌・C でカメラ切り替え',
   thrustKeysHint: 'ホイールで推進の段階（速さ）を切り替え・O で目標の周辺観察',

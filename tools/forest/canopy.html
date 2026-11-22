@@ -1,0 +1,115 @@
+<!doctype html>
+<meta charset="utf-8" />
+<script type="importmap">
+  { "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+<script type="module">
+  // 樹冠の「葉の房」の絵を作る：本物の木（Poly Haven の island_tree_02、CC0）の枝先を、まっすぐな向きから撮る。
+  // 色は光を当てない素の色に、やわらかい空の光と「奥ほど暗い」影だけを入れる（アプリの光は後から当たる）。
+  // tools/forest/canopy.mjs から開いて、window.shot({...}) を呼ぶ。
+  import * as THREE from 'three'
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true })
+  renderer.setClearColor(0x000000, 0)
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+  document.body.appendChild(renderer.domElement)
+  const scene = new THREE.Scene()
+  scene.add(new THREE.HemisphereLight('#ffffff', '#8a927a', 3.2))
+  const depth = { value: new THREE.Vector2(0, 1) }
+  try {
+    const gltf = await new GLTFLoader().loadAsync('/tools/forest/raw/island_tree_02/island_tree_02.gltf')
+    const alpha = await new THREE.TextureLoader().loadAsync('/tools/forest/raw/island_tree_02/maps/leaves_alpha.jpg')
+    alpha.flipY = false
+    gltf.scene.traverse((o) => {
+      if (!o.isMesh) return
+      const src = o.material
+      const leaves = /leaves/.test(src.name)
+      // 幹（太い所）は絵に入れない。細い枝と葉だけ
+      if (!leaves && !/branches/.test(src.name)) return void (o.visible = false)
+      const mat = new THREE.MeshLambertMaterial({ map: src.map, side: THREE.DoubleSide, alphaMap: leaves ? alpha : null, alphaTest: leaves ? 0.5 : 0 })
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uDepth = depth
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform vec2 uDepth;')
+          .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+// カメラから遠い（奥の）葉ほど暗く：重なった葉の影の代わり
+float dz = clamp((-vViewPosition.z - uDepth.x) / (uDepth.y - uDepth.x), 0.0, 1.0);
+gl_FragColor.rgb *= mix(1.0, 0.42, dz * dz);`)
+      }
+      o.material = mat
+    })
+    scene.add(gltf.scene)
+    // 葉は 1 枚ずつつながった形になっている。葉ごとの重心を出しておき、撮るときは「重心が範囲の中にある葉」だけを描く
+    // （四角く切ると、葉が途中で切れた房になってしまうので）。枝は三角形ごとに決める
+    const parts = []
+    gltf.scene.traverse((o) => {
+      if (!o.isMesh || !o.visible) return
+      const g = o.geometry
+      const idx = g.index.array
+      const pos = g.attributes.position
+      const nv = pos.count
+      const root = new Uint32Array(nv)
+      for (let i = 0; i < nv; i++) root[i] = i
+      const find = (a) => { while (root[a] !== a) { root[a] = root[root[a]]; a = root[a] } return a }
+      const leaves = /leaves/.test(o.material.name)
+      if (leaves) for (let i = 0; i < idx.length; i += 3) { const a = find(idx[i]); const b = find(idx[i + 1]); const c = find(idx[i + 2]); root[b] = a; root[c] = a }
+      const sum = new Float32Array(nv * 3)
+      const cnt = new Uint32Array(nv)
+      if (leaves) for (let i = 0; i < nv; i++) { const r = find(i); sum[r * 3] += pos.getX(i); sum[r * 3 + 1] += pos.getY(i); sum[r * 3 + 2] += pos.getZ(i); cnt[r]++ }
+      const centre = new Float32Array(idx.length) // 三角形ごとの (x, y, z)
+      for (let i = 0; i < idx.length; i += 3) {
+        if (leaves) { const r = find(idx[i]); centre[i] = sum[r * 3] / cnt[r]; centre[i + 1] = sum[r * 3 + 1] / cnt[r]; centre[i + 2] = sum[r * 3 + 2] / cnt[r] }
+        else { centre[i] = (pos.getX(idx[i]) + pos.getX(idx[i + 1]) + pos.getX(idx[i + 2])) / 3; centre[i + 1] = (pos.getY(idx[i]) + pos.getY(idx[i + 1]) + pos.getY(idx[i + 2])) / 3; centre[i + 2] = (pos.getZ(idx[i]) + pos.getZ(idx[i + 1]) + pos.getZ(idx[i + 2])) / 3 }
+      }
+      parts.push({ mesh: o, full: idx, centre, leaves })
+    })
+    /** だ円体（中心 c、半径 r）の中のものだけを描くようにする。枝は少し内側まで */
+    const select = (c, r) => {
+      for (const p of parts) {
+        const out = new Uint32Array(p.full.length)
+        let n = 0
+        const k = p.leaves ? 1 : 0.92
+        for (let i = 0; i < p.full.length; i += 3) {
+          const dx = (p.centre[i] - c[0]) / (r[0] * k), dy = (p.centre[i + 1] - c[1]) / (r[1] * k), dz = (p.centre[i + 2] - c[2]) / (r[2] * k)
+          if (dx * dx + dy * dy + dz * dz < 1) { out[n++] = p.full[i]; out[n++] = p.full[i + 1]; out[n++] = p.full[i + 2] }
+        }
+        p.mesh.geometry.setIndex(new THREE.BufferAttribute(out.subarray(0, n), 1))
+      }
+    }
+    /** 箱 [min, max] を、dir の向き（'top' = 上から、'side' = 横 +x から、'front' = +z から）で size px に撮って PNG の data URL を返す */
+    window.shot = ({ c: cc, r: rr, pad = 1.12, dir, size }) => {
+      select(cc, rr)
+      const min = cc.map((v, i) => v - rr[i] * pad)
+      const max = cc.map((v, i) => v + rr[i] * pad)
+      renderer.setSize(size, size)
+      const c = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2]
+      const e = [(max[0] - min[0]) / 2, (max[1] - min[1]) / 2, (max[2] - min[2]) / 2]
+      let cam
+      if (dir === 'top') {
+        cam = new THREE.OrthographicCamera(-e[0], e[0], e[2], -e[2], 0.001, e[1] * 2)
+        cam.position.set(c[0], max[1], c[2])
+        cam.up.set(0, 0, -1)
+        depth.value.set(0, e[1] * 2)
+      } else if (dir === 'bottom') {
+        cam = new THREE.OrthographicCamera(-e[0], e[0], e[2], -e[2], 0.001, e[1] * 2)
+        cam.position.set(c[0], min[1], c[2])
+        cam.up.set(0, 0, 1)
+        depth.value.set(0, e[1] * 2)
+      } else if (dir === 'side') {
+        cam = new THREE.OrthographicCamera(-e[2], e[2], e[1], -e[1], 0.001, e[0] * 2)
+        cam.position.set(max[0], c[1], c[2])
+        depth.value.set(0, e[0] * 2)
+      } else {
+        cam = new THREE.OrthographicCamera(-e[0], e[0], e[1], -e[1], 0.001, e[2] * 2)
+        cam.position.set(c[0], c[1], max[2])
+        depth.value.set(0, e[2] * 2)
+      }
+      cam.lookAt(c[0], c[1], c[2])
+      renderer.render(scene, cam)
+      return renderer.domElement.toDataURL('image/png')
+    }
+    window.result = 'ok'
+  } catch (e) {
+    window.result = 'ERR ' + e
+  }
+</script>

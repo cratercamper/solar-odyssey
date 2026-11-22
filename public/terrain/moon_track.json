@@ -1,0 +1,25 @@
+{
+  "decode": "theta = TH0 + u * (TH1 - TH0) (u = 0 left), phi = PH - v * 2 PH (v = 0 top); d = cos(phi)(cos(theta) P + sin(theta) Q) + sin(phi) N",
+  "site": [
+    20.18629,
+    30.76622
+  ],
+  "th0": -0.78,
+  "th1": 0.06,
+  "ph": 0.07,
+  "height": {
+    "w": 6144,
+    "h": 1024,
+    "step": 1.0,
+    "offset": 9200.0,
+    "shadow": "B channel"
+  },
+  "albedo": {
+    "w": 6144,
+    "h": 1024,
+    "scale": 0.37506,
+    "encoding": "linear = (v/255)^2.2 * scale"
+  },
+  "attribution": "JAXA/SELENE Multiband Imager 749 nm (albedo), NASA/GSFC LOLA (height), via USGS Astrogeology",
+  "licence": "public domain"
+}

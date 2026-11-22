@@ -40,8 +40,11 @@ export const probesEn: Translation<ProbesJa> = {
       { text: 'Swing-by at Earth. It passes very close to Earth and speeds up even more.' },
       { text: 'Swing-by at Jupiter. It observed Jupiter on the way past.' },
       { text: 'It entered orbit around Saturn.' },
+      { text: 'It released Huygens, the small probe it had carried all the way.' },
       { text: 'Huygens, the small probe it carried, landed on the moon Titan.' },
       { text: 'It found water spraying out of the south pole of the moon Enceladus.' },
+      { text: 'The Grand Finale: 22 dives through the gap between Saturn and its rings.' },
+      { text: 'It plunged into Saturn’s atmosphere, ending a 20-year journey.' },
     ],
   },
   newhorizons: {

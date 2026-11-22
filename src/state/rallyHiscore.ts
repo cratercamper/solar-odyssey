@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import { TRACKS } from '../data/rallyTracks'
 import { RALLY_RECORDS, type RallyRecord } from '../data/rallyRecords'
@@ -37,7 +38,7 @@ export function courseOf(track: string) {
 }
 
 const VERSION = 1
-const keyOf = (track: string) => `solar-voyager:rally-results:${track}`
+const keyOf = (track: string) => `rally-results:${track}`
 type Book = { v: number; course: string; results: RallyResult[] }
 
 const valid = (r: RallyResult) =>
@@ -49,14 +50,14 @@ function load(track: string): RallyResult[] {
   const course = courseOf(track)
   let text: string | null = null
   try {
-    text = localStorage.getItem(key)
+    text = saveData.get(key)
     if (text === null) return []
     const b = JSON.parse(text) as Book
     if (b.v !== VERSION || !Array.isArray(b.results)) throw new Error(`format v${b.v}`)
     if (b.course !== course) {
       // コースが変わった：前のコースの表は別の名前で残して、新しい表を始める
-      localStorage.setItem(`${key}:${b.course}`, text)
-      localStorage.removeItem(key)
+      saveData.set(`${key}:${b.course}`, text)
+      saveData.remove(key)
       return []
     }
     return b.results.filter(valid)
@@ -64,7 +65,7 @@ function load(track: string): RallyResult[] {
     console.warn(`rally results (${track}): stored table not used (${(e as Error).message})`)
     try {
       // 読めない表は消さずに、別の名前で残す
-      if (text !== null) localStorage.setItem(`${key}:unreadable:${Date.now()}`, text)
+      if (text !== null) saveData.set(`${key}:unreadable:${Date.now()}`, text)
     } catch {
       // 保存できなくても遊べる
     }
@@ -124,7 +125,7 @@ export function bookResult(track: string, time: number, place: number, color: nu
   books.set(track, results)
   useRallyHiscore.setState((h) => ({ rev: h.rev + 1 }))
   try {
-    localStorage.setItem(keyOf(track), JSON.stringify({ v: VERSION, course: courseOf(track), results } satisfies Book))
+    saveData.set(keyOf(track), JSON.stringify({ v: VERSION, course: courseOf(track), results } satisfies Book))
   } catch {
     // 保存できなくても遊べる
   }

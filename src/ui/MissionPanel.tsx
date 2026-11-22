@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BEAM_NODES, CHAPTERS, DEFLECT_HITS, MISSIONS, chapterOf, missionIndexOf, shipOf, skillChapterOf, type ChapterDef } from '../data/missions'
 import { shipLabel, shipSpec, type ShipId } from '../data/ships'
 import { chapterText, missionText, ui } from '../i18n'
 import { useLang } from '../i18n/lang'
+import { useToastBelow } from './toastOffset'
 import { useStore } from '../state/store'
 import { abortMission, answerQuiz, closeMissions, isUnlocked, launchCraft, nextQuiz, openChapter, openMissions, showBriefing, startMission, useMission } from '../state/mission'
 import { useRace } from '../state/race'
@@ -214,26 +215,8 @@ function MissionBar() {
 
   useEffect(() => setFolded(false), [m.messageId])
 
-  useLayoutEffect(() => {
-    const el = bar.current
-    if (!el) return
-    const root = document.documentElement
-    const place = () => {
-      const rect = el.getBoundingClientRect()
-      // 画面の上にあるときだけ（スマホの縦向きでは下にあるので、トーストはそのまま）
-      if (rect.top < window.innerHeight / 2) root.style.setProperty('--toast-top', `${Math.round(rect.bottom + 10)}px`)
-      else root.style.removeProperty('--toast-top')
-    }
-    place()
-    const observer = new ResizeObserver(place)
-    observer.observe(el)
-    window.addEventListener('resize', place)
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', place)
-      root.style.removeProperty('--toast-top')
-    }
-  }, [])
+  // 画面の上にあるときだけ（スマホの縦向きでは下にあるので、トーストはそのまま）
+  useToastBelow('mission', bar)
 
   const craft = step.kind === 'launch' || step.kind === 'land'
   const timed = step.kind === 'unload' || step.kind === 'scan' || step.kind === 'load' || step.kind === 'photo' || step.kind === 'dock' || step.kind === 'sail' || craft

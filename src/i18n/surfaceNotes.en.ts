@@ -4,7 +4,7 @@ import type { Translation } from './translation'
 // The texts of data/surfaces.ts (English). Same keys as surfaceNotes.ja.ts
 
 export const surfaceNotesEn: Translation<SurfaceNotesJa> = {
-  mercury: 'About 430 °C by day and −170 °C at night: with almost no air, the heat escapes.',
+  mercury: 'About 430 °C by day and −180 °C at night: with almost no air, the heat escapes.',
   venus: 'The air is 90 times thicker than Earth’s and about 460 °C. Thick clouds hide the Sun.',
   earth: 'Our home. The sky is blue because air scatters the Sun’s blue light.',
   moon: 'Gravity is about 1/6 of Earth’s. With no wind, the Apollo footprints are still there.',

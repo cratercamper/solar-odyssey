@@ -47,6 +47,9 @@ const COACH = 0.24;
 const COUPLING = 0.025;
 /** 枕木の間隔 */
 const SLEEPER_STEP = 0.12;
+/** レールと枕木を区切る数と、描く距離（表示単位。これより遠いとレールの管は1ピクセルより細い） */
+const RAIL_CHUNKS = 64;
+const RAIL_DETAIL = 10;
 const SMOKE = 520;
 /** 車輪の見た目の回り方（道のりに対する割合）。本当の速さだと速すぎて、逆回りに見える */
 const WHEEL_LOOK = 0.1;
@@ -87,6 +90,14 @@ export function GalacticRailway() {
     notice: { distance: 2.5, text: JAPAN_TEXT.railwayFound },
   });
 
+  const rails = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0.8, 1.2, 2.2),
+        toneMapped: false,
+      }),
+    [],
+  );
   // レールの道すじ（距離のスライダーで太陽系を広げると、一緒に広がる）
   const track = useMemo(() => {
     const points = ROUTE.map(([au, deg, y]) => {
@@ -100,65 +111,80 @@ export function GalacticRailway() {
     const curve = new THREE.CatmullRomCurve3(points, true, "centripetal");
     const length = curve.getLength();
     const count = Math.ceil(length / SLEEPER_STEP);
-    // 2本のレール（細い光の管）と、遠くからも見える淡い線
-    const rail = (offset: number) => {
-      const pts = curve
-        .getSpacedPoints(Math.ceil(length * 4))
-        .map((q, i, all) => {
-          const next = all[(i + 1) % all.length];
-          side.copy(next).sub(q).normalize().cross(UP).normalize();
-          return q.clone().addScaledVector(side, offset);
-        });
-      return new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(pts, true),
-        pts.length,
-        0.004,
-        4,
-        true,
-      );
-    };
+    // 2本のレール（細い光の管）と枕木は、道すじを RAIL_CHUNKS 個に区切って作る。
+    // 区切りごとに、カメラから遠い（細すぎて見えない）ときは描かない。遠くからは淡い線（line）だけが見える
+    const railPts = (offset: number) =>
+      curve.getSpacedPoints(Math.ceil(length * 4)).slice(0, -1).map((q, i, all) => {
+        const next = all[(i + 1) % all.length];
+        side.copy(next).sub(q).normalize().cross(UP).normalize();
+        return q.clone().addScaledVector(side, offset);
+      });
+    const leftPts = railPts(-GAUGE / 2);
+    const rightPts = railPts(GAUGE / 2);
+    const tube = (pts: THREE.Vector3[]) =>
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false), pts.length - 1, 0.004, 4, false);
     const line = new THREE.BufferGeometry().setFromPoints(
       curve.getSpacedPoints(1200),
     );
     // 枕木：光の板を一定の間隔で
-    const sleepers = new THREE.InstancedMesh(
-      new THREE.BoxGeometry(GAUGE * 1.7, 0.004, 0.018),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0.5, 0.75, 1.4),
-        toneMapped: false,
-        transparent: true,
-        opacity: 0.55,
-      }),
-      count,
-    );
+    const sleeperGeometry = new THREE.BoxGeometry(GAUGE * 1.7, 0.004, 0.018);
+    const sleeperMaterial = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0.5, 0.75, 1.4),
+      toneMapped: false,
+      transparent: true,
+      opacity: 0.55,
+    });
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
+    const one = new THREE.Vector3(1, 1, 1);
     const target = new THREE.Object3D();
-    for (let i = 0; i < count; i++) {
-      place(curve, length, i * SLEEPER_STEP, target);
-      target.position.y -= 0.006;
-      q.copy(target.quaternion);
-      m.compose(target.position, q, new THREE.Vector3(1, 1, 1));
-      sleepers.setMatrixAt(i, m);
-    }
-    sleepers.frustumCulled = false;
+    const n = leftPts.length;
+    const chunks = Array.from({ length: RAIL_CHUNKS }, (_, k) => {
+      const a = Math.floor((k * n) / RAIL_CHUNKS);
+      const b = Math.floor(((k + 1) * n) / RAIL_CHUNKS);
+      // となりの区切りとすき間ができないよう、1 点ずつ重ねる
+      const range = (pts: THREE.Vector3[]) => Array.from({ length: b - a + 1 }, (_, i) => pts[(a + i) % n]);
+      const left = tube(range(leftPts));
+      const right = tube(range(rightPts));
+      const s0 = (a / n) * length;
+      const s1 = (b / n) * length;
+      const first = Math.ceil(s0 / SLEEPER_STEP);
+      const last = Math.min(Math.ceil(s1 / SLEEPER_STEP), count);
+      const sleepers = new THREE.InstancedMesh(sleeperGeometry, sleeperMaterial, Math.max(0, last - first));
+      for (let i = first; i < last; i++) {
+        place(curve, length, i * SLEEPER_STEP, target);
+        target.position.y -= 0.006;
+        q.copy(target.quaternion);
+        m.compose(target.position, q, one);
+        sleepers.setMatrixAt(i - first, m);
+      }
+      sleepers.computeBoundingSphere();
+      left.computeBoundingSphere();
+      const bounds = left.boundingSphere!.clone();
+      bounds.radius += GAUGE;
+      const group = new THREE.Group();
+      group.add(new THREE.Mesh(left, rails), new THREE.Mesh(right, rails), sleepers);
+      return { group, left, right, sleepers, bounds };
+    });
     return {
       curve,
       length,
-      left: rail(-GAUGE / 2),
-      right: rail(GAUGE / 2),
+      chunks,
       line,
-      sleepers,
+      sleeperGeometry,
+      sleeperMaterial,
     };
-  }, [layout]);
+  }, [layout, rails]);
   useEffect(
     () => () => {
-      track.left.dispose();
-      track.right.dispose();
+      for (const c of track.chunks) {
+        c.left.dispose();
+        c.right.dispose();
+        c.sleepers.dispose();
+      }
       track.line.dispose();
-      track.sleepers.geometry.dispose();
-      (track.sleepers.material as THREE.Material).dispose();
-      track.sleepers.dispose();
+      track.sleeperGeometry.dispose();
+      track.sleeperMaterial.dispose();
     },
     [track],
   );
@@ -319,14 +345,6 @@ export function GalacticRailway() {
     [smoke],
   );
 
-  const rails = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0.8, 1.2, 2.2),
-        toneMapped: false,
-      }),
-    [],
-  );
   const lineMat = useMemo(
     () =>
       new THREE.LineBasicMaterial({
@@ -342,6 +360,8 @@ export function GalacticRailway() {
     const running = useStore.getState().timeScale > 0;
     if (running) travelled.current += dt * SPEED;
     const s = travelled.current;
+    // レールと枕木は、カメラの近くの区切りだけ描く
+    for (const c of track.chunks) c.group.visible = camera.position.distanceTo(c.bounds.center) - c.bounds.radius < RAIL_DETAIL;
     place(track.curve, track.length, s, loco.current);
     coaches.current.forEach((c, i) =>
       place(
@@ -510,9 +530,9 @@ export function GalacticRailway() {
   const M = T.mats;
   return (
     <>
-      <mesh geometry={track.left} material={rails} frustumCulled={false} />
-      <mesh geometry={track.right} material={rails} frustumCulled={false} />
-      <primitive object={track.sleepers} />
+      {track.chunks.map((c, i) => (
+        <primitive key={i} object={c.group} />
+      ))}
       <lineLoop geometry={track.line} material={lineMat} />
       <primitive object={smoke.points} />
 

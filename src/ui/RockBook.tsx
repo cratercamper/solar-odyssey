@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { TRACKS } from '../data/rallyTracks'
 import { ROCK_GROUPS, ROCK_TOTAL, foundAt, rockCount, rockImage, type RockGroup } from '../data/rockCollection'
 import { compLabel, type RockSample } from '../data/rockSamples'
 import { PLANETS } from '../data/bodies'
@@ -40,9 +41,13 @@ function RockDetail({ g, k }: { g: RockGroup; k: RockSample }) {
   // どこで採れるか：着陸地点のまわりか、見どころ（名前がかぶるものは 1 つに）
   const atLander = g.bodies.some((b) => nearLander(b, k.id))
   const spots = [...new Set(g.bodies.flatMap((b) => spotsOf(b, k.id).map((p) => ui().pois[p.id].name)))].slice(0, 3)
-  const hint = atLander
-    ? ui().rockBook.landerHint(where)
-    : ui().rockBook.spotsHint(where, spots)
+  // レースの金メダルのごほうびの岩は、そのコースの名前
+  const rewardOf = Object.keys(TRACKS).find((id) => TRACKS[id].reward === k.id)
+  const hint = rewardOf
+    ? ui().rockBook.rewardHint(ui().rallyTracks[rewardOf].title)
+    : atLander
+      ? ui().rockBook.landerHint(where)
+      : ui().rockBook.spotsHint(where, spots)
   const max = Math.max(...k.comp.map((c) => c[1]))
   return (
     <div className={`rock-detail${found ? ' got' : ''}`}>

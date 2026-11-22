@@ -11,4 +11,5 @@ export const rockBookJa = {
   rockCollection: '岩石コレクション',
   close: '閉じる',
   howToCollect: '惑星や衛星に着陸してローバーを出し、岩を採集すると、ここに標本が並びます。まだ見つけていない岩はシルエットだけ。タップすると説明が読めます。',
+  rewardHint: (course: string) => `「${course}」のローバーレースで金メダルを取ると、ごほうびにもらえます。`,
 }

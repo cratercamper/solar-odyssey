@@ -1,3 +1,4 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 import { CARGO_SPEED, CHAPTERS, LEGACY_ORDER, MECH_ID, MISSIONS, ROCK_ID, SAIL_SPEED, chapterOf, shipOf } from '../data/missions'
 import type { ShipId } from '../data/ships'
@@ -17,9 +18,9 @@ export type MissionPhase = 'closed' | 'chapters' | 'list' | 'briefing' | 'active
 /** 撮影の枠：目標が枠の中か、遠すぎる・近すぎる・かくれているか。入港では far（輪の外）・fast（速すぎる）・ok */
 export type Framing = 'ok' | 'out' | 'far' | 'near' | 'hidden' | 'fast'
 
-const STARS_KEY = 'solar-voyager:mission-stars'
+const STARS_KEY = 'mission-stars'
 /** 前のバージョンの保存（ソーラーボイジャーの8本を並びで） */
-const LEGACY_KEY = 'solar-voyager:missions'
+const LEGACY_KEY = 'missions'
 
 type MissionState = {
   phase: MissionPhase
@@ -55,10 +56,10 @@ type MissionState = {
 
 function loadStars(): Record<string, number> {
   try {
-    const saved = localStorage.getItem(STARS_KEY)
+    const saved = saveData.get(STARS_KEY)
     if (saved) return JSON.parse(saved)
     // 前のバージョンの星（並び）を、任務の id に移す
-    const legacy: unknown[] = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? '[]')
+    const legacy: unknown[] = JSON.parse(saveData.get(LEGACY_KEY) ?? '[]')
     return Object.fromEntries(LEGACY_ORDER.map((id, i) => [id, Number(legacy[i]) || 0]).filter(([, n]) => n))
   } catch {
     return {}
@@ -72,7 +73,7 @@ function saveStars(index: number, n: number) {
   const id = MISSIONS[index].id
   const stars = { ...useMission.getState().stars, [id]: Math.max(useMission.getState().stars[id] ?? 0, n) }
   try {
-    localStorage.setItem(STARS_KEY, JSON.stringify(stars))
+    saveData.set(STARS_KEY, JSON.stringify(stars))
   } catch {
     // 保存できなくても遊べる
   }

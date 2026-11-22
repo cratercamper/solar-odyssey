@@ -1,9 +1,16 @@
+import { saveData } from './save'
 import { create } from 'zustand'
 
 // 無人探査ローバー ORV-7。着陸したあと、着陸船の腹からたたんだまま落とされ、地面で展開して走り出す。
 // 流れ：none → drop（落ちる）→ deploy（展開）→ drive（運転）。回収すると none にもどる。
 
 export type RoverPhase = 'none' | 'drop' | 'deploy' | 'drive'
+/**
+ * どの車を出しているか：orv7（無人探査ローバー）・crew（人が乗る与圧ローバー PR-2、月だけ。components/surface/CrewRover.tsx）。
+ * crew の流れ：none → drop（着陸船のそばに先に届いていた車へ乗りこむ）→ drive。deploy は使わない。
+ * lrv（アポロの月面車、アポロ17号の追体験の船外活動だけ。components/surface/LunarRover.tsx）も crew と同じ流れ
+ */
+export type RoverVehicle = 'orv7' | 'crew' | 'lrv'
 /** 運転中の見方：後ろから追う・マストのカメラから */
 export type RoverView = 'chase' | 'cam'
 
@@ -12,6 +19,19 @@ export const DEPLOY_SEC = 6
 export const ROVER_RANGE = 100
 /** 最高速度（m/s）。時速 60 km */
 export const ROVER_TOP = 60 / 3.6
+/** 与圧ローバーの最高速度（m/s）。時速 20 km（重さ数トンの、人が中で暮らせる車） */
+export const CREW_TOP = 20 / 3.6
+/** アポロの月面車の最高速度（m/s）。時速 18 km（アポロ17号でサーナンが出した記録の速さ） */
+export const LRV_TOP = 18 / 3.6
+/** いま出している車の最高速度（m/s） */
+export const roverTop = () => {
+  const v = useRover.getState().vehicle
+  return v === 'crew' ? CREW_TOP : v === 'lrv' ? LRV_TOP : ROVER_TOP
+}
+/** 与圧ローバーに乗りこむ場面の長さ（秒） */
+export const BOARD_SEC = 3.2
+/** 月だけで出せる（実在の計画が月面用なので） */
+export const crewRoverOn = (bodyId: string) => bodyId === 'moon'
 /**
  * 走りの版。運転のしかた・地面・岩など、レースのタイムが変わる変更をしたら、同じコミットで 1 増やす
  * （見た目だけ・コメントだけの変更では増やさない）。レースのハイスコア表・ゴースト・ゲームに入っている記録は、
@@ -21,6 +41,9 @@ export const DRIVE_VERSION = 7
 
 type RoverState = {
   phase: RoverPhase
+  vehicle: RoverVehicle
+  /** 与圧ローバー：電池の残り（0〜1）。走ると減り、昼は太陽電池で少しずつもどる */
+  battery: number
   since: number
   view: RoverView
   /** 画面に出す速さ（km/h）。毎フレームではなく、ときどき書き換える */
@@ -53,6 +76,8 @@ export const roverNow = () => performance.now() / 1000
 
 export const useRover = create<RoverState>((set) => ({
   phase: 'none',
+  vehicle: 'orv7',
+  battery: 1,
   since: 0,
   view: 'chase',
   mouse: false,
@@ -74,14 +99,18 @@ export const useRover = create<RoverState>((set) => ({
 export const roverActive = () => useRover.getState().phase !== 'none'
 
 /** quick：着陸船から降ろす場面を飛ばし、展開した姿ですぐ走れるように（レースのスタート） */
-export function launchRover(quick = false) {
+export function launchRover(quick = false, vehicle: RoverVehicle = 'orv7') {
   if (roverActive()) return
   roverQuick.on = quick === true
-  useRover.setState({ phase: 'drop', since: roverNow(), view: 'chase', kmh: 0, menu: false, canSample: false, sampling: false, result: null, next: null, edge: false })
+  useRover.setState({ vehicle, phase: 'drop', since: roverNow(), view: 'chase', kmh: 0, menu: false, canSample: false, sampling: false, result: null, next: null, edge: false })
 }
 
 /** 次の展開を飛ばすか（launchRover の quick） */
 export const roverQuick = { on: false }
+
+/** 与圧ローバー（ミチカケ）のいまの場所。CrewRover が毎フレーム書く（on = この星に出ている）。
+ * 宇宙服で歩くとき、車体にぶつかる・後ろのエアロックから乗りこむのに使う */
+export const crewPose = { on: false, x: 0, y: 0, z: 0, heading: 0 }
 
 export function recallRover() {
   useRover.setState({ phase: 'none', since: roverNow(), kmh: 0, canSample: false, sampling: false, result: null, next: null, edge: false })
@@ -154,7 +183,7 @@ export function mouseSink() {
 export const useRoverCruise = create<{ cruise: number; last: number }>(() => ({ cruise: 0, last: 0 }))
 
 const setCruise = (kmh: number) => {
-  const cruise = Math.max(0, Math.min(Math.round(ROVER_TOP * 3.6), kmh))
+  const cruise = Math.max(0, Math.min(Math.round(roverTop() * 3.6), kmh))
   useRoverCruise.setState((c) => ({ cruise, last: cruise > 0 ? cruise : c.last }))
 }
 
@@ -171,11 +200,15 @@ export const toggleCruise = () => {
  * Rover が毎フレーム読む、運転の入力：キーボード・画面のボタン（roverInput）に、マウスのハンドルと巡航を足したもの。
  * speed はローバーの今の速さ（m/s）
  */
+/** 自動アクセル（レース中に Rally.tsx が毎フレーム入れる）：▲ を押していなくてもアクセル。▼ はブレーキのまま */
+export const roverAutoGas = { on: false }
+
 export function driveInput(speed: number, dt: number): { steer: number; throttle: number } {
   const m = roverMouse
   if (m.locked && performance.now() - m.lastMove > 80) m.steer -= Math.sign(m.steer) * Math.min(Math.abs(m.steer), MOUSE_CENTER * dt)
   const steer = roverInput.steer !== 0 ? roverInput.steer : m.locked ? m.steer : 0
   let throttle = roverInput.throttle
+  if (throttle === 0 && roverAutoGas.on) return { steer, throttle: 1 }
   if (throttle < 0 && useRoverCruise.getState().cruise > 0) stopCruise()
   const cruise = useRoverCruise.getState().cruise / 3.6
   if (throttle === 0 && cruise > 0) {
@@ -348,11 +381,11 @@ export const roverFocus = { x: 0, y: 0, z: -15, set(x: number, y: number, z: num
 
 // ---- 採集した岩の記録（天体ごとに、集めた種類の id。ブラウザに残す） ----
 
-const LOG_KEY = 'solar-voyager:rover-samples'
+const LOG_KEY = 'rover-samples'
 
 function readLog(): Record<string, string[]> {
   try {
-    return JSON.parse(localStorage.getItem(LOG_KEY) ?? '{}')
+    return JSON.parse(saveData.get(LOG_KEY) ?? '{}')
   } catch {
     return {}
   }
@@ -369,7 +402,7 @@ export const useSampleLog = create<{ log: Record<string, string[]>; add: (bodyId
     log[bodyId] = [...list, id]
     set({ log })
     try {
-      localStorage.setItem(LOG_KEY, JSON.stringify(log))
+      saveData.set(LOG_KEY, JSON.stringify(log))
     } catch {
       // 保存できなくても遊べる
     }

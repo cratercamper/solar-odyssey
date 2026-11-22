@@ -1,5 +1,6 @@
-import { Suspense, useMemo } from 'react'
-import { useThree } from '@react-three/fiber'
+import { Suspense, useMemo, useRef, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { ship } from '../../state/flight'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { HubbleModel } from './HubbleModel'
@@ -39,11 +40,27 @@ function NasaHubble() {
   return <primitive object={model} />
 }
 
-/** ハッブル宇宙望遠鏡（筒の長さ 1、+Z が観測の向き） */
-export function HubbleTelescope() {
+/** 自機がこの距離（表示単位）まで来たら NASA のモデルを読む。起動のときに読まないため（それまでは手作りのモデル） */
+const LOAD_DISTANCE = 2
+const at = new THREE.Vector3()
+
+/** ハッブル宇宙望遠鏡（筒の長さ 1、+Z が観測の向き）。eager なら近さを待たずに読む（模型の確認画面用） */
+export function HubbleTelescope({ eager = false }: { eager?: boolean }) {
+  const group = useRef<THREE.Group>(null)
+  const [near, setNear] = useState(eager)
+  useFrame(() => {
+    if (near || !group.current) return
+    if (group.current.getWorldPosition(at).distanceTo(ship.position) < LOAD_DISTANCE) setNear(true)
+  })
   return (
-    <Suspense fallback={<HubbleModel />}>
-      <NasaHubble />
-    </Suspense>
+    <group ref={group}>
+      {near ? (
+        <Suspense fallback={<HubbleModel />}>
+          <NasaHubble />
+        </Suspense>
+      ) : (
+        <HubbleModel />
+      )}
+    </group>
   )
 }

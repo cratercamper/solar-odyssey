@@ -1,0 +1,323 @@
+/* ---------- チャージビーム：ゲージ、周りを暗くする幕、発射のフラッシュ ---------- */
+
+.beam-dim,
+.beam-flash {
+  position: fixed;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+}
+
+.beam-dim {
+  background: radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, 0) 18%, rgba(0, 2, 12, 0.85) 85%);
+}
+
+.beam-flash {
+  background: #fff;
+}
+
+.beam-gauge {
+  position: fixed;
+  left: 50%;
+  bottom: 86px;
+  width: 240px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+  z-index: 5;
+}
+
+.beam-gauge-label {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #cfe6ff;
+  text-shadow: 0 0 6px rgba(80, 160, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+.beam-gauge-bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border: 1px solid rgba(160, 200, 255, 0.55);
+  border-radius: 4px;
+  background: rgba(8, 12, 30, 0.6);
+  overflow: hidden;
+}
+
+.beam-gauge-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: #4f86ff;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.beam-gauge[data-state='charge'][data-level='3'] .beam-gauge-fill {
+  animation: beam-gauge-full 0.25s ease-in-out infinite alternate;
+}
+
+.beam-gauge[data-state='firing'] .beam-gauge-fill {
+  background: linear-gradient(90deg, #8fdcff, #ffffff);
+}
+
+.beam-gauge[data-state='cool'] .beam-gauge-fill {
+  background: rgba(150, 160, 190, 0.7);
+}
+
+.beam-gauge[data-state='cool'] .beam-gauge-label {
+  color: #a9b2c8;
+  text-shadow: none;
+}
+
+.beam-gauge-bar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(220, 235, 255, 0.75);
+}
+
+@keyframes beam-gauge-full {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.6);
+  }
+}
+
+/* 推進の段階（ワープのボタンの上。ホイールで切り替え） */
+.nav-throttle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-throttle-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nav-throttle-head b {
+  color: #ffd27a;
+}
+
+.nav-throttle-speed b {
+  display: inline-block;
+  min-width: 2.6em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-throttle-bar {
+  display: flex;
+  gap: 3px;
+}
+
+.nav-throttle-bar button {
+  flex: 1 1 0;
+  height: 10px;
+  padding: 0;
+  border: 1px solid rgba(255, 210, 122, 0.35);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-throttle-bar button.on {
+  border-color: #ffd27a;
+  background: linear-gradient(90deg, #f2a65a, #ffd27a);
+}
+
+.nav-throttle-hint {
+  font-size: 11px;
+}
+
+/* ストーリーモードの章：船ごとのカード */
+.mission-panel.wide {
+  width: min(560px, calc(100vw - 24px));
+}
+
+.chapter-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  border: 1px solid rgba(143, 216, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(143, 216, 255, 0.06);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chapter-list button.sf {
+  border-color: rgba(196, 150, 255, 0.45);
+  background: rgba(196, 150, 255, 0.08);
+}
+
+.chapter-list img,
+.chapter-skill img {
+  flex: none;
+  width: 72px;
+  height: 54px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #0b0912;
+}
+
+.chapter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chapter-ship {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #8fd8ff;
+}
+
+.chapter-tag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #8a5cd6;
+  color: #fff;
+  font-size: 10px;
+}
+
+.chapter-skill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mission-cargo {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #ffb36b;
+}
+
+.mission-cargo.sail {
+  color: #ffe08a;
+}
+
+/* 探査艇・着陸艇を出すボタン（ホワイトヘロン・メグリ） */
+.mission-launch {
+  margin-top: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffb36b, #e07a3a);
+  color: #1a1020;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  animation: mission-launch-pulse 1.6s ease-in-out infinite;
+}
+
+.mission-launch kbd {
+  margin-left: 6px;
+  font-size: 11px;
+}
+
+@keyframes mission-launch-pulse {
+  50% {
+    filter: brightness(1.18);
+  }
+}
+
+.mission-again {
+  margin-top: 6px;
+  width: 100%;
+  padding: 4px 10px;
+}
+
+/* 撮影の枠：四すみのかぎ（目標が入ると緑） */
+.viewfinder {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.viewfinder span {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 0 solid rgba(255, 255, 255, 0.75);
+  transition: border-color 0.2s;
+}
+
+.viewfinder.ok span {
+  border-color: #7fe0a0;
+}
+
+.viewfinder span:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: 3px;
+  border-left-width: 3px;
+}
+
+.viewfinder span:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: 3px;
+  border-right-width: 3px;
+}
+
+.viewfinder span:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+}
+
+.viewfinder span:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+}
+
+@media (max-height: 500px) {
+  .chapter-list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .chapter-list img,
+  .chapter-skill img {
+    width: 56px;
+    height: 42px;
+  }
+}

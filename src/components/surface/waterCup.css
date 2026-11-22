@@ -1,0 +1,156 @@
+/* 水のコップ（components/surface/WaterCupPanel.tsx・WaterCup.tsx）と、日の出の案内（Sunrise.tsx） */
+.cup-card,
+.sunrise-card {
+  position: fixed;
+  left: 50%;
+  top: 74px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 24px));
+  padding: 12px 22px 14px;
+  border-radius: 16px;
+  background: rgba(8, 10, 22, 0.82);
+  backdrop-filter: blur(3px);
+  color: #f2f2fa;
+  text-align: center;
+  animation: cup-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+@keyframes cup-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+.cup-card p,
+.sunrise-card p {
+  margin: 0;
+  text-wrap: balance;
+}
+.cup-head,
+.sunrise-head {
+  font-size: 22px;
+  font-weight: 800;
+  color: #a8dcff;
+  animation: cup-pop 0.45s cubic-bezier(0.34, 1.6, 0.5, 1) both;
+}
+@keyframes cup-pop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+.cup-why,
+.sunrise-why {
+  margin-top: 4px !important;
+  font-size: 15px;
+}
+.cup-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+  font-size: 14px;
+  color: #ffd9a8;
+}
+.cup-speed {
+  color: #9fb4d8;
+  font-variant-numeric: tabular-nums;
+}
+.cup-ff {
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 196, 107, 0.7);
+  border-radius: 999px;
+  background: rgba(120, 84, 20, 0.5);
+  color: #fff3d8;
+  font-size: 13px;
+}
+.cup-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cup-card .cup-again {
+  padding: 6px 16px;
+  border: 1px solid rgba(140, 200, 255, 0.6);
+  border-radius: 999px;
+  background: rgba(30, 70, 120, 0.55);
+  color: #e6f4ff;
+}
+
+/* 3D の名札：水の温度と様子 */
+.cup-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(8, 10, 22, 0.72);
+  color: #cfe6ff;
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cup-tag b {
+  font-size: 17px;
+  color: #ffffff;
+}
+
+/* 日の出 */
+.sunrise-head {
+  color: #ffd27a;
+}
+.sunrise-card.west .sunrise-head {
+  color: #ffb36b;
+}
+.sunrise-day {
+  margin-top: 4px !important;
+  font-size: 13px;
+  color: #9fb4d8;
+}
+.compass-mark {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(235, 242, 255, 0.85);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+  animation: cup-in 0.6s ease-out both;
+}
+.compass-mark.rise {
+  font-size: 30px;
+  color: #ffd27a;
+}
+.compass-sun {
+  font-size: 16px;
+  color: #ffd27a;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+  animation: sun-bob 1.2s ease-in-out infinite;
+}
+@keyframes sun-bob {
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .cup-card,
+  .sunrise-card {
+    top: 60px;
+    padding: 10px 14px 12px;
+  }
+  .cup-head,
+  .sunrise-head {
+    font-size: 17px;
+  }
+  .cup-why,
+  .sunrise-why {
+    font-size: 13px;
+  }
+  .cup-on .lander-actions,
+  .cup-on .surface-hint {
+    display: none;
+  }
+}

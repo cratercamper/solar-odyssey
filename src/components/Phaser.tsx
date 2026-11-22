@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { asteroids, beamTargets } from '../state/registry'
+import { asteroids, beamTargets, rockBreaks } from '../state/registry'
 import { useStore } from '../state/store'
 import { playBeam, playBlast } from '../audio/sfx'
 import { touchInput } from '../state/input'
@@ -95,8 +95,13 @@ export function Phaser() {
     }
     // 離した：1段以上溜まっていればチャージビーム、そうでなければ従来の細いビーム
     if ((!down && h.was) || tapped) {
-      if (c.charging && c.level > 0) fireCharge(c.level)
-      else if (canFire) shoot(clock.getElapsedTime())
+      if (c.charging && c.level > 0) {
+        fireCharge(c.level)
+        c.shots++
+      } else if (canFire) {
+        shoot(clock.getElapsedTime())
+        c.shots++
+      }
       c.charging = false
       c.level = 0
     }
@@ -161,6 +166,8 @@ export function Phaser() {
     playBlast()
 
     const type = asteroids.types.get(mesh)?.[hit.instanceId] ?? 0
+    const rock = { shape: asteroids.meshes.indexOf(mesh), index: hit.instanceId }
+    for (const f of rockBreaks) f(type, Math.hypot(tmpM.elements[0], tmpM.elements[1], tmpM.elements[2]), hit.point, rock)
     destroyedCount.current += 1
     useStore.getState().showToast(destroyedCount.current === 1 ? `${ui().phaserFacts[type]}\n${ui().phaserFacts.sparse}` : ui().phaserFacts[type])
   }

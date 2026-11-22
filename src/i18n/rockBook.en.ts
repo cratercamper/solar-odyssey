@@ -16,4 +16,5 @@ export const rockBookEn: Translation<typeof rockBookJa> = {
   rockCollection: 'Rock collection',
   close: 'Close',
   howToCollect: 'Land, send out the rover and collect rocks to fill this collection. Rocks you have not found yet show only as silhouettes. Tap one to read about it.',
+  rewardHint: (course: string) => `Win a gold medal in the “${course}” rover race to get this one as a reward.`,
 }

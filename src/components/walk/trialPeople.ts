@@ -2,26 +2,45 @@ import * as THREE from 'three'
 import type { Age } from './figure'
 import { bakeClips, type MobModel, type MotionData, type VrmModel } from './vrmPeople'
 import { MOB_SET } from './trialSet'
+import { lowMemory } from '../../state/quality'
 
-// 公園の人を別の素材で試す（確認中。?mobset=rocketbox / ?mobset=quaternius）。今の MakeHuman の人と同じ動き（Mixamo）を当てて、並べて比べる。
-//  - Rocketbox（Microsoft、MIT）：リアル寄り。肌に凹凸の画像（毛穴・しわ）があり、まばたきの形も入っている。FBX のまま読む
+// 公園の人の素材。ふだんは Rocketbox（junji さんが 3 つを見比べて、いちばん自然と選んだ。2026-11-18）。
+// 見比べ用に ?mobset=makehuman（前の MakeHuman の人、vrmPeople.ts）・?mobset=quaternius も残している。
+// スマホは phone の 8 人だけ（大人 4・子ども 2・年配 2。全部の人の 4 割ほどの重さ）。
+//  - Rocketbox（Microsoft、MIT）：リアル寄り。肌に凹凸の画像（毛穴・しわ）があり、まばたきの形も入っている。
+//    tools/mobs/rocketbox/ で FBX から glb 1 つにまとめたもの（まばたき以外の顔の形を捨て、テクスチャは 1024 px）
 //  - Quaternius Universal Base Characters（CC0）：すっきりした作風。無料版は下着姿の男女 2 体と髪型だけなので、服は体の高さで塗り分ける
-// どちらも元の形が T ポーズではないので、腕と脚を T ポーズに起こしたときの骨の向きで動きを焼き直す。
+// どちらも元の形が T ポーズではないので、腕と脚を T ポーズに起こしたときの骨の向きで、今と同じ動き（Mixamo）を焼き直す。
 
 /** tone：肌の色の掛け算（素材の肌は日焼けした色 1 つだけ）、hairColor：髪の色（素材の髪は灰色で、色を掛けて使う） */
 type TrialModel = MobModel & { src: string; tone?: [number, number, number]; hair?: string[]; hairColor?: number; cloth?: [number, number] }
 
-const RB = 'walk/mobs/trial/rocketbox/'
+const RB = 'walk/mobs/rocketbox/'
 const QT = 'walk/mobs/trial/quaternius/'
 
 const LIST: Record<'rocketbox' | 'quaternius', TrialModel[]> = {
   rocketbox: [
-    { file: 'Male_Adult_01', src: RB, age: 'adult', height: 1.78 },
-    { file: 'Female_Adult_01', src: RB, age: 'adult', height: 1.66 },
-    { file: 'Male_Adult_08', src: RB, age: 'adult', height: 1.76 },
-    { file: 'Female_Adult_05', src: RB, age: 'adult', height: 1.64 },
-    { file: 'Female_Child_01', src: RB, age: 'child', height: 1.3 },
-    { file: 'Male_Child_01', src: RB, age: 'child', height: 1.36 },
+    // 大人（先頭の人が自分の姿）
+    { file: 'Male_Adult_01', src: RB, age: 'adult', height: 1.76, phone: true },
+    { file: 'Female_Adult_01', src: RB, age: 'adult', height: 1.66, phone: true },
+    { file: 'Male_Adult_12', src: RB, age: 'adult', height: 1.8, phone: true },
+    { file: 'Female_Adult_03', src: RB, age: 'adult', height: 1.58, phone: true },
+    { file: 'Male_Adult_09', src: RB, age: 'adult', height: 1.7 },
+    { file: 'Female_Adult_05', src: RB, age: 'adult', height: 1.62 },
+    { file: 'Male_Adult_04', src: RB, age: 'adult', height: 1.82 },
+    { file: 'Female_Adult_09', src: RB, age: 'adult', height: 1.68 },
+    { file: 'Male_Adult_17', src: RB, age: 'adult', height: 1.74 },
+    { file: 'Female_Adult_14', src: RB, age: 'adult', height: 1.64 },
+    // 子ども（素材はどの子も 1.43 m なので、縮めて年齢をばらす）
+    { file: 'Female_Child_01', src: RB, age: 'child', height: 1.32, phone: true },
+    { file: 'Male_Child_02', src: RB, age: 'child', height: 1.18, phone: true },
+    { file: 'Male_Child_01', src: RB, age: 'child', height: 1.38 },
+    { file: 'Female_Child_02', src: RB, age: 'child', height: 1.22 },
+    // 年配の人（白髪・白いひげの人。年配の女性は素材に見当たらないので、落ち着いた見た目の人）
+    { file: 'Male_Adult_05', src: RB, age: 'elder', height: 1.7, phone: true },
+    { file: 'Male_Adult_03', src: RB, age: 'elder', height: 1.72 },
+    { file: 'Male_Adult_14', src: RB, age: 'elder', height: 1.74 },
+    { file: 'Female_Adult_02', src: RB, age: 'elder', height: 1.6, phone: true },
   ],
   quaternius: [
     { file: 'q_male_light', src: 'Superhero_Male', tone: [1.32, 1.3, 1.32], hair: ['Hair_SimpleParted'], hairColor: 0x7a5236, age: 'adult', height: 1.76, cloth: [0x3d6f8f, 0x2c2f38] },
@@ -166,63 +185,6 @@ function names(set: 'rocketbox' | 'quaternius', root: THREE.Object3D) {
   }
 }
 
-async function loadRocketbox(base: string, info: TrialModel) {
-  const [{ FBXLoader }] = await Promise.all([import('three/examples/jsm/loaders/FBXLoader.js')])
-  const dir = `${base}${info.src}${info.file}/`
-  const manager = new THREE.LoadingManager()
-  // テクスチャは縮めて jpg・png にしてある（opacity は髪・まつげの透けで png）
-  manager.setURLModifier((url) => {
-    const m = /([A-Za-z0-9_]+)\.tga$/i.exec(url)
-    return m ? `${dir}${m[1]}.${/opacity/.test(m[1]) ? 'png' : 'jpg'}` : url
-  })
-  manager.addHandler(/\.tga$/i, new THREE.TextureLoader(manager))
-  const fbx = await new FBXLoader(manager).loadAsync(`${dir}${info.file}.fbx`)
-  fbx.animations = []
-  const raw0 = names('rocketbox', fbx)
-  const conv = new Map<THREE.Material, THREE.Material>()
-  fbx.traverse((o) => {
-    const mesh = o as THREE.Mesh
-    if (!mesh.isMesh) return
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    mesh.frustumCulled = false
-    // まばたき以外の顔の形は捨てる（軽くする）
-    const g = mesh.geometry
-    const dict = mesh.morphTargetDictionary
-    if (dict && g.morphAttributes.position) {
-      const keep = Object.entries(dict).filter(([k]) => /EyeBlink(Left|Right)$/.test(k))
-      const pos = g.morphAttributes.position
-      const nor = g.morphAttributes.normal
-      g.morphAttributes.position = keep.map(([, i]) => pos[i])
-      if (nor) g.morphAttributes.normal = keep.map(([, i]) => nor[i])
-      if (!keep.length) g.morphAttributes = {}
-      mesh.updateMorphTargets()
-    }
-    const swap = (m: THREE.Material) => {
-      let r = conv.get(m)
-      if (r) return r
-      const src = m as THREE.MeshPhongMaterial
-      const map = src.map
-      const cut = /opacity/i.test(src.name) || /opacity/i.test(map?.name ?? '') || src.transparent || !!src.alphaMap
-      r = new THREE.MeshStandardMaterial({
-        map,
-        normalMap: src.normalMap ?? null,
-        roughness: 0.62,
-        metalness: 0,
-        alphaTest: cut ? 0.45 : 0,
-        side: cut ? THREE.DoubleSide : THREE.FrontSide,
-      })
-      if (map) map.colorSpace = THREE.SRGBColorSpace
-      r.name = src.name
-      conv.set(m, r)
-      return r
-    }
-    mesh.material = Array.isArray(mesh.material) ? mesh.material.map(swap) : swap(mesh.material)
-  })
-  const scene = stand(fbx, raw0, info.height)
-  return { scene, raw: raw0 }
-}
-
 let gltfLoader: Promise<import('three/examples/jsm/loaders/GLTFLoader.js').GLTFLoader> | null = null
 const loadGltf = async (url: string) => {
   gltfLoader ??= import('three/examples/jsm/loaders/GLTFLoader.js').then((m) => new m.GLTFLoader())
@@ -287,6 +249,20 @@ uniform vec3 uShoulder; uniform vec3 uArm; uniform vec3 uShirt; uniform vec3 uPa
   mat.customProgramCacheKey = () => 'q-clothes-2'
 }
 
+async function loadRocketbox(base: string, info: TrialModel) {
+  const gltf = await loadGltf(`${base}${info.src}${info.file}.glb`)
+  const root = gltf.scene
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh
+    if (!mesh.isMesh) return
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    mesh.frustumCulled = false
+  })
+  const raw0 = names('rocketbox', root)
+  return { scene: stand(root, raw0, info.height), raw: raw0 }
+}
+
 async function loadQuaternius(base: string, info: TrialModel) {
   const gltf = await loadGltf(`${base}${QT}${info.src}.gltf`)
   const root = gltf.scene
@@ -343,10 +319,10 @@ async function loadQuaternius(base: string, info: TrialModel) {
   return { scene, raw: raw0 }
 }
 
-/** 試す素材の人を読み込む。大人を前に並べる（自分の姿は最初の人） */
+/** この素材の人を読み込む（スマホなどメモリの少ない端末は phone の人だけ）。自分の姿は最初の人 */
 export async function loadTrialModels(base: string, motions: MotionData): Promise<VrmModel[]> {
-  const set = MOB_SET!
-  const list = LIST[set]
+  const set = MOB_SET === 'quaternius' ? 'quaternius' : 'rocketbox'
+  const list = LIST[set].filter((m) => m.phone || set === 'quaternius' || !lowMemory())
   const loaded = await Promise.all(
     list.map(async (info) => {
       const { scene, raw } = set === 'rocketbox' ? await loadRocketbox(base, info) : await loadQuaternius(base, info)
@@ -361,6 +337,8 @@ export async function loadTrialModels(base: string, motions: MotionData): Promis
         headName: nm('head'),
         neckName: nm('neck'),
         arms: (['left', 'right'] as const).map((sd) => [nm(`${sd}UpperArm`), nm(`${sd}LowerArm`), nm(`${sd}Hand`)] as [string, string, string]),
+        legs: (['left', 'right'] as const).map((sd) => [nm(`${sd}UpperLeg`), nm(`${sd}LowerLeg`), nm(`${sd}Foot`), nm(`${sd}Toes`)] as [string, string, string, string]),
+        hipsName: nm('hips'),
       }
       return model
     }),

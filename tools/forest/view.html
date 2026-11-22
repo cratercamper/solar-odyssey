@@ -1,0 +1,67 @@
+<!doctype html>
+<meta charset="utf-8" />
+<style>body{margin:0;background:#8fa3b8}</style>
+<script type="importmap">
+  { "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+<script type="module">
+  // 素材の確認用：glTF を 1 つ読んで、横と斜め上から見た絵を出す（tools/forest/view.mjs から開く）
+  import * as THREE from 'three'
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+  import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
+  const q = new URLSearchParams(location.search)
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+  const W = +(q.get('w') ?? 1000)
+  renderer.setSize(W, W)
+  document.body.appendChild(renderer.domElement)
+  const scene = new THREE.Scene()
+  scene.background = new THREE.Color('#8fa3b8')
+  scene.add(new THREE.HemisphereLight('#dfeaff', '#5d6b45', 1.2))
+  const sun = new THREE.DirectionalLight('#fff4e0', 2)
+  sun.position.set(3, 5, 2)
+  scene.add(sun)
+  const loader = new GLTFLoader()
+  loader.setMeshoptDecoder(MeshoptDecoder)
+  try {
+    const gltf = await loader.loadAsync(q.get('m'))
+    const only = q.get('only')
+    const texDir0 = q.get('tex')
+    let root = gltf.scene
+    if (only) {
+      const g = new THREE.Group()
+      root.traverse((o) => { if (o.name === only) g.add(o.clone()) })
+      if (!texDir0) g.children.forEach((c) => c.position.set(0, 0, 0))
+      root = g
+    }
+    const texDir = q.get('tex')
+    if (texDir) {
+      const tl = new THREE.TextureLoader()
+      const jobs = []
+      root.traverse((o) => {
+        if (!o.isMesh) return
+        jobs.push(tl.loadAsync(`${texDir}/${o.material.name}.webp`).then((t) => {
+          t.flipY = false
+          t.colorSpace = THREE.SRGBColorSpace
+          o.material = new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide, vertexColors: !!o.geometry.attributes.color })
+        }))
+      })
+      await Promise.all(jobs)
+    }
+    scene.add(root)
+    const box = new THREE.Box3().setFromObject(root)
+    const c = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+    const r = Math.max(size.x, size.y, size.z) * 0.62
+    const cam = new THREE.OrthographicCamera(-r, r, r, -r, 0.01, 1000)
+    const az = +(q.get('az') ?? 30) * Math.PI / 180
+    const el = +(q.get('el') ?? 15) * Math.PI / 180
+    cam.position.set(c.x + Math.sin(az) * Math.cos(el) * 50, c.y + Math.sin(el) * 50, c.z + Math.cos(az) * Math.cos(el) * 50)
+    cam.lookAt(c)
+    renderer.render(scene, cam)
+    let tris = 0
+    root.traverse((o) => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3 })
+    window.result = `ok tris=${tris} size=${size.x.toFixed(2)},${size.y.toFixed(2)},${size.z.toFixed(2)}`
+  } catch (e) {
+    window.result = 'ERR ' + e
+  }
+</script>

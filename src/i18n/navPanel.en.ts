@@ -85,4 +85,13 @@ export const navPanelEn: Translation<typeof navPanelJa> = {
   probeJourneys: 'Probe journeys (Voyager and more)',
   eclipsesFromSpace: 'Eclipses from space',
   timeSpeed: 'Time speed (time passed per second)',
+  tabs: { go: 'Go', see: 'See', play: 'Play', learn: 'Learn' },
+  tabsLabel: 'Navigation computer menu',
+  tabNotes: {
+    go: 'Pick a destination, then warp or use autopilot.',
+    see: 'Circle your target, watch eclipses, or admire the ship.',
+    play: 'Pick something to play. You can leave any time with Back.',
+    learn: 'Explore the solar system with quizzes and collections.',
+  },
+  noTarget: 'No target (pick one under Go)',
 }

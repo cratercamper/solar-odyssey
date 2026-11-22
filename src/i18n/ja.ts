@@ -1,5 +1,6 @@
 import type { Framing } from '../state/mission'
 import { walkJa } from './walk.ja'
+import { moonMissionJa } from './moonMission.ja'
 import { approachJa } from './approach.ja'
 import { beamGaugeJa } from './beamGauge.ja'
 import { blackHoleJa } from './blackHole.ja'
@@ -29,15 +30,33 @@ import { navPanelJa } from './navPanel.ja'
 import { observeJa } from './observe.ja'
 import { observePanelJa } from './observePanel.ja'
 import { photoNoteJa } from './photoNote.ja'
+import { firstThreeJa } from './firstThree.ja'
+import { saveDataJa } from './saveData.ja'
+import { sceneErrorJa } from './sceneError.ja'
 import { probePanelJa } from './probePanel.ja'
 import { probeSceneJa } from './probeScene.ja'
+import { probeCamJa } from './probeCam.ja'
 import { quizJa } from './quiz.ja'
 import { quizPanelJa } from './quizPanel.ja'
 import { raceJa } from './race.ja'
 import { racePanelJa } from './racePanel.ja'
 import { rallyHiscoreJa } from './rallyHiscore.ja'
 import { rallyPanelJa } from './rallyPanel.ja'
+import { skyFlightJa } from './skyFlight.ja'
 import { rockBookJa } from './rockBook.ja'
+import { bodyCardsJa } from './bodyCards.ja'
+import { todayJa } from './today.ja'
+import { discoveryJa } from './discovery.ja'
+import { arrivalJa } from './arrival.ja'
+import { jumpJa } from './jump.ja'
+import { suitWalkJa } from './suitWalk.ja'
+import { waterCupJa } from './waterCup.ja'
+import { sunriseJa } from './sunrise.ja'
+import { crewRoverJa } from './crewRover.ja'
+import { apolloEvaJa } from './apolloEva.ja'
+import { moonDockJa } from './moonDock.ja'
+import { saturnExplorerJa } from './saturnExplorer.ja'
+import { moonReturnJa } from './moonReturn.ja'
 import { roverHudJa } from './roverHud.ja'
 import { scaleToggleJa } from './scaleToggle.ja'
 import { sfJa } from './sf.ja'
@@ -73,6 +92,9 @@ import { compareItemsJa } from './compareItems.ja'
 import { deepSpaceImagesJa } from './deepSpaceImages.ja'
 import { eclipsesJa } from './eclipses.ja'
 import { evaJobsJa } from './evaJobs.ja'
+import { pioneerJa } from './pioneer.ja'
+import { deliveryJa } from './delivery.ja'
+import { colonyJa } from './colony.ja'
 import { evaSitesJa } from './evaSites.ja'
 import { evaToolsJa } from './evaTools.ja'
 import { phaserFactsJa } from './phaserFacts.ja'
@@ -172,6 +194,7 @@ export const ja = {
   eva: evaJa,
   evaView: evaViewJa,
   walk: walkJa,
+  moonMission: moonMissionJa,
   exoplanet: exoplanetJa,
   flight: flightJa,
   galleryPanel: galleryPanelJa,
@@ -184,15 +207,33 @@ export const ja = {
   observe: observeJa,
   observePanel: observePanelJa,
   photoNote: photoNoteJa,
+  firstThree: firstThreeJa,
+  saveData: saveDataJa,
+  sceneError: sceneErrorJa,
   probePanel: probePanelJa,
   probeScene: probeSceneJa,
+  probeCam: probeCamJa,
   quiz: quizJa,
   quizPanel: quizPanelJa,
   race: raceJa,
   racePanel: racePanelJa,
   rallyHiscore: rallyHiscoreJa,
   rallyPanel: rallyPanelJa,
+  skyFlight: skyFlightJa,
   rockBook: rockBookJa,
+  bodyCards: bodyCardsJa,
+  today: todayJa,
+  discovery: discoveryJa,
+  arrival: arrivalJa,
+  jump: jumpJa,
+  suitWalk: suitWalkJa,
+  waterCup: waterCupJa,
+  sunrise: sunriseJa,
+  crewRover: crewRoverJa,
+  apolloEva: apolloEvaJa,
+  moonDock: moonDockJa,
+  saturnExplorer: saturnExplorerJa,
+  moonReturn: moonReturnJa,
   roverHud: roverHudJa,
   scaleToggle: scaleToggleJa,
   sf: sfJa,
@@ -226,6 +267,9 @@ export const ja = {
   deepSpaceImages: deepSpaceImagesJa,
   eclipses: eclipsesJa,
   evaJobs: evaJobsJa,
+  pioneer: pioneerJa,
+  delivery: deliveryJa,
+  colony: colonyJa,
   evaSites: evaSitesJa,
   evaTools: evaToolsJa,
   phaserFacts: phaserFactsJa,

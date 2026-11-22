@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { cubeGeometry, cubeMaterial } from './cubeGeometry'
 import { useFarLod } from '../../hooks/useFarLod'
+import { roomEnvironment } from '../telescope/parts'
 
 /** 画面でこの半径（ピクセル）より小さいときは、20万枚の三角形の船体の代わりにただの箱で描く */
 const PROXY_PX = 30
@@ -17,9 +17,7 @@ const geometry = () => (shared ??= cubeGeometry())
 export function CubeModel() {
   const { gl } = useThree()
   const envMap = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     return env
   }, [gl])
   const parts = useMemo(() => {

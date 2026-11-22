@@ -1,3 +1,5 @@
+import { GravityJump, jumpFocus } from './GravityJump'
+import { JumpButton, JumpCard } from './JumpCard'
 import { memo, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
@@ -8,7 +10,7 @@ import { textureUrl } from '../../data/textures'
 import { PLANETS } from '../../data/bodies'
 import { useOptionalTexture } from '../../hooks/useOptionalTexture'
 import { haloTexture } from '../ship/ShipModel'
-import { currentLevel, dprFor, lowMemory, useLevel } from '../../state/quality'
+import { currentLevel, lowMemory, useDpr, useLevel } from '../../state/quality'
 import { ASCENT, DESCENT, FADE, goToSite, landingNow, skipDescent, startTakeoff, surfaceReady, useLanding } from '../../state/landing'
 import { goToRally, trackAt, useRally, useRallyTrack } from '../../state/rally'
 import { trackForBody } from '../../data/rallyTracks'
@@ -19,6 +21,8 @@ import { AirParams, ApUniforms, SkyLut, airFor, airUniforms, apUniforms, autoExp
 import { SurfacePost } from './SurfacePost'
 import { SurfaceLab } from './SurfaceLab'
 import { SurfaceStars } from './SurfaceStars'
+import { canFly, startFlight, useSkyFlight } from '../../state/skyFlight'
+import { FlightView } from '../flight/FlightView'
 import { TimeBar } from './TimeBar'
 import { groundMaterial, withRockDetail } from './groundMaterial'
 import { marsSun } from './marsGround'
@@ -40,12 +44,25 @@ import { Dust, Exhaust, Grit, LegRig, blastMark, TOUCHDOWN, legsDuringDescent, s
 import { QualityGovernor } from '../QualityGovernor'
 import { labEnabled, useSurfaceLab } from '../../state/surfaceLab'
 import { Rover } from './Rover'
+import { CrewRover } from './CrewRover'
+import { LunarRover } from './LunarRover'
+import { LunarModule } from './LunarModule'
+import { EvaPanel } from './EvaPanel'
+import { useApolloEva } from '../../state/apolloEva'
+import { CrewInfoCard } from './CrewInfoCard'
 import { MAP_KEYS, shrinkTexture } from './shrinkTexture'
 import { RoverHud, RoverMap } from './RoverHud'
 import { useMapTerrain } from './mapRelief'
 import { isTouchDevice } from '../../state/input'
-import { bindRoverKeys, bindRoverMouse, launchRover, recallRover, roverFocus, roverInput, useRover, useSampleLog } from '../../state/rover'
+import { bindRoverKeys, bindRoverMouse, crewRoverOn, launchRover, recallRover, roverFocus, roverInput, useRover, useSampleLog } from '../../state/rover'
 import { openRocks } from '../../state/rockBook'
+import { followOn, startSuitWalk, useSuitWalk } from '../../state/suitWalk'
+import { SuitWalk } from './SuitWalk'
+import { aiming, viewAim } from './viewAim'
+import { WaterCup } from './WaterCup'
+import { WaterCupButton, WaterCupCard } from './WaterCupPanel'
+import { HorizonCompass, SunriseCard } from './Sunrise'
+import { SuitWalkPanel } from './SuitWalkPanel'
 import { compLabel, samplesFor } from '../../data/rockSamples'
 import { ui } from '../../i18n'
 
@@ -627,7 +644,7 @@ function Ground({ terrain, ap }: { terrain: Terrain; ap: ApUniforms }) {
   const shown = useRef({ version: -1, coarse: -1, mats: null as unknown })
   useFrame(() => {
     if (!world) {
-      const rv = useRover.getState().phase !== 'none'
+      const rv = followOn()
       const x = rv ? roverFocus.x : 0
       const z = rv ? roverFocus.z : 0
       if (Math.hypot(x - laidAt.current.x, z - laidAt.current.z) > 25) {
@@ -636,7 +653,7 @@ function Ground({ terrain, ap }: { terrain: Terrain; ap: ApUniforms }) {
       }
       return
     }
-    const rv = useRover.getState().phase !== 'none'
+    const rv = followOn()
     world.update(rv ? roverFocus.x : 0, rv ? roverFocus.z : 0, light ? 3 : 4)
     const sh = shown.current
     // 素材が作り直されたとき（画質の切り替え）も並べ直す
@@ -1066,7 +1083,7 @@ function Look({ terrain }: { terrain: Terrain }) {
     if (phase === 'surface' && prevPhase.current !== 'surface' && s.pitch > 0.5) s.pitch = 0.12
     prevPhase.current = phase
     // ローバーを出しているあいだは、ローバーの側がカメラを動かす
-    if (phase === 'surface' && useRover.getState().phase !== 'none') return
+    if (phase === 'surface' && followOn()) return
     // 降下中と離陸中は、着陸船を目で追う
     if (phase === 'descent' || phase === 'ascent' || phase === 'fadeOut') {
       const lander = state.scene.getObjectByName('surface-lander')
@@ -1100,7 +1117,25 @@ function Look({ terrain }: { terrain: Terrain }) {
       }
       return
     }
-    cam.position.set(0, eyeY, 0)
+    cam.position.set(0, eyeY + (phase === 'surface' ? jumpFocus.lift : 0), 0)
+    // 重力ジャンプのあいだは、跳ぶ二人の方へ向く（components/surface/GravityJump.tsx）
+    if (jumpFocus.on && phase === 'surface') {
+      const d = target.copy(jumpFocus.point).sub(cam.position).normalize()
+      const k = 1 - Math.exp(-dt * 5)
+      let dy = Math.atan2(d.x, -d.z) - s.yaw
+      dy = Math.atan2(Math.sin(dy), Math.cos(dy))
+      s.yaw += dy * k
+      s.pitch += (THREE.MathUtils.clamp(Math.asin(d.y), -1.3, 1.45) - s.pitch) * k
+    } else if (phase === 'surface' && aiming()) {
+      // 水のコップや日の出の方へ向き直す（viewAim.ts）
+      const d = viewAim.dir ? target.copy(viewAim.dir).normalize() : target.copy(viewAim.point).sub(cam.position).normalize()
+      const k = 1 - Math.exp(-dt * 4)
+      let dy = Math.atan2(d.x, -d.z) - s.yaw
+      dy = Math.atan2(Math.sin(dy), Math.cos(dy))
+      s.yaw += dy * k
+      s.pitch += (THREE.MathUtils.clamp(Math.asin(d.y), -1.3, 1.45) - s.pitch) * k
+      if (viewAim.fov) s.fov += (viewAim.fov - s.fov) * k
+    }
     look.set(Math.sin(s.yaw) * Math.cos(s.pitch), Math.sin(s.pitch), -Math.cos(s.yaw) * Math.cos(s.pitch)).add(cam.position)
     cam.lookAt(look)
     if (Math.abs(cam.fov - s.fov) > 0.01) {
@@ -1132,6 +1167,8 @@ type Air = {
 const tmpDir = new THREE.Vector3()
 
 function Scene({ def }: { def: SurfaceDef }) {
+  // アポロ17号の追体験の章7：ふつうの着陸船と与圧ローバーのかわりに、本物の着陸船と月面車
+  const eva = useApolloEva((s) => s.step !== 'off') && def.site === 'taurus'
   /** このレース場で選んでいるコース（レース場でなければ null） */
   const rallyTrack = useRallyTrack(def.site)
   // ローバーなどの十数 cm より小さな部品は影を落とさない（影のための描画を減らす）
@@ -1276,7 +1313,7 @@ function Scene({ def }: { def: SurfaceDef }) {
       l.color.setRGB(t.x / tMax, t.y / tMax, t.z / tMax)
       l.intensity = sky.sunDir.y > -0.02 ? sunI * tMax * sky.exposure : 0
       // 影を描く範囲：ふだんは着陸地点のまわり、ローバーを出しているときはローバーのまわり
-      const rv = useRover.getState().phase !== 'none'
+      const rv = followOn()
       tmpDir.set(rv ? roverFocus.x : 0, rv ? roverFocus.y : 0, rv ? roverFocus.z : -15)
       l.position.copy(sky.sunDir).multiplyScalar(160).add(tmpDir)
       if (!l.target.position.equals(tmpDir)) {
@@ -1359,20 +1396,38 @@ function Scene({ def }: { def: SurfaceDef }) {
       {/* 空と地面の照り返しの光は、まわりの景色の光（scene.environment）が受け持つ */}
       <Ground terrain={terrain} ap={A.ap} />
       {terrain.dem && <FarTerrain terrain={terrain} ap={A.ap} />}
-      <Suspense fallback={null}>
-        <Lander terrain={terrain} dustColor={def.sky ? def.hazeColor : def.ground} ap={A.ap} sky={sky} />
-      </Suspense>
+      {!eva && (
+        <Suspense fallback={null}>
+          <Lander terrain={terrain} dustColor={def.sky ? def.hazeColor : def.ground} ap={A.ap} sky={sky} />
+        </Suspense>
+      )}
+      {eva && (
+        <Suspense fallback={null}>
+          <LunarModule terrain={terrain} prepare={prepareRover} />
+          <LunarRover terrain={terrain} dustColor={def.ground} sky={sky} prepare={prepareRover} />
+        </Suspense>
+      )}
       <Suspense fallback={null}>
         <Rover terrain={terrain} dustColor={def.ground} sky={sky} landerYaw={LANDER_YAW} prepare={prepareRover} />
       </Suspense>
+      {/* 人が乗る与圧ローバー：月だけ（レースの場所には置かない）。着陸船のそばに停めてある */}
+      {crewRoverOn(def.id) && !rallyTrack && !eva && (
+        <Suspense fallback={null}>
+          <CrewRover terrain={terrain} dustColor={def.ground} sky={sky} landerYaw={LANDER_YAW} prepare={prepareRover} />
+        </Suspense>
+      )}
       {rallyTrack && (
         <Suspense fallback={null}>
           <Rally key={rallyTrack} track={rallyTrack} terrain={terrain} prepare={prepareRover} dustColor={def.ground} sky={sky} />
           <RallyGhost key={rallyTrack + ':ghost'} track={rallyTrack} />
         </Suspense>
       )}
-      {def.site === 'taurus' && <Apollo17 terrain={terrain} prepare={prepareRover} />}
+      {def.site === 'taurus' && <Apollo17 terrain={terrain} prepare={prepareRover} eva={eva} />}
       <Look terrain={terrain} />
+      <GravityJump terrain={terrain} />
+      <SuitWalk terrain={terrain} landerYaw={LANDER_YAW} sky={sky} />
+      <WaterCup terrain={terrain} />
+      <HorizonCompass def={def} />
       <WhenReady />
     </>
   )
@@ -1457,8 +1512,12 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
   const mouseDrive = useRover((r) => r.mouse)
   const menu = useRover((r) => r.menu)
   const setView = useRover((r) => r.setView)
+  const crew = useRover((r) => r.vehicle) === 'crew'
+  const battery = useRover((r) => r.battery)
+  const [info, setInfo] = useState(false)
   useEffect(() => bindRoverKeys(), [])
   const drive = phase === 'drive'
+  if (crew) return <CrewPanel drive={drive} edge={edge} range={range} mouseDrive={mouseDrive} menu={menu} view={view} site={site} battery={battery} info={info} setInfo={setInfo} />
   return (
     <>
       <div className="surface-hint rover-hint" hidden={racing}>
@@ -1550,14 +1609,91 @@ function RoverPanel({ bodyId, site }: { bodyId: string; site?: string }) {
   )
 }
 
+/** 与圧ローバーに乗っているときの操作：ジャンプと採集はなく、運転席の見方・この車の説明・降りる */
+function CrewPanel({ drive, edge, range, mouseDrive, menu, view, site, battery, info, setInfo }: {
+  drive: boolean
+  edge: boolean
+  range: number
+  mouseDrive: boolean
+  menu: boolean
+  view: string
+  site?: string
+  battery: number
+  info: boolean
+  setInfo: (v: boolean) => void
+}) {
+  useLang()
+  const t = ui().crewRover
+  return (
+    <>
+      <div className="surface-hint rover-hint">
+        {drive ? (
+          <>
+            {t.keysHint}
+            {!isTouchDevice() && <span className={`eva-lock${mouseDrive ? ' on' : ''}`}>{mouseDrive ? ui().roverHud.mouseOn : ui().roverHud.mouseOff}</span>}
+          </>
+        ) : (
+          t.boarding
+        )}
+      </div>
+      {drive && <RoverHud />}
+      {drive && edge && (
+        <div className="rover-edge">
+          {ui().surfaceView.cantGoFarther}
+          <small>{ui().surfaceView.roverRange(sizeLabel(range * 2))}</small>
+        </div>
+      )}
+      {drive && battery <= 0.02 && <div className="rover-edge">{t.batteryEmpty}</div>}
+      {drive && info && <CrewInfoCard onClose={() => setInfo(false)} />}
+      {drive && site === 'taurus' && !info && <HistoricCard />}
+      {drive && site === 'taurus' && <HistoricStatus />}
+      {drive && (
+        <div className="rover-pad">
+          <div className="rover-pad-left">
+            <button {...holdProps(() => (roverInput.steer = -1), () => (roverInput.steer = 0))}>◀</button>
+            <button {...holdProps(() => (roverInput.steer = 1), () => (roverInput.steer = 0))}>▶</button>
+          </div>
+          <div className="rover-pad-right">
+            <button {...holdProps(() => (roverInput.throttle = -1), () => (roverInput.throttle = 0))}>▼</button>
+            <button className="go" {...holdProps(() => (roverInput.throttle = 1), () => (roverInput.throttle = 0))}>▲</button>
+          </div>
+        </div>
+      )}
+      <div className="surface-buttons rover-actions">
+        <button className={`secondary${menu ? ' on' : ''}`} onClick={() => useRover.setState({ menu: !menu })} title={ui().surfaceView.roverMenuTip}>
+          {menu ? ui().surfaceView.hideMenu : ui().surfaceView.menu}
+        </button>
+        {drive && (
+          <button className="secondary" onClick={() => useRover.getState().setView(view === 'chase' ? 'cam' : 'chase')}>
+            {view === 'chase' ? t.toCockpit : t.toChase}
+          </button>
+        )}
+        {drive && (
+          <button className={`secondary${info ? ' on' : ''}`} onClick={() => setInfo(!info)}>
+            {t.info}
+          </button>
+        )}
+        <button className="secondary" onClick={recallRover}>
+          {t.getOff}
+        </button>
+        <button className="primary" onClick={startTakeoff}>
+          {ui().surfaceView.backToShip}
+        </button>
+      </div>
+    </>
+  )
+}
+
 function SurfacePanel({ def }: { def: SurfaceDef }) {
   const rallyTrack = useRallyTrack(def.site)
+  const eva = useApolloEva((s) => s.step !== 'off') && def.site === 'taurus'
   useLang()
   const rover = useRover((r) => r.phase)
   // ローバーを出しているあいだは、説明と時刻・天気の表示をたたんで景色を広く（メニューのボタンで開く）
   const roverMenu = useRover((r) => r.menu)
   // 着陸船のまわりでも、メニュー（説明と時刻・天気）はボタンでたたんで景色を広く見られる
   const landerMenu = useLanding((l) => l.menu)
+  const walking = useSuitWalk((w) => w.on)
   const showInfo = rover === 'none' ? landerMenu : roverMenu
   const phase = useLanding((l) => l.phase)
   const view = useLanding((l) => l.view)
@@ -1572,7 +1708,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
   const note = def.site ? ui().surfaceSites[def.site].note : ui().surfaceNotes[def.id]
   const skyNote: string | undefined = ui().surfaceSkyNotes[def.id]
   return (
-    <div className={`surface-ui${rover !== 'none' && showInfo ? ' rover-menu' : ''}`}>
+    <div className={`surface-ui${rover !== 'none' && showInfo ? ' rover-menu' : ''}${walking && showInfo ? ' walk-menu' : ''}`}>
       {phase === 'descent' && (
         <div className="surface-caption">
           <div>{ui().surfaceView.descendingTo(name)}</div>
@@ -1582,7 +1718,8 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
         </div>
       )}
       {phase === 'ascent' && <div className="surface-caption">{ui().surfaceView.liftOff}</div>}
-      {phase === 'surface' && (
+      {phase === 'surface' && eva && <EvaPanel />}
+      {phase === 'surface' && !eva && (
         <>
           {/* 左上の列：説明・（スマホでは）時刻と天気・ミニマップを上から順に積む。重ならず、たたんだぶんだけ詰まる */}
           <div className={`surface-left${showInfo ? ' menu-open' : ''}${rover === 'none' ? '' : ' rover'}`}>
@@ -1616,11 +1753,16 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
           {showInfo && <TimeBar def={def} />}
           {rover === 'drive' && <RoverMap />}
           </div>
-          {rover !== 'none' ? (
+          {walking ? (
+            <SuitWalkPanel def={def} />
+          ) : rover !== 'none' ? (
             <RoverPanel bodyId={def.id} site={def.site} />
           ) : (
           <>
           {rallyTrack && <RallyStart track={rallyTrack} />}
+          <JumpCard />
+          <WaterCupCard def={def} />
+          <SunriseCard def={def} />
           <div className="surface-hint">
             {view === 'eye'
               ? ui().surfaceView.lookAroundHint
@@ -1636,6 +1778,16 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             <button className="secondary" onClick={() => launchRover()}>
               {ui().surfaceView.deployRover}
             </button>
+            {crewRoverOn(def.id) && !rallyTrack && (
+              <button className="secondary crew-rover-start" onClick={() => launchRover(false, 'crew')} title={ui().crewRover.buttonTip}>
+                {ui().crewRover.button}
+              </button>
+            )}
+            <button className="secondary suit-out" onClick={startSuitWalk} title={ui().suitWalk.buttonTip}>
+              {ui().suitWalk.button}
+            </button>
+            <JumpButton bodyId={def.id} />
+            <WaterCupButton bodyId={def.id} />
             {!def.site && trackForBody(def.id) && (
               <button className="secondary rally-site" onClick={() => goToSite(trackForBody(def.id))}>
                 🏁 {ui().surfaceView.toRaceTrack(ui().rallyTracks[trackAt(trackForBody(def.id)!)].button)}
@@ -1649,6 +1801,11 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
             {rallyTrack && (
               <button className="secondary" onClick={() => goToSite(null)}>
                 {ui().rallyTracks[rallyTrack].home}
+              </button>
+            )}
+            {canFly(def.id) && (
+              <button className="secondary sky-flight-start" onClick={startFlight} title={ui().skyFlight.startTip}>
+                {ui().skyFlight.start}
               </button>
             )}
             <button className="primary" onClick={startTakeoff}>
@@ -1709,12 +1866,12 @@ function WhenReady() {
  * 影は PCF（three.js にはもう PCFSoft がなく、指定すると毎回 PCF に置き換えて作り直す）
  */
 const SurfaceCanvas = memo(function SurfaceCanvas({ def }: { def: SurfaceDef }) {
-  const level = useLevel()
+  const dpr = useDpr(1.75)
   return (
     // 画面の細かさは画質の設定にあわせる（スマホは「標準」なので 1.25 倍まで）
     // 背景を不透明で塗る（alpha: false）。透明のままだと、描けなかったフレームから後ろが透けて見える。
     // three.js は alpha: false でも透明にできる画面を作るので、後ろは .surface-view.solid の黒でも塞いでいる
-    <Canvas shadows="percentage" dpr={Math.min(dprFor(level), 1.75)} gl={{ alpha: false }} camera={{ fov: 60, near: 0.3, far: SKY_R * 1.2, position: [0, EYE, 0] }}>
+    <Canvas shadows="percentage" dpr={dpr} gl={{ alpha: false }} camera={{ fov: 60, near: 0.3, far: SKY_R * 1.2, position: [0, EYE, 0] }}>
       <Scene def={def} />
       <QualityGovernor />
       <SurfacePost bodyId={def.id} />
@@ -1756,13 +1913,16 @@ export function SurfaceView() {
   const def = bodyId ? siteDef(bodyId, site) : null
   const scene3d = phase === 'descent' || phase === 'surface' || phase === 'ascent'
   const lab = labEnabled() ? <SurfaceLab /> : null
+  const flying = useSkyFlight((f) => f.phase) !== 'off' && phase === 'surface'
   if (phase === 'idle' || !def) return lab
   return (
     <div className={scene3d ? 'surface-view solid' : 'surface-view'}>
-      {scene3d && (
+      {/* 月の空を飛んでいるあいだは、地表の場面の代わりに月を丸ごと描く */}
+      {flying && <FlightView />}
+      {scene3d && !flying && (
         <SurfaceCanvas key={def.site ?? def.id} def={def} />
       )}
-      <SurfacePanel def={def} />
+      {!flying && <SurfacePanel def={def} />}
       <Curtain phase={phase} since={since} ready={ready} />
       {lab}
     </div>
@@ -1770,4 +1930,3 @@ export function SurfaceView() {
 }
 
 // 宇宙の場面の外に置くので、glb は前もって読み込んでおく
-useGLTF.preload(url('ship-lander.glb'))

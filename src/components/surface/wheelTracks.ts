@@ -174,6 +174,8 @@ export class WheelTracks {
     bodyId: string,
     level: Level,
     private height: (x: number, z: number) => number,
+    /** 轍の幅（m）。与圧ローバーの太いタイヤは広く */
+    private width = WIDTH,
   ) {
     this.look = trackLookFor(bodyId)
     // 区間の数（左右あわせて）。high：2400（左右 360 m ずつ）、medium：1400、low：600
@@ -270,7 +272,7 @@ export class WheelTracks {
     const d = Math.hypot(dx, dz)
     const nx = -dz / d
     const nz = dx / d
-    const h = WIDTH / 2
+    const h = this.width / 2
     const lx = x + nx * h
     const lz = z + nz * h
     const rx = x - nx * h

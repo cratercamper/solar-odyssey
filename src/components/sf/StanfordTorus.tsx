@@ -1,10 +1,10 @@
 import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { COLONY_LENGTH, COLONY_REAL_KM, COLONY_ZOOM, SF_TEXT, TORUS_ID } from '../../data/sf'
 import { useStore } from '../../state/store'
 import { useSite } from './useSite'
+import { roomEnvironment } from '../telescope/parts'
 
 // ドーナツ型のスペースコロニー（1975年の NASA の研究「スタンフォード・トーラス」をもとにしたオリジナルのデザイン）。
 // 直径約1.8kmの輪が1分に1回転して、輪の中の床で1Gになる。中央のハブから6本のスポークが出る。
@@ -27,9 +27,7 @@ export function StanfordTorus({ position }: { position: [number, number, number]
   })
   const { gl } = useThree()
   const parts = useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
+    const env = roomEnvironment(gl)
     // 輪の内側（回転軸を向いた側）の窓：細い光の帯
     return {
       ring: new THREE.TorusGeometry(RING, TUBE, 24, 160),

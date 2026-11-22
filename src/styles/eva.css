@@ -1,0 +1,702 @@
+/* ---- 船外活動（ツムギ） ---- */
+.eva-view > div:first-child canvas {
+  touch-action: none;
+}
+
+.eva-hud {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  min-width: 230px;
+  padding: 14px 14px 10px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.74), rgba(6, 10, 16, 0.62));
+  border: 1px solid rgba(120, 200, 255, 0.28);
+  box-shadow: 0 0 18px rgba(80, 180, 255, 0.12), inset 0 0 12px rgba(80, 180, 255, 0.06);
+  color: #d6e6f8;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.eva-badge {
+  position: absolute;
+  left: 14px;
+  top: -9px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #7fc8f0;
+  background: #0a1018;
+  border: 1px solid rgba(120, 200, 255, 0.35);
+}
+
+.eva-site {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #8fb3d0;
+  margin: 2px 0 2px;
+}
+
+.eh-speed {
+  font-size: 30px;
+  font-weight: 600;
+  color: #e8f4ff;
+  text-shadow: 0 0 10px rgba(95, 212, 255, 0.5);
+  margin-bottom: 6px;
+}
+
+.eh-speed small,
+.eh-v small {
+  font-size: 11px;
+  color: #8fb3d6;
+  font-weight: 400;
+}
+
+.eh-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+.eh-k {
+  width: 44px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #7fa6c8;
+}
+
+.eh-v {
+  min-width: 44px;
+  text-align: right;
+}
+
+.eh-v.wide {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.eva-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(120, 160, 200, 0.18);
+  overflow: hidden;
+}
+
+.eva-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #5fd4ff, #9ff0ff);
+  box-shadow: 0 0 6px rgba(95, 212, 255, 0.7);
+}
+
+.eva-bar.warn span {
+  background: linear-gradient(90deg, #ff6a4a, #ffb36b);
+  box-shadow: 0 0 6px rgba(255, 106, 74, 0.7);
+}
+
+.eh-assist {
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 196, 107, 0.4);
+  color: #ffc46b;
+}
+
+.eh-assist.on {
+  border-color: rgba(95, 212, 255, 0.45);
+  color: #8fe0ff;
+}
+
+.eva-map {
+  position: absolute;
+  right: 18px;
+  bottom: 196px;
+  width: 150px;
+  height: 150px;
+  border-radius: 14px;
+  background: rgba(8, 12, 20, 0.6);
+  border: 1px solid rgba(120, 200, 255, 0.25);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.eva-map svg {
+  width: 100%;
+  height: 100%;
+}
+
+.eva-map .m-hull {
+  fill: rgba(200, 210, 225, 0.1);
+}
+
+.eva-map .m-seam {
+  stroke: rgba(200, 210, 225, 0.1);
+  stroke-width: 0.4;
+}
+
+.eva-map .m-warn {
+  fill: none;
+  stroke: rgba(255, 200, 90, 0.4);
+}
+
+.eva-map .m-range {
+  fill: none;
+  stroke: rgba(95, 212, 255, 0.45);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+
+.eva-map.edge .m-range {
+  stroke: rgba(255, 106, 74, 0.9);
+}
+
+.eva-map .m-lock {
+  fill: rgba(120, 255, 160, 0.5);
+  stroke: #8fffb0;
+  stroke-width: 0.5;
+}
+
+.eva-map .m-tether {
+  stroke: #e0903a;
+  stroke-width: 0.6;
+}
+
+.eva-map .m-bot {
+  fill: #ffd27a;
+  stroke: #1a1206;
+  stroke-width: 0.4;
+}
+
+.eva-map .m-fwd {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #8fb3d6;
+}
+
+/* ツールは画面の右に縦に並べる（ミニマップの上） */
+.eva-tools {
+  position: absolute;
+  right: 18px;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-height: 720px) {
+  .eva-tools {
+    right: 292px;
+    top: auto;
+    bottom: 18px;
+  }
+}
+
+.eva-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 50px;
+  padding: 6px 8px 4px;
+  border-radius: 12px;
+  background: rgba(10, 14, 22, 0.66);
+  border: 1px solid rgba(200, 220, 255, 0.3);
+  color: #dbe6f4;
+  font-size: 11px;
+}
+
+.eva-tool .et-icon {
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.eva-tool kbd {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.eva-tool.on {
+  border-color: #ffc46b;
+  color: #ffd9a8;
+  box-shadow: 0 0 10px rgba(255, 196, 107, 0.35);
+}
+
+.eva-status {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  color: #ffd27a;
+  font-size: 13px;
+}
+
+.eva-work {
+  padding: 9px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #f2a65a;
+  color: #1a1206;
+  font-weight: 600;
+  font-size: 14px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.es-busy {
+  padding: 8px 16px;
+  border-radius: 16px;
+  background: rgba(10, 14, 22, 0.66);
+  white-space: nowrap;
+}
+
+.eva-warn {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: rgba(40, 10, 6, 0.72);
+  color: #ffd2c4;
+  font-size: 13px;
+}
+
+.eva-actions {
+  left: 18px;
+  bottom: 28px;
+  transform: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.eva-stick,
+.eva-pad {
+  display: none;
+}
+
+.eh-level {
+  margin-left: 10px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #8fb3d0;
+}
+
+.eva-speed-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px;
+  border-radius: 18px;
+  background: rgba(8, 12, 20, 0.6);
+  pointer-events: auto;
+}
+
+.eva-speed-btns button {
+  min-width: 34px;
+  padding: 6px 10px;
+}
+
+.esb-label {
+  font-size: 12px;
+  color: #d6e6f8;
+  min-width: 92px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+body.touch .esb-word {
+  display: none;
+}
+
+body.touch .esb-label {
+  min-width: 52px;
+}
+
+body.touch .eva-speed-btns button {
+  min-width: 30px;
+  padding: 5px 8px;
+}
+
+.eva-lock {
+  display: block;
+  margin-top: 4px;
+  color: #8fe0ff;
+}
+
+.eva-lock.on {
+  color: #8fffb0;
+}
+
+.eva-pad button.go.boost {
+  background: rgba(95, 212, 255, 0.8);
+}
+
+/* スマホ：左下にスティック、右下に上下・作業。計器は右上、ツールは右の縦の列、ボタンは左上 */
+body.touch .eva-hint {
+  display: none;
+}
+
+body.touch .eva-stick {
+  display: block;
+  position: absolute;
+  left: 22px;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.45);
+  border: 1px solid rgba(200, 220, 255, 0.35);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.eva-knob {
+  position: absolute;
+  left: 34px;
+  top: 34px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(200, 225, 255, 0.35);
+  border: 1px solid rgba(220, 235, 255, 0.7);
+}
+
+body.touch .eva-pad {
+  display: flex;
+  position: absolute;
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom) + 18px);
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.eva-pad button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.55);
+  border: 1px solid rgba(200, 220, 255, 0.4);
+  color: #e8f0ff;
+  font-size: 14px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.eva-pad button.go {
+  width: 76px;
+  height: 76px;
+  background: rgba(242, 166, 90, 0.8);
+  color: #1a1206;
+  font-weight: 600;
+}
+
+body.touch .eva-status {
+  display: none;
+}
+
+body.touch .eva-hud {
+  top: calc(env(safe-area-inset-top) + 10px);
+  bottom: auto;
+  right: 10px;
+  min-width: 170px;
+  padding: 10px 10px 8px;
+}
+
+body.touch .eh-speed {
+  font-size: 22px;
+}
+
+body.touch .eva-map {
+  display: none;
+}
+
+/* スマホ：ツールは右の縦の列。横の画面は計器の左、縦の画面は計器と右下のボタンのあいだ */
+body.touch .eva-tools {
+  top: calc(env(safe-area-inset-top) + 10px);
+  bottom: auto;
+  right: 190px;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  body.touch .eva-tools {
+    right: 10px;
+    top: calc(env(safe-area-inset-top) + 230px);
+  }
+}
+
+body.touch .eva-tool {
+  min-width: 0;
+  width: 48px;
+  padding: 4px;
+}
+
+body.touch .eva-tool .et-name,
+body.touch .eva-tool kbd {
+  display: none;
+}
+
+body.touch .eva-actions {
+  top: calc(env(safe-area-inset-top) + 10px);
+  bottom: auto;
+  left: 10px;
+}
+
+body.touch .eva-actions button {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+/* ---- 船外活動：修理の依頼 ---- */
+.eva-jobs {
+  position: absolute;
+  left: 18px;
+  top: 52px;
+  width: 290px;
+  padding: 8px 12px 10px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(14, 22, 34, 0.78), rgba(6, 10, 16, 0.66));
+  border: 1px solid rgba(255, 168, 68, 0.35);
+  box-shadow: 0 0 16px rgba(255, 168, 68, 0.1);
+  color: #d6e6f8;
+  font-size: 12px;
+  pointer-events: auto;
+}
+
+.ej-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ej-kicker {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #ffb45e;
+}
+
+.ej-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: #ffd9a8;
+}
+
+.ej-fold {
+  color: #8fb3d6;
+}
+
+.ej-list,
+.ej-steps,
+.ec-steps {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.ej-list li {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+  color: #a9bdd4;
+}
+
+.ej-list li.on {
+  color: #ffe2b8;
+  font-weight: 600;
+}
+
+.ej-list li.done {
+  color: #7fd9a0;
+  text-decoration: line-through;
+  text-decoration-color: rgba(127, 217, 160, 0.5);
+}
+
+.ej-mark {
+  width: 12px;
+  flex: none;
+  text-align: center;
+}
+
+.ej-steps {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 180, 94, 0.2);
+}
+
+.ej-steps li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  column-gap: 4px;
+  padding: 2px 0;
+  color: #7f93aa;
+}
+
+.ej-steps li.done {
+  color: #7fd9a0;
+}
+
+.ej-steps li.on {
+  color: #f2f6ff;
+}
+
+.ej-tool {
+  font-size: 14px;
+  text-align: center;
+}
+
+.ej-bar {
+  grid-column: 2;
+  display: block;
+  margin-top: 3px;
+}
+
+.ej-hint {
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(255, 168, 68, 0.12);
+  color: #ffd9a8;
+}
+
+.ej-hint b {
+  font-variant-numeric: tabular-nums;
+}
+
+.ej-hint.go {
+  background: rgba(95, 212, 255, 0.16);
+  color: #bfefff;
+}
+
+.ej-hint.warn {
+  background: rgba(255, 106, 74, 0.18);
+  color: #ffd2c4;
+}
+
+.ej-hint.ok {
+  background: rgba(127, 217, 160, 0.16);
+  color: #c4f5d6;
+}
+
+.eva-card {
+  left: 50%;
+  right: auto;
+  top: 60px;
+  transform: translateX(-50%);
+  width: 360px;
+  border-color: rgba(127, 217, 160, 0.5);
+}
+
+.ec-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(127, 217, 160, 0.18);
+  border: 1px solid rgba(127, 217, 160, 0.6);
+  color: #9ff0bf;
+  font-size: 18px;
+}
+
+.ec-steps {
+  margin: 10px 0 8px;
+}
+
+.ec-steps li {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+  color: #c8d4e4;
+}
+
+.ec-tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  background: rgba(255, 196, 107, 0.16);
+  color: #ffc46b;
+}
+
+.eva-map .m-rack {
+  fill: rgba(95, 212, 255, 0.45);
+  stroke: #9fe8ff;
+  stroke-width: 0.5;
+}
+
+.eva-map .m-job path {
+  fill: rgba(255, 168, 68, 0.55);
+  stroke: #ffc46b;
+  stroke-width: 0.5;
+}
+
+.eva-map .m-job.on path {
+  fill: #ffa844;
+  stroke: #fff0d0;
+}
+
+.eva-map .m-job.done circle {
+  fill: rgba(127, 217, 160, 0.7);
+}
+
+/* スマホ：依頼は左上のボタンの下に小さく。一覧は畳んで、今の手順だけ */
+body.touch .eva-jobs {
+  top: calc(env(safe-area-inset-top) + 132px);
+  left: 10px;
+  width: 210px;
+  padding: 6px 9px 7px;
+  font-size: 11px;
+}
+
+body.touch .ej-list {
+  display: none;
+}
+
+body.touch .ej-steps {
+  border-top: none;
+  margin-top: 2px;
+  padding-top: 0;
+}
+
+body.touch .ej-steps li:not(.on) {
+  display: none;
+}
+
+body.touch .ej-hint {
+  margin-top: 4px;
+  padding: 3px 6px;
+}
+
+body.touch .eva-card {
+  left: 10px;
+  right: 10px;
+  top: calc(env(safe-area-inset-top) + 8px);
+  bottom: auto;
+  transform: none;
+  width: auto;
+  max-height: calc(100% - 110px);
+  z-index: 5;
+}

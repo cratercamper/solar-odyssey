@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../../i18n/lang'
-import { COUNT_SEC, RALLY_COLORS, loadBest, pickRallyTrack, quitRally, rallyNow, setRallyColor, startRally, useRally, useRallyTrack } from '../../state/rally'
+import { COUNT_SEC, RALLY_COLORS, RALLY_LEVELS, loadBest, pickRallyTrack, quitRally, rallyNow, setRallyAuto, setRallyColor, setRallyLevel, startRally, useRally, useRallyTrack } from '../../state/rally'
+import { medalIcon, nextMedal, useRallyMedals, type Medal } from '../../state/rallyMedals'
+import { openRocks } from '../../state/rockBook'
+import './rallyFinish.css'
 import { releaseRoverMouse, roverInput } from '../../state/rover'
 import { TRACKS, siteOfTrack, tracksAt } from '../../data/rallyTracks'
 import { useLanding } from '../../state/landing'
@@ -43,6 +46,7 @@ export function RallyStart({ track, compact = false }: { track: string; compact?
           {ui().rallyTracks[track].intro}
         </p>
       )}
+      <RallyOptions compact={compact} />
       <div className="rally-colors" role="radiogroup" aria-label={ui().rallyPanel.roverColour}>
         {RALLY_COLORS.map((c, i) => (
           <button
@@ -59,6 +63,7 @@ export function RallyStart({ track, compact = false }: { track: string; compact?
           </button>
         ))}
       </div>
+      {!compact && <MedalTargets track={track} />}
       {!compact && <RallyHiscore track={track} top={3} />}
       <div className="rally-row">
         {best && <span className="rally-best">{ui().rallyPanel.best} {fmtTime(best.time)}</span>}
@@ -66,6 +71,89 @@ export function RallyStart({ track, compact = false }: { track: string; compact?
           {ui().rallyPanel.start}
         </button>
       </div>
+    </div>
+  )
+}
+
+const medalName = (m: Medal) => (m === 1 ? ui().rallyPanel.gold : m === 2 ? ui().rallyPanel.silver : ui().rallyPanel.bronze)
+
+/** コンピューターの強さと、自動アクセル（スタート前に選ぶ） */
+function RallyOptions({ compact }: { compact: boolean }) {
+  const level = useRally((r) => r.level)
+  const auto = useRally((r) => r.auto)
+  const levelText = { easy: ui().rallyPanel.aiEasy, normal: ui().rallyPanel.aiNormal, hard: ui().rallyPanel.aiHard }
+  if (compact) {
+    // 運転中の小さな欄：押すたびに やさしい → ふつう → つよい
+    const next = RALLY_LEVELS[(RALLY_LEVELS.indexOf(level) + 1) % RALLY_LEVELS.length]
+    return (
+      <button className="rally-ai-cycle" onClick={() => setRallyLevel(next)} title={ui().rallyPanel.aiLevel}>
+        {ui().rallyPanel.aiShort(levelText[level])}
+      </button>
+    )
+  }
+  return (
+    <div className="rally-options">
+      <div className="rally-levels rally-ai" role="radiogroup" aria-label={ui().rallyPanel.aiLevel} title={ui().rallyPanel.aiLevel}>
+        <span className="rally-opt-k">{ui().rallyPanel.aiLevel}</span>
+        {RALLY_LEVELS.map((lv) => (
+          <button key={lv} role="radio" aria-checked={lv === level} className={lv === level ? 'on' : ''} onClick={() => setRallyLevel(lv)}>
+            {levelText[lv]}
+          </button>
+        ))}
+      </div>
+      <AutoGas auto={auto} />
+      {level === 'easy' && <p className="rally-opt-note">{ui().rallyPanel.aiEasyNote}</p>}
+    </div>
+  )
+}
+
+/** 自動アクセルの入・切 */
+function AutoGas({ auto }: { auto: boolean }) {
+  return (
+    <button className={`rally-auto${auto ? ' on' : ''}`} role="switch" aria-checked={auto} onClick={() => setRallyAuto(!auto)} title={ui().rallyPanel.autoGasTip}>
+      {auto ? '▲ ' : ''}
+      {ui().rallyPanel.autoGas(auto)}
+    </button>
+  )
+}
+
+/** メダルのタイム（追いかけっこは、つかまえる数）と、自分の今のメダル */
+function MedalTargets({ track }: { track: string }) {
+  const mine = useRallyMedals((m) => m.medals[track]?.medal ?? null)
+  const tr = TRACKS[track]
+  const goal = (m: Medal) => (tr.chase ? ui().rallyPanel.caughtGoal(4 - m) : tr.medals ? fmtTime(tr.medals[m - 1]) : '')
+  return (
+    <div className="rally-medals" aria-label={ui().rallyPanel.medals}>
+      {([1, 2, 3] as Medal[]).map((m) => (
+        <span key={m} className={`rm${mine !== null && mine <= m ? ' got' : ''}`} title={medalName(m)}>
+          {medalIcon(m)} {goal(m)}
+        </span>
+      ))}
+      {mine !== null && <span className="rm-mine">{ui().rallyPanel.yourMedal(medalName(mine))}</span>}
+    </div>
+  )
+}
+
+/** 結果のカード：取ったメダル、次のメダルまで、ごほうびの岩 */
+function MedalResult({ track, time, caught, medal, fresh, rock }: { track: string; time: number; caught?: number; medal: Medal | null; fresh: boolean; rock: string | null }) {
+  const next = nextMedal(track, time, caught)
+  const chase = !!TRACKS[track]?.chase
+  return (
+    <div className="rally-medal-result">
+      {medal !== null ? (
+        <div className={`rmr-got m${medal}`}>
+          <span className="rmr-icon">{medalIcon(medal)}</span>
+          {fresh ? ui().rallyPanel.newMedal(medalName(medal)) : ui().rallyPanel.gotMedal(medalName(medal))}
+        </div>
+      ) : (
+        <div className="rmr-none">{ui().rallyPanel.noMedal}</div>
+      )}
+      {next && <div className="muted rmr-next">{chase ? ui().rallyPanel.nextMedalCaught(medalName(next.medal), next.need) : ui().rallyPanel.nextMedalTime(medalName(next.medal), next.need.toFixed(1))}</div>}
+      {rock && (
+        <button className="rmr-rock" onClick={openRocks}>
+          ◆ {ui().rallyPanel.rewardRock(ui().rockSamples[rock].name)} <span className="sample-book">{ui().rallyPanel.openBook} ▸</span>
+        </button>
+      )}
     </div>
   )
 }
@@ -85,6 +173,7 @@ export function RallyPanel() {
   const result = useRally((r) => r.result)
   const color = useRally((r) => r.color)
   const chase = useRally((r) => r.chase)
+  const auto = useRally((r) => r.auto)
   const track = useRallyTrack(useLanding((l) => l.site))
   const isChase = !!(track && TRACKS[track]?.chase)
   // 結果のカードで R を押すと、もう一度（「もう一度」のボタンと同じ）。ゴールから 0.5 秒は効かない：
@@ -184,6 +273,7 @@ export function RallyPanel() {
                 : ui().rallyPanel.finishedPlace(result.place)}
           </div>
           <div className="rally-big">{fmtTime(result.time)}</div>
+          {track && <MedalResult track={track} time={result.time} caught={isChase ? (chase?.caught.length ?? 0) : undefined} medal={result.medal} fresh={result.newMedal} rock={result.rock} />}
           {result.newBest ? <div className="rally-new">{ui().rallyPanel.newPersonalBest}</div> : <div className="muted">{ui().rallyPanel.bestTime(fmtTime(result.best))}</div>}
           {isChase ? (
             <ul className="rally-chase-result">
@@ -228,6 +318,7 @@ export function RallyPanel() {
           <button className="secondary" disabled={phase !== 'run'} onClick={() => (roverInput.reset = true)} title={ui().rallyPanel.backToLastGate}>
             ↺ {ui().rallyPanel.back} <kbd>R</kbd>
           </button>
+          <AutoGas auto={auto} />
           <button className="secondary" onClick={quitRally}>
             {ui().rallyPanel.quitRace}
           </button>

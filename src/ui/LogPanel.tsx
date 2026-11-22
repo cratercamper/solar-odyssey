@@ -14,6 +14,9 @@ import { useLang } from '../i18n/lang'
 import { isTouchDevice } from '../state/input'
 import { useTouchUI } from '../state/touchUI'
 import { ui } from '../i18n'
+import { hasCard } from '../data/bodyCards'
+import { openBodyCard } from '../state/bodyCards'
+import { hasArrival } from '../data/arrival'
 
 const TOTAL = 1 + PLANETS.reduce((n, p) => n + 1 + p.moons.length, 0)
 const NEAR = 10
@@ -44,9 +47,11 @@ export function LogPanel() {
     if (!targetId || warpPhase !== 'idle' || distance === null || raceActive() || useMission.getState().phase !== 'closed') return
     if (distance < NEAR && autoOpened.current !== targetId) {
       autoOpened.current = targetId
+      // パソコンでは、星に着いたらまず「到着の瞬間」（ui/ArrivalMoment.tsx）を見せる。日誌は「もっと知る」か I キーで
+      if (!touch && hasArrival(targetId)) return
       setLogOpen(true)
     }
-  }, [targetId, distance, warpPhase, setLogOpen])
+  }, [targetId, distance, warpPhase, setLogOpen, touch])
 
   useEffect(() => setPicked(null), [targetId])
 
@@ -124,6 +129,11 @@ export function LogPanel() {
             ))}
           </ul>
         </div>
+      )}
+      {hasCard(targetId) && (
+        <button className="secondary card-open" onClick={() => openBodyCard(targetId)} title={ui().bodyCards.openHint}>
+          📇 {ui().bodyCards.open}
+        </button>
       )}
       {isTelescope(targetId) && (
         <button className="secondary scope-open" onClick={() => openScope(targetId)} disabled={scopeNear !== targetId}>

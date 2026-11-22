@@ -1,0 +1,183 @@
+/* 大きさくらべ（ui/SizeCompare.tsx）：全画面の 3D の棚。うしろの宇宙はうっすら見える */
+.size-compare {
+  /* 右の、くらべる星のボタンの列の幅 */
+  --sc-col: 168px;
+  position: fixed;
+  inset: 0;
+  z-index: 62;
+  background: radial-gradient(ellipse at 50% 55%, #0c1226, #03050c);
+  color: #eef2fa;
+  animation: sc-in 0.35s ease-out both;
+}
+@keyframes sc-in {
+  from {
+    opacity: 0;
+  }
+}
+.sc-canvas {
+  position: absolute !important;
+  inset: 0 var(--sc-col) 0 0;
+  width: auto !important;
+}
+.sc-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(10px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.sc-head h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  color: #9fd4ff;
+}
+.sc-head .close {
+  position: absolute;
+  right: 14px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 22px;
+  pointer-events: auto;
+}
+.sc-foot {
+  position: absolute;
+  left: calc((100vw - var(--sc-col)) / 2);
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(640px, calc(100vw - var(--sc-col) - 24px));
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.sc-caption {
+  margin: 0;
+  text-wrap: balance;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  animation: sc-up 0.5s 0.6s ease-out both;
+}
+@keyframes sc-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.sc-hint {
+  margin: 0;
+}
+.sc-picks {
+  position: absolute;
+  top: calc(64px + env(safe-area-inset-top));
+  right: calc(10px + env(safe-area-inset-right));
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  width: calc(var(--sc-col) - 18px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 4px 2px 2px;
+  scrollbar-width: thin;
+}
+.sc-chip {
+  flex: none;
+  min-height: 34px;
+  padding: 4px 12px;
+  border: 1px solid rgba(159, 212, 255, 0.4);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cfe4ff;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 衛星は、その惑星の下に少し下げて */
+.sc-chip.moon {
+  margin-left: 14px;
+  min-height: 30px;
+  font-size: 13px;
+}
+.sc-chip.on {
+  border-color: #9fd4ff;
+  background: rgba(70, 120, 190, 0.55);
+  color: #fff;
+}
+.sc-chip.on::before {
+  content: '✓ ';
+}
+/* 名札：もののすぐ下。画面で小さすぎるものは、印と名前を少しずつ下にずらす */
+.sc-label {
+  --stack: 0;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(6, 10, 22, 0.55);
+  color: #dfe8f6;
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+  transform: translateY(22px);
+  transition: opacity 0.3s;
+}
+.sc-label b {
+  font-size: 13px;
+}
+.sc-label.body b {
+  color: #ffd27a;
+}
+.sc-label.tiny {
+  transform: translateY(calc(-60px - var(--stack) * 36px));
+}
+.sc-label.tiny::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 60px + var(--stack) * 36px);
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid #ffd27a;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 210, 122, 0.8);
+}
+@media (max-width: 640px) {
+  .size-compare {
+    --sc-col: 128px;
+  }
+  .sc-caption {
+    font-size: 16px;
+  }
+  .sc-chip {
+    min-height: 32px;
+    padding: 3px 9px;
+    font-size: 12px;
+  }
+  .sc-chip.moon {
+    margin-left: 8px;
+    min-height: 30px;
+    padding: 3px 7px;
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .size-compare,
+  .sc-caption {
+    animation: none;
+  }
+}

@@ -55,8 +55,24 @@ function Ryugu({ layout }: { layout: Layout }) {
   )
 }
 
+/** 太陽系が見えている範囲（説明のパネルと、模型の画面を除いたところ。画面の px） */
+function visibleRegion(width: number, height: number) {
+  const panel = document.querySelector('.probe-panel')?.getBoundingClientRect()
+  const cam = document.querySelector('.probe-cam')?.getBoundingClientRect()
+  const camRight = cam && cam.left > width / 3
+  const camTop = cam && !camRight && cam.bottom < height * 0.6
+  // 模型の画面があるときは、説明のパネルは下にあるので、その上まで
+  const panelBelow = panel && (camRight || camTop || panel.top > height / 3)
+  return {
+    left: panel && !panelBelow && panel.right < width / 2 ? panel.right : 0,
+    right: camRight ? cam.left : width,
+    top: camTop ? cam.bottom : 0,
+    bottom: panel && panelBelow ? panel.top : height,
+  }
+}
+
 export function ProbeScene() {
-  const { open, probeId } = useProbes()
+  const { open, probeId, samples } = useProbes()
   const probe = open ? probeById(probeId) : null
   const layout = useLayout()
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
@@ -73,14 +89,16 @@ export function ProbeScene() {
     done.geometry.setDrawRange(0, 0)
     const reach = Math.max(...world.map((w) => w.length()))
     return { path, full, done, reach }
-  }, [probe, layout])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [probe, layout, samples])
 
-  // 選んだら、道すじ全体が入るところまでカメラを引く（内側だけの旅は寄る）
+  // 選んだら、道すじ全体が入るところまでカメラを引く（内側だけの旅は寄る）。
+  // 右（スマホの縦では上）に模型の画面があるときは、残りの見える範囲に収まるように、もっと引く。
+  // 模型の画面は描かれたあとでないと大きさが分からないので、次のフレームで合わせる
+  const fit = useRef(false)
   useEffect(() => {
     if (!lines) return
-    camera.position.copy(OVERVIEW).multiplyScalar(Math.max(0.35, (lines.reach * 1.25) / OVERVIEW_FITS))
-    camera.up.set(0, 1, 0)
-    camera.lookAt(0, 0, 0)
+    fit.current = true
   }, [lines, camera])
 
   useEffect(
@@ -101,10 +119,17 @@ export function ProbeScene() {
   }, [open, camera])
   useFrame(() => {
     if (!open) return
-    const panel = document.querySelector('.probe-panel')?.getBoundingClientRect()
-    const shiftX = panel && panel.right < size.width / 2 ? -panel.right / 2 : 0
-    const shiftY = panel && panel.top > size.height / 3 ? (size.height - panel.top) / 2 : 0
+    const region = visibleRegion(size.width, size.height)
+    const shiftX = size.width / 2 - (region.left + region.right) / 2
+    const shiftY = size.height / 2 - (region.top + region.bottom) / 2
     camera.setViewOffset(size.width, size.height, shiftX, shiftY, size.width, size.height)
+    if (fit.current && lines) {
+      fit.current = false
+      const room = Math.max(1, size.height / Math.max(120, Math.min(region.right - region.left, region.bottom - region.top)))
+      camera.position.copy(OVERVIEW).multiplyScalar(Math.max(0.35, (lines.reach * 1.25 * room) / OVERVIEW_FITS))
+      camera.up.set(0, 1, 0)
+      camera.lookAt(0, 0, 0)
+    }
   })
 
   const p = new THREE.Vector3()

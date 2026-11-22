@@ -1,19 +1,26 @@
 import { useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { GRAVITY, HOVER_BOOST, HOVER_SPEED, JUMP_SPEED, RUN_SPEED, WALK_SPEED, useWalk, walkInput, walkNow } from '../../state/walk'
+import { GRAVITY, HOVER_BOOST, HOVER_SPEED, JUMP_SPEED, RUN_SPEED, SKY_BOOST, SKY_HEIGHT, SKY_SPEED, WALK_SPEED, useWalk, walkInput, walkNow, type WalkArea } from '../../state/walk'
 import { isTouchDevice } from '../../state/input'
 import { currentLevel, lowMemory } from '../../state/quality'
 import { seeded } from '../sf/batch'
 import { CREW_LOOK, Mannequin, randomLook, type Age, type Motion, type Person } from './figure'
-import { PLAYER_MODEL, PLAYER_SCALE, VrmPerson, prepareVrmPeople } from './vrmPeople'
+import { PLAYER_MODEL, PLAYER_SCALE, VrmPerson, prepareVrmPeople, type VrmModel } from './vrmPeople'
+import { LOOKS, applyLook } from './mobLooks'
 import { DECK_TOP, HoverScooter, RIDER_Z } from './hoverScooter'
-import { BOUNDS, G, GROUND_LIFT, LOOP, NS_S, PLAY, POND, frameAt, landPoint, loopPoint, parkLayout, pondValue, upAt, type Bench } from './park'
+import { JUNGLE, inJungle } from './jungle'
+import { FOREST_START } from './forestLayout'
+import { BOUNDS, G, GROUND_LIFT, HALF_L, LOOP, NS_S, PLAY, POND, STREETS, STREET_W, WALK_W, frameAt, landPoint, loopPoint, parkLayout, pondValue, pushOutOfBoxes, inTown, upAt, type Bench } from './park'
+import { CIRC, inBuilding, pushWorld, roofAt, standable, wetAt, worldArea, wrapS } from './cylinder'
+import { CORE, DECK_END, OMEGA, RIDE_S, STATION, STATION_H, TOWER, elevCar, elevH, gAt, nearDoor, onStation, sMeters } from './axis'
+import { Wings } from './wings'
 
 // 歩く場面の人：自分（後ろから・自分の目で）と、公園のまわりの人たち。
 // 人の形は Person（figure.ts）。読み込むまでは仮の人形で、読めたら VRM の人（vrmPeople.ts、MakeHuman 製）と Mixamo の動きに差し替える。
 
 const Y = new THREE.Vector3(0, 1, 0)
+const X = new THREE.Vector3(1, 0, 0)
 const qf = new THREE.Quaternion()
 const qy = new THREE.Quaternion()
 const tmp = new THREE.Vector3()
@@ -32,8 +39,12 @@ function placePerson(p: Person, s: number, y: number, h: number, yaw: number) {
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a))
 const turn = (from: number, to: number, k: number) => from + wrap(to - from) * Math.min(1, k)
 
-/** 降りた所：南北の道の上、遊び場と池を右前に見る */
-const START = { s: NS_S + 2, y: 11285, yaw: -2.2 }
+/** 降りた所：南北の道の上、遊び場と池を右前に見る。?forest=jungle などを付けたときは、森の入口の手前 */
+const START = FOREST_START ? { s: NS_S, y: 11751, yaw: Math.PI } : { s: NS_S + 2, y: 11285, yaw: -2.2 }
+
+/** 池の散歩道のうち、公園の中にある所（西の岸）の角度。この間を行き来する */
+const LOOP_T0 = Math.PI + Math.asin((LOOP.y - BOUNDS.y1 + 12) / LOOP.ry)
+const LOOP_T1 = Math.PI + Math.asin((LOOP.y - 11285) / LOOP.ry)
 
 /** この距離 m より近い人は、こちらの顔を見る */
 const LOOK_DIST = 4.5
@@ -55,8 +66,12 @@ export const walker = {
 
 /* ---------- 自分 ---------- */
 
-/** ぶつかるもの・池・柵から押し出す（ホバースクーターは池の上も走れる） */
-function collide(p: { s: number; y: number }, r: number, pond = true) {
+/** ぶつかるもの・池・柵から押し出す（ホバースクーターは池の上も走れる）。fly：空を飛んでいる高さ m（低い物は越える） */
+function collide(p: { s: number; y: number }, r: number, pond = true, fly = 0) {
+  if (fly > 3) {
+    pushWorld(p, r, { water: false, fly })
+    return
+  }
   const park = parkLayout()
   for (const o of park.obstacles) {
     const ds = p.s - o.s
@@ -69,6 +84,8 @@ function collide(p: { s: number; y: number }, r: number, pond = true) {
       p.y = o.y + (dy / d) * min
     }
   }
+  // 家・塀・生け垣
+  pushOutOfBoxes(p, r)
   // 池には入らない（岸の砂利まで）
   const k = pond ? pondValue(p.s, p.y, 1.5) : 2
   if (k < 1) {
@@ -76,8 +93,17 @@ function collide(p: { s: number; y: number }, r: number, pond = true) {
     p.s = POND.s + (p.s - POND.s) * f
     p.y = POND.y + (p.y - POND.y) * f
   }
-  p.s = Math.min(BOUNDS.s1, Math.max(BOUNDS.s0, p.s))
-  p.y = Math.min(BOUNDS.y1, Math.max(BOUNDS.y0, p.y))
+  // 公園の外：街の建物・木・川・湖、端の壁、窓の帯
+  pushWorld(p, r, { water: pond })
+}
+
+/** 今いる所の名前（左上） */
+function areaAt(s: number, y: number): { area: WalkArea; land: number } {
+  if (inJungle(s, y)) return { area: 'jungle', land: 0 }
+  if (s > BOUNDS.s0 && s < BOUNDS.s1 && y > BOUNDS.y0 && y < BOUNDS.y1) return { area: inTown(s, y) ? 'town' : 'park', land: 0 }
+  const w = worldArea(s, y)
+  const area: WalkArea = w.area === 'park' ? 'parkZone' : w.area === 'town' ? 'townZone' : w.area
+  return { area, land: w.k }
 }
 
 function Player() {
@@ -118,6 +144,20 @@ function Player() {
       tilt: 0,
       lastLook: 0,
       fov: 62,
+      /** 空を飛んでいる高さ m */
+      alt: 0,
+      cruise: 0,
+      land: 0,
+      /** 軸へのエレベーター：位置（0 = 地面、1 = 軸の駅）と、動く向き（0 = 乗っていない） */
+      elevT: 0,
+      elevDir: 0,
+      /** 宙に浮いているあいだの、回転の向きへの横すべり m/s（コリオリの力） */
+      drift: 0,
+      /** 翼：前へ進む空気の速さ m/s、羽ばたきの間、体の傾き（0 = 立つ、1 = 寝て飛ぶ） */
+      wings: null as Wings | null,
+      gs: 0,
+      flapCd: 0,
+      lean: 0,
     }),
     [],
   )
@@ -125,22 +165,34 @@ function Player() {
     walker.s = START.s
     walker.y = START.y
     walker.h = 0
+    // 軸へのエレベーターの前から始める
+    if (useWalk.getState().startAtTower) {
+      walker.s = TOWER.s
+      walker.y = TOWER.y + 16
+      st.body = st.yaw = 0
+      useWalk.setState({ startAtTower: false })
+    }
     // 公園の人（VRM）が読めたら、自分も VRM の人にする
     let dead = false
     prepareVrmPeople()
       .then((models) => {
         if (dead) return
-        const model = models.find((m) => m.info.file === PLAYER_MODEL) ?? models[0]
+        // MakeHuman の人のときは決めた人を少し大きく。Rocketbox などは最初の人をそのまま
+        const mh = models.find((m) => m.info.file === PLAYER_MODEL)
+        const model = mh ?? models[0]
         const old = st.me
-        st.me = new VrmPerson(model, seeded(77), PLAYER_SCALE, true)
+        st.me = new VrmPerson(model, seeded(77), mh ? PLAYER_SCALE : 1, true)
         old.dispose()
+        useWalk.setState({ peopleReady: true })
       })
-      .catch(() => {})
+      .catch(() => useWalk.setState({ peopleReady: true }))
     return () => {
       dead = true
       st.me.dispose()
       st.sc?.dispose()
       st.sc = null
+      st.wings?.dispose()
+      st.wings = null
       walker.speed = 0
     }
   }, [st])
@@ -175,11 +227,32 @@ function Player() {
     if (walkInput.ride) {
       walkInput.ride = false
       if (!w.riding) mount()
-      else if (pondValue(walker.s, walker.y, 0.5) < 1) useWalk.setState({ waterNote: walkNow() })
+      else if (w.flying) {
+        // 空からは、まず地面へ降りる（窓の上では降りられない）
+        if (standable(walker.s, walker.y)) {
+          useWalk.setState({ flying: false })
+          st.wantOff = true
+        } else useWalk.setState({ skyNote: walkNow() })
+      } else if (pondValue(walker.s, walker.y, 0.5) < 1 || wetAt(walker.s, walker.y)) useWalk.setState({ waterNote: walkNow() })
       else st.wantOff = true
     }
+    // 空を飛ぶ・地面へ降りる
+    if (walkInput.sky) {
+      walkInput.sky = false
+      if (w.riding) {
+        if (!w.flying) useWalk.setState({ flying: true })
+        else if (standable(walker.s, walker.y)) useWalk.setState({ flying: false })
+        else useWalk.setState({ skyNote: walkNow() })
+      }
+    }
     function mount() {
+      // スクーターは地面だけ（軸の駅やエレベーターでは乗らない）
+      if (walker.h > 3 || st.elevDir) {
+        useWalk.setState({ riding: false })
+        return
+      }
       if (useWalk.getState().sitting) standUp()
+      if (useWalk.getState().wings) useWalk.setState({ wings: false })
       if (!st.sc) {
         st.sc = new HoverScooter(scene)
         scene.add(st.sc.group)
@@ -199,7 +272,8 @@ function Player() {
     function dismount() {
       st.wantOff = false
       st.onDeck = false
-      useWalk.setState({ riding: false })
+      useWalk.setState({ riding: false, flying: false })
+      st.alt = 0
       ;(st.me as VrmPerson).grip?.(null, null)
       st.sc0 = { s: st.scS, y: st.scY, yaw: st.scYaw }
       // 右へ跳んで降りる
@@ -211,13 +285,38 @@ function Player() {
       st.spd = st.vs = st.vy = 0
     }
 
+    // 翼をつける（軸の駅で）・はずす（床や地面に立っているとき）
+    if (walkInput.wings) {
+      walkInput.wings = false
+      const onFloor = walker.h <= (walker.h > STATION_H - 40 && onStation(walker.y) ? STATION_H : 0) + 0.05
+      if (w.wings && onFloor) useWalk.setState({ wings: false })
+      else if (!w.wings && !w.riding && !st.elevDir && walker.h > STATION_H - 40) {
+        if (!st.wings) {
+          st.wings = new Wings()
+          scene.add(st.wings.group)
+        }
+        useWalk.setState({ wings: true })
+      }
+    }
+
     // 座る・立つ
     if (walkInput.sit) {
       walkInput.sit = false
+      const door = nearDoor(walker.s, walker.y, walker.h)
       if (useWalk.getState().riding) {
         // 乗っているあいだは座らない
       } else if (w.sitting) standUp()
-      else sitDown()
+      else if (st.elevDir) {
+        // 乗っているあいだは何もしない
+      } else if (door) {
+        // 軸へのエレベーターに乗る（上へ・下へ）
+        st.elevDir = door === 'up' ? 1 : -1
+        st.elevT = door === 'up' ? 0 : 1
+        st.speed = st.vh = st.drift = 0
+        // 塔の柱を左に見て、円周の向きを向く（後ろのカメラから柱がじゃまにならない）
+        st.body = st.yaw = -Math.PI / 2
+        useWalk.setState({ inElev: true, elevNear: null })
+      } else sitDown()
     }
     if (useWalk.getState().sitting && mag > 0.3) standUp()
     function standUp() {
@@ -249,10 +348,35 @@ function Player() {
     if (riding) {
       // ---- ホバースクーター：前後で加速・ブレーキ、左右で曲がる。浮いているので少し横すべりする ----
       const steer = Math.max(-1, Math.min(1, right))
-      const throttle = st.wantOff ? -1 : Math.max(-1, Math.min(1, fwd))
-      const top = running ? HOVER_BOOST : HOVER_SPEED
+      let flying = useWalk.getState().flying
+      // 降りている途中で窓の上（橋の外）へ出たら、また上がる
+      if (!flying && st.alt > 0.3 && !standable(walker.s, walker.y)) {
+        useWalk.setState({ flying: true, skyNote: walkNow() })
+        flying = true
+        st.wantOff = false
+      }
+      // 高さ：飛ぶときは上がり、降りるときは下がる
+      // 飛ぶ高さは 30 m より上で、行く先（3 秒先まで）のいちばん高いビルの屋根より 15 m 上。高いビルが来たら早めに上がる
+      if (flying) {
+        let roof = roofAt(walker.s, walker.y, 18)
+        const v = Math.hypot(st.vs, st.vy)
+        if (v > 1) {
+          const ahead = Math.min(320, v * 3)
+          for (let i = 1; i <= 6; i++) {
+            const t = (ahead * i) / 6
+            roof = Math.max(roof, roofAt(walker.s + (st.vs / v) * t, walker.y + (st.vy / v) * t, 18))
+          }
+        }
+        st.cruise = Math.max(SKY_HEIGHT, roof + 15)
+        st.alt = st.alt < st.cruise ? Math.min(st.cruise, st.alt + dt * (st.cruise - st.alt > 8 ? 40 : 8)) : Math.max(st.cruise, st.alt - dt * 6)
+      } else st.alt = Math.max(0, st.alt - dt * (st.alt > 40 ? 20 : 7))
+      const high = st.alt > 3
+      const throttle = st.wantOff && st.alt < 0.3 ? -1 : Math.max(-1, Math.min(1, fwd))
+      // 降りるときは、地面のスクーターの速さまで強く減速する（遠くへ流されない）
+      const landing = !flying && st.alt > 0.3
+      const top = landing ? HOVER_BOOST : high ? (running ? SKY_BOOST : SKY_SPEED) : running ? HOVER_BOOST : HOVER_SPEED
       const tgt = throttle > 0.05 ? throttle * top : throttle < -0.05 ? (st.wantOff ? 0 : throttle * 3) : 0
-      const acc = tgt > st.spd ? (st.spd < 0 ? 8 : running ? 6 : 4.5) : throttle < -0.05 && st.spd > 0 ? 10 : 2.4
+      const acc = landing && st.spd > tgt ? 30 : high ? (tgt > st.spd ? 14 : 12) : tgt > st.spd ? (st.spd < 0 ? 8 : running ? 12 : 9) : throttle < -0.05 && st.spd > 0 ? 14 : st.spd > HOVER_BOOST ? 12 : 2.4
       if (walker.rideSpeed !== null) {
         st.spd = walker.rideSpeed
         st.vs = -Math.sin(st.body) * st.spd
@@ -261,7 +385,7 @@ function Player() {
       }
       const before = st.spd
       st.spd += Math.sign(tgt - st.spd) * Math.min(Math.abs(tgt - st.spd), acc * dt)
-      const rate = 2.4 - 1.1 * Math.min(1, Math.abs(st.spd) / HOVER_BOOST)
+      const rate = high ? 1.05 : 2.4 - 1.1 * Math.min(1, Math.abs(st.spd) / HOVER_BOOST)
       const yawRate = -steer * rate * (st.spd < -0.2 ? -1 : 1) * (st.mountT < 1 ? 0 : 1)
       st.body += yawRate * dt
       const hs = -Math.sin(st.body) * st.spd
@@ -271,13 +395,14 @@ function Player() {
       st.vy += (hy - st.vy) * grip
       // 速いと木をすり抜けないよう、細かく分けて進む
       const want = Math.hypot(st.vs, st.vy) * dt
-      const n = Math.max(1, Math.ceil(want / 0.25))
+      const n = Math.max(1, Math.ceil(want / (high ? 2 : 0.25)))
       const s0 = walker.s
       const y0 = walker.y
       for (let i = 0; i < n; i++) {
         walker.s += (st.vs * dt) / n
         walker.y += (st.vy * dt) / n
-        collide(walker, 0.55, false)
+        collide(walker, 0.55, false, st.alt)
+        if (high) continue
         for (const m of mobDebug.mobs) {
           const ds = walker.s - m.s
           const dy = walker.y - m.y
@@ -295,9 +420,10 @@ function Player() {
         st.vs *= 0.45
         st.vy *= 0.45
       }
-      if (st.wantOff && Math.abs(st.spd) < 2) dismount()
+      if (st.wantOff && Math.abs(st.spd) < 2 && st.alt < 0.3) dismount()
       // ホップ（スペース・ジャンプのボタン）
-      if (walkInput.jump && st.onDeck && st.hop <= 0.001) st.hopV = 3.2
+      // 初速 6.4 m/s で、高さ約 2 m（v² / 2g）
+      if (walkInput.jump && st.onDeck && st.hop <= 0.001) st.hopV = 6.4
       walkInput.jump = false
       st.hopV -= GRAVITY * dt
       st.hop = Math.max(0, st.hop + st.hopV * dt)
@@ -336,14 +462,14 @@ function Player() {
       placeObj(st.sc.group, st.scS, st.scY, GROUND_LIFT, st.scYaw)
       st.sc.update(dt, {
         lift: 1,
-        hop: st.hop + liftH,
+        hop: st.hop + liftH + st.alt,
         speed: riding2 ? Math.abs(st.spd) : 0,
         roll: st.roll,
         pitch: st.tilt,
         s: st.scS,
         y: st.scY,
         yaw: st.scYaw,
-        water: pondValue(st.scS, st.scY, -1) < 1,
+        water: pondValue(st.scS, st.scY, -1) < 1 || wetAt(st.scS, st.scY),
         active: riding2,
       })
       if (riding2) {
@@ -368,6 +494,19 @@ function Player() {
           if (st.me instanceof VrmPerson) {
             st.sc.grips(gripL, gripR)
             st.me.grip(gripL, gripR)
+            // 両足を板に：左足は少し前、右足は少し後ろ、つま先は少し外向き。速いほど・跳んだあとほど、ひざを曲げる
+            const g = st.me.group
+            g.updateMatrixWorld(true)
+            g.getWorldQuaternion(rideQ)
+            footL.set(-0.11, 0, -0.05).applyMatrix4(g.matrixWorld)
+            footR.set(0.11, 0, 0.06).applyMatrix4(g.matrixWorld)
+            toeL.set(-0.2, 0, -1).normalize().applyQuaternion(rideQ)
+            toeR.set(0.28, 0, -1).normalize().applyQuaternion(rideQ)
+            const fast = Math.min(1, Math.abs(st.spd) / HOVER_BOOST)
+            st.land = Math.max(0, st.land - dt * 4)
+            if (st.hop > 0.05) st.land = 1
+            const crouch = 0.05 + fast * 0.05 + (st.hop > 0.05 ? 0.06 : Math.sin(Math.min(1, st.land) * Math.PI) * 0.08)
+            st.me.stance({ feet: [footL, footR], toes: [toeL, toeR], crouch, lean: 0.08 + fast * 0.14 })
           }
           motion = 'ride'
           deckPlaced = true
@@ -376,6 +515,73 @@ function Player() {
     }
     if (riding) {
       // 乗っているときは、ここで済み
+    } else if (st.elevDir) {
+      // ---- 軸へのエレベーター：かごの中に立って、塔をのぼる・くだる ----
+      walkInput.jump = false
+      st.elevT = Math.min(1, Math.max(0, st.elevT + (st.elevDir * dt) / RIDE_S))
+      elevCar.t = st.elevT
+      walker.s = TOWER.s
+      walker.y = TOWER.y + 1.2
+      walker.h = elevH(st.elevT)
+      if ((st.elevDir > 0 && st.elevT >= 1) || (st.elevDir < 0 && st.elevT <= 0)) {
+        // 着いたら、扉の外へ出る
+        const top = st.elevDir > 0
+        st.elevDir = 0
+        walker.h = top ? STATION_H : 0
+        walker.y = TOWER.y + 4
+        useWalk.setState(top ? { inElev: false, axisNote: walkNow() } : { inElev: false })
+      }
+      motion = 'idle'
+    } else if (!sitting && useWalk.getState().wings && walker.h > (walker.h > STATION_H - 40 && onStation(walker.y) ? STATION_H : 0) + 0.02) {
+      // ---- 翼で飛ぶ：グライダーのように、重さを前へ進む速さに変えながら、ゆっくり沈んでいく。
+      // 軸の近くは重さがほぼ 0 なので、羽ばたいて外へ出る。宙にいるあいだは回転のせいで横へ流される ----
+      const g = gAt(walker.h)
+      const dive = fwd < -0.3
+      const push = fwd > 0.3
+      st.yaw -= right * 1.2 * dt
+      st.body = turn(st.body, st.yaw, dt * 2.5)
+      if (walkInput.jump && st.flapCd <= 0) {
+        // 羽ばたき：前へ。軸の近く（軽い所）では外へ（地面のほうへ）押し出す。急降下中は下へ
+        st.flapCd = 0.35
+        st.gs += 2.5
+        st.vh += dive ? -3 : g < 3 ? -2 : 1.6
+        st.wings?.flap()
+      }
+      walkInput.jump = false
+      st.flapCd -= dt
+      // 前の速さ：重さを前へ進む力に変える（W で少し前のめり、Shift でもっと）。空気の抵抗で頭打ち
+      st.gs += ((push ? g * (running ? 0.9 : 0.5) : 0) + (dive ? g * 0.25 : 0) - 0.003 * st.gs * st.gs) * dt
+      st.gs = Math.max(0, st.gs)
+      if (dive) st.vh += (-g - 0.004 * st.vh * Math.abs(st.vh)) * dt
+      else {
+        // 滑空：速いほど沈む（滑空比 3）。重いほど沈みやすい
+        const sink = -(st.gs / 3) - 1.2 * Math.sqrt(g / GRAVITY)
+        st.vh += (sink - st.vh) * Math.min(1, dt * 1.2)
+      }
+      // 地面の近くでは、翼を立てて速さを落とす
+      if (walker.h < 80) st.vh = Math.max(st.vh, -4 - walker.h * 0.15)
+      // 回転のせいで横へ流される（コリオリの力）。翼が空気を受けるので、横の流れは少しずつ消える
+      st.drift += (2 * OMEGA * st.vh - 0.5 * st.drift) * dt
+      const sm = sMeters(walker.h)
+      walker.s += (-Math.sin(st.body) * st.gs + st.drift) * dt / sm
+      walker.y += -Math.cos(st.body) * st.gs * dt
+      walker.h += st.vh * dt
+      if (walker.h > G - 2) {
+        walker.h = G - 2
+        st.vh = Math.min(0, st.vh) * 0.3
+      }
+      if (walker.h > STATION_H - 40) walker.y = Math.max(STATION.y0 + 0.5, walker.y)
+      // 街の建物の壁（高い所では、その高さより低い建物は数えない）
+      if (walker.h < 200) collide(walker, 0.4, false, walker.h)
+      // 床・地面に着いたら立つ
+      const fl = walker.h > STATION_H - 40 && onStation(walker.y) ? STATION_H : 0
+      if (walker.h <= fl) {
+        walker.h = fl
+        st.vh = st.drift = 0
+        st.speed = Math.min(st.gs, 4)
+        st.gs = 0
+      } else st.speed = st.gs
+      motion = 'jump'
     } else if (!sitting) {
       st.speed += (target - st.speed) * Math.min(1, dt * (target > st.speed ? 6 : 9))
       if (mag > 0.05) {
@@ -388,32 +594,104 @@ function Player() {
         const dy = (fy * fwd + ry * right) / Math.max(1e-6, Math.hypot(fwd, right))
         st.body = turn(st.body, Math.atan2(-ds, -dy), dt * 10)
       }
-      walker.s += -Math.sin(st.body) * st.speed * dt
-      walker.y += -Math.cos(st.body) * st.speed * dt
-      collide(walker, 0.3)
-      // ジャンプ（コロニーの地面は回転の遠心力で 1G）
-      if (walkInput.jump && walker.h <= 0.001) st.vh = JUMP_SPEED
+      // 重さは回転の遠心力（地面で 1G、軸に近いほど軽い）。軽いと、足が地面をけれないのでゆっくりしか進めない
+      const g = gAt(walker.h)
+      const floor = walker.h > STATION_H - 40 && onStation(walker.y) ? STATION_H : 0
+      const grounded = walker.h <= floor + 0.02
+      const pace = grounded ? Math.max(0.3, Math.sqrt(g / GRAVITY)) : 0.15
+      const sm = sMeters(walker.h)
+      walker.s += (-Math.sin(st.body) * st.speed * pace * dt + st.drift * dt) / sm
+      walker.y += -Math.cos(st.body) * st.speed * pace * dt
+      if (walker.h < 30) collide(walker, 0.3)
+      // 塔の柱
+      const cs = (walker.s - TOWER.s) * sm
+      const cy = walker.y - CORE.y
+      const cd = Math.hypot(cs, cy)
+      if (cd < CORE.r + 0.35 && (walker.h < 30 || walker.h > STATION_H - 40)) {
+        const k = (CORE.r + 0.35) / Math.max(1e-3, cd)
+        walker.s = TOWER.s + (cs * k) / sm
+        walker.y = CORE.y + cy * k
+      }
+      // 軸の駅とデッキは手すりの内側だけ（翼をつけていれば、デッキの先から飛び出せる）
+      if (walker.h > STATION_H - 40) walker.y = Math.min(useWalk.getState().wings ? Infinity : DECK_END - 0.5, Math.max(STATION.y0 + 0.5, walker.y))
+      // ジャンプ。宙にいるあいだは、回転のせいで横へ流される（上がると回転の向きへ、落ちると逆へ）
+      if (walkInput.jump && grounded) st.vh = JUMP_SPEED
       walkInput.jump = false
-      st.vh -= GRAVITY * dt
-      walker.h = Math.max(0, walker.h + st.vh * dt)
-      if (walker.h === 0) st.vh = Math.max(0, st.vh)
-      st.phase += dt * (st.speed / (st.speed > 2.6 ? 1.0 : 0.62)) * Math.PI
-      motion = walker.h > 0.05 ? 'jump' : st.speed > 2.6 ? 'run' : st.speed > 0.15 ? 'walk' : 'idle'
+      st.vh -= (g + 2 * OMEGA * st.drift) * dt
+      if (!grounded || st.vh > 0) st.drift += 2 * OMEGA * st.vh * dt
+      walker.h = Math.max(floor, walker.h + st.vh * dt)
+      // 軸（回転の中心）より上へは行かない
+      if (walker.h > G - 2) {
+        walker.h = G - 2
+        st.vh = Math.min(0, st.vh) * 0.3
+      }
+      if (walker.h === floor) {
+        st.vh = Math.max(0, st.vh)
+        st.drift = 0
+      }
+      // 翼で飛び出したときは、歩いていた速さのまま
+      st.gs = st.speed * pace
+      st.phase += dt * ((st.speed * pace) / (st.speed > 2.6 ? 1.0 : 0.62)) * Math.PI
+      motion = walker.h > floor + 0.05 ? 'jump' : st.speed > 2.6 ? 'run' : st.speed > 0.15 ? 'walk' : 'idle'
     } else {
       walkInput.jump = false
       motion = 'sit'
     }
     if (!deckPlaced) placePerson(st.me, walker.s, walker.y, walker.h, st.body)
+    // 翼：飛んでいるあいだは体を前へ倒して寝かせ、翼を広げる
+    const winged = useWalk.getState().wings
+    const airborne = winged && motion === 'jump'
+    st.lean += ((airborne ? Math.min(1, st.gs / 6) : 0) - st.lean) * Math.min(1, dt * 3)
+    if (st.lean > 0.01) {
+      // 腰のあたり（1 m）を中心に、前（-z）へ倒す
+      tmp.set(0, 1, 0).applyQuaternion(st.me.group.quaternion)
+      st.me.group.position.addScaledVector(tmp, 1)
+      st.me.group.quaternion.multiply(qy.setFromAxisAngle(X, -1.25 * st.lean))
+      tmp.set(0, 1, 0).applyQuaternion(st.me.group.quaternion)
+      st.me.group.position.addScaledVector(tmp, -1)
+    }
+    if (st.wings) {
+      st.wings.group.visible = winged
+      if (winged) {
+        st.wings.group.position.set(0, 1.38, 0.17).applyQuaternion(st.me.group.quaternion).add(st.me.group.position)
+        st.wings.group.quaternion.copy(st.me.group.quaternion)
+        st.wings.update(dt, airborne ? 1 : 0)
+        // 飛んでいるあいだは、両手で翼の骨をにぎる（足はそろえてのばす）
+        if (airborne && st.lean > 0.5 && st.me instanceof VrmPerson) {
+          st.wings.handles(gripL, gripR)
+          st.me.grip(gripL, gripR)
+          motion = 'glide'
+        }
+      }
+    }
     st.me.pose(motion, st.phase, dt, st.speed)
     landPoint(walker.s, walker.y, walker.h, walker.pos)
+    // 円筒を一周したら、s を半周の内側へもどす（同じ場所のまま）
+    if (Math.abs(walker.s) > CIRC / 2) {
+      const before = walker.s
+      walker.s = wrapS(walker.s)
+      st.scS += walker.s - before
+      st.mountFrom.s += walker.s - before
+      st.sc0.s += walker.s - before
+    }
+    // 左上の場所の名前
+    const at = st.elevDir ? { area: 'elevator' as const, land: -1 } : walker.h > STATION_H - 40 ? { area: 'axis' as const, land: -1 } : areaAt(walker.s, walker.y)
+    if (at.area !== useWalk.getState().area || at.land !== useWalk.getState().land) useWalk.setState(at)
     walker.speed = riding ? Math.abs(st.spd) : st.speed
 
     // 近くのベンチ（座るボタンを出す）
     st.checkBench -= dt
     if (st.checkBench <= 0) {
       st.checkBench = 0.25
-      const near = !sitting && !riding && !!nearestBench(walker.s, walker.y, 2.4)
+      const near = !sitting && !riding && walker.h < 3 && !!nearestBench(walker.s, walker.y, 2.4)
       if (near !== w.benchNear) useWalk.setState({ benchNear: near })
+      const door = riding || st.elevDir ? null : nearDoor(walker.s, walker.y, walker.h)
+      if (door !== w.elevNear) useWalk.setState({ elevNear: door })
+      const here = !riding && !st.elevDir && walker.h > STATION_H - 40
+      if (here !== w.wingsHere) useWalk.setState({ wingsHere: here })
+      // 今の重さ（G）
+      const gee = Math.round((gAt(walker.h) / GRAVITY) * 100) / 100
+      if (gee !== w.gee) useWalk.setState({ gee })
     }
 
     // カメラ
@@ -422,11 +700,12 @@ function Player() {
     euler.set(st.pitch, st.yaw, 0)
     qc.copy(qf).multiply(new THREE.Quaternion().setFromEuler(euler))
     const eye = w.view === 'eye'
-    st.me.group.visible = !eye
+    // 人の模型（VRM）を読み終わるまでは、仮の人形（棒人間）を出さない
+    st.me.group.visible = !eye && st.me instanceof VrmPerson
     const headH = (sitting ? 1.15 : 1.62) * (CREW_LOOK.height / 1.7)
     // 速く走るほど、カメラを少し引いて画角を広げる
     const fast = riding ? Math.abs(st.spd) : 0
-    const fov = 62 + fast * 0.6
+    const fov = 62 + Math.min(fast, 26) * 0.6
     if (Math.abs(fov - st.fov) > 0.01 && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
       st.fov += (fov - st.fov) * Math.min(1, dt * 3)
       ;(camera as THREE.PerspectiveCamera).fov = st.fov
@@ -436,11 +715,19 @@ function Player() {
       camera.position.copy(walker.pos).addScaledVector(up, headH)
     } else {
       camera.position.copy(walker.pos).addScaledVector(up, headH - 0.15)
-      tmp.set(0.35, 0.15, st.dist + fast * 0.12).applyQuaternion(qc)
-      camera.position.add(tmp)
-      // 地面より下に入らない
+      // 街の建物の壁の中へ入らないよう、入るなら近づける
+      const base = camera.position.clone()
+      let d = st.dist + Math.min(fast, 30) * 0.12 + st.alt * 0.12 + (st.elevDir ? 6 : 0) + st.lean * 4
+      for (;;) {
+        tmp.set(0.35, 0.15, d).applyQuaternion(qc)
+        camera.position.copy(base).add(tmp)
+        const r = Math.hypot(camera.position.x, camera.position.z)
+        if (d <= 0.9 || !inBuilding(Math.atan2(camera.position.x, camera.position.z) * G, camera.position.y + HALF_L, G - r)) break
+        d = Math.max(0.9, d * 0.8)
+      }
+      // 地面より下（軸の駅なら床より下）に入らない
       const r = Math.hypot(camera.position.x, camera.position.z)
-      const above = G - r
+      const above = G - r - (walker.h > STATION_H - 40 ? STATION_H : 0)
       if (above < 0.3) camera.position.addScaledVector(up, 0.3 - above)
     }
     camera.quaternion.copy(qc)
@@ -450,6 +737,11 @@ function Player() {
 }
 
 const gripL = new THREE.Vector3()
+const footL = new THREE.Vector3()
+const footR = new THREE.Vector3()
+const toeL = new THREE.Vector3()
+const toeR = new THREE.Vector3()
+const rideQ = new THREE.Quaternion()
 const gripR = new THREE.Vector3()
 
 /** 物を (s, y) に、地面から h、向き yaw で置く */
@@ -474,6 +766,41 @@ function nearestBench(s: number, y: number, max: number) {
 
 /* ---------- まわりの人 ---------- */
 
+/**
+ * 公園の人に、素材の人と服の色を配る。近くに同じ素材の人がいるほど選ばれにくく、
+ * 同じ人・同じ色（見た目がまったく同じ人）は 60 m 以内に並べない。自分の姿（最初の人の元の色）は使わない
+ */
+function pickLooks(mobs: Mob[], models: VrmModel[]): [VrmModel, number][] {
+  const pos = mobs.map((m) => (m.kind === 'loop' ? loopPoint(m.t) : { s: m.s, y: m.y }))
+  const out: [VrmModel, number][] = []
+  const used = new Map<VrmModel, number>()
+  mobs.forEach((m, i) => {
+    const list = models.filter((md) => md.info.age === m.age)
+    let best: [VrmModel, number] = [list[0], 1]
+    let bestScore = Infinity
+    for (const md of list) {
+      for (let look = 0; look < LOOKS.length; look++) {
+        if (md === models[0] && look === 0) continue
+        let score = (used.get(md) ?? 0) * 0.3 + look * 0.01
+        for (let j = 0; j < i; j++) {
+          const d = Math.hypot(pos[i].s - pos[j].s, pos[i].y - pos[j].y)
+          if (out[j][0] !== md) continue
+          // 同じ素材の人：近いほど重く。同じ色ならもっと
+          score += Math.max(0, 1 - d / 40) * 4
+          if (out[j][1] === look) score += Math.max(0, 1 - d / 60) * 50 + 1
+        }
+        if (score < bestScore) {
+          bestScore = score
+          best = [md, look]
+        }
+      }
+    }
+    used.set(best[0], (used.get(best[0]) ?? 0) + 1)
+    out.push(best)
+  })
+  return out
+}
+
 type Mob = {
   p: Person
   kind: 'loop' | 'path' | 'kid' | 'sit' | 'chat' | 'lawn'
@@ -487,6 +814,12 @@ type Mob = {
   t: number
   dir: number
   lane: number
+  /** 道を行き来する人：ax の向きに、a0〜a1 の間を歩く（ax = 'y' なら s = c + off の上） */
+  ax: 's' | 'y'
+  c: number
+  off: number
+  a0: number
+  a1: number
   /** 子ども：行き先と、止まっている時間 */
   ts: number
   ty: number
@@ -520,25 +853,42 @@ function Mobs() {
       t: rand() * Math.PI * 2,
       dir: rand() < 0.5 ? 1 : -1,
       lane: (rand() - 0.5) * 2.4,
+      ax: 'y',
+      c: NS_S,
+      off: 0,
+      a0: 0,
+      a1: 0,
       ts: PLAY.s,
       ty: PLAY.y,
       wait: rand() * 2,
       jump: 0,
       motion: 'idle',
     })
-    // 池のまわりを散歩する人：西の岸（自分の近く）に多めに
-    for (let i = 0; i < n(12); i++) {
+    // 池のまわりを散歩する人：公園の中の西の岸（LOOP_T0〜LOOP_T1）を行き来する
+    for (let i = 0; i < n(9); i++) {
       const m = make('loop', rand() < 0.25 ? 'elder' : rand() < 0.15 ? 'child' : 'adult')
-      m.t = Math.PI * (0.55 + rand() * 0.9)
+      m.t = LOOP_T0 + rand() * (LOOP_T1 - LOOP_T0)
       m.speed = m.p instanceof Mannequin ? 1.1 + rand() * 0.5 : 1.3
       list.push(m)
     }
-    // 南北の道を行き来する人
-    for (let i = 0; i < n(5); i++) {
+    // 南北の道を行き来する人（公園の中）
+    for (let i = 0; i < n(4); i++) {
       const m = make('path', rand() < 0.2 ? 'elder' : 'adult')
-      m.y = 11000 + rand() * 1100
-      m.s = NS_S + m.lane * 0.6
+      Object.assign(m, { ax: 'y', c: NS_S, a0: 11280, a1: JUNGLE.y1 - 12 })
+      m.y = m.a0 + rand() * (m.a1 - m.a0)
       m.speed = 1.0 + rand() * 0.6
+      list.push(m)
+    }
+    // 住宅街の歩道を行き来する人（自分の側の歩道のまま、端で引き返す）
+    const walkable = STREETS.filter((st) => st.a1 - st.a0 > 150)
+    for (let i = 0; i < n(7); i++) {
+      const st = walkable[i % walkable.length]
+      const m = make('path', rand() < 0.25 ? 'elder' : rand() < 0.15 ? 'child' : 'adult')
+      Object.assign(m, { ax: st.ax, c: st.c, off: (rand() < 0.5 ? -1 : 1) * (STREET_W / 2 + WALK_W * 0.3), a0: st.a0 + 8, a1: st.a1 - 8 })
+      const a = m.a0 + rand() * (m.a1 - m.a0)
+      if (m.ax === 'y') m.y = a
+      else m.s = a
+      m.speed = 1.0 + rand() * 0.5
       list.push(m)
     }
     // 遊び場の子どもたち
@@ -569,10 +919,24 @@ function Mobs() {
       m.yaw = Math.atan2(Math.cos(a), Math.sin(a))
       list.push(m)
     }
+    // 住宅街で、門の前の立ち話
+    const town = park.town
+    for (let g = 0; g < n(2); g++) {
+      const gate = town.gates[Math.floor(rand() * town.gates.length)]
+      for (const k of [-1, 1]) {
+        const m = make('chat', rand() < 0.4 ? 'elder' : 'adult')
+        // 道に沿って向かい合う
+        const along = gate.ax === 'y' ? { s: 0, y: 1 } : { s: 1, y: 0 }
+        m.s = gate.s + along.s * k * 0.45
+        m.y = gate.y + along.y * k * 0.45
+        m.yaw = Math.atan2(along.s * k, along.y * k)
+        list.push(m)
+      }
+    }
     // 池のほとりの芝生に座る人（VRM の人が読めてから出す）
     for (let i = 0; i < n(5); i++) {
       const m = make('lawn', rand() < 0.3 ? 'child' : rand() < 0.4 ? 'elder' : 'adult')
-      const t = Math.PI * (0.62 + i * 0.17 + rand() * 0.05)
+      const t = LOOP_T0 + (LOOP_T1 - LOOP_T0) * ((i + 0.3 + rand() * 0.4) / 5)
       const ox = Math.cos(t)
       const oy = Math.sin(t)
       // 散歩道の外側の芝生（道の中心から 7〜9 m）。池を向く
@@ -595,15 +959,14 @@ function Mobs() {
       .then((models) => {
         if (dead) return
         const rand = seeded(4242)
-        // 年齢ごとに順番に配って、同じ人が隣り合わないようにする
-        const next: Record<string, number> = { child: 0, adult: 1, elder: 0 }
-        for (const m of mobs) {
-          const list = models.filter((md) => md.info.age === m.age)
-          const model = list[next[m.age]++ % list.length]
+        const looks = pickLooks(mobs, models)
+        mobs.forEach((m, i) => {
+          const [model, look] = looks[i]
           const old = m.p
           m.p = new VrmPerson(model, rand, 0.96 + rand() * 0.08)
+          applyLook(m.p.group, look)
           old.dispose()
-        }
+        })
       })
       .catch((e) => console.error('[walk] VRM people failed, keeping placeholder figures', e))
     return () => {
@@ -625,6 +988,9 @@ function Mobs() {
         const b = loopPoint(m.t + 0.001 * m.dir)
         const step = Math.hypot(b.s - a.s, b.y - a.y) / 0.001
         m.t += (m.speed * dt * m.dir) / step
+        // 公園の端（生け垣）で引き返す
+        if (m.t > LOOP_T1) m.dir = -1
+        if (m.t < LOOP_T0) m.dir = 1
         const p = loopPoint(m.t)
         const q = loopPoint(m.t + 0.002 * m.dir)
         const ds = q.s - p.s
@@ -637,11 +1003,21 @@ function Mobs() {
         m.motion = 'walk'
         m.phase += dt * (m.speed / 0.62) * Math.PI
       } else if (m.kind === 'path') {
-        m.y += m.dir * m.speed * dt
-        if (m.y > BOUNDS.y1 - 20) m.dir = -1
-        if (m.y < BOUNDS.y0 + 20) m.dir = 1
-        m.s = NS_S + m.dir * 0.9
-        m.yaw = m.dir > 0 ? Math.PI : 0
+        // ax の向きに進む。公園の小道は右側を、住宅街は決めた側の歩道を歩く
+        const off = m.off || m.dir * 0.9
+        if (m.ax === 'y') {
+          m.y += m.dir * m.speed * dt
+          if (m.y > m.a1) m.dir = -1
+          if (m.y < m.a0) m.dir = 1
+          m.s = m.c + off
+          m.yaw = m.dir > 0 ? Math.PI : 0
+        } else {
+          m.s += m.dir * m.speed * dt
+          if (m.s > m.a1) m.dir = -1
+          if (m.s < m.a0) m.dir = 1
+          m.y = m.c - off
+          m.yaw = m.dir > 0 ? -Math.PI / 2 : Math.PI / 2
+        }
         m.motion = 'walk'
         m.phase += dt * (m.speed / 0.62) * Math.PI
       } else if (m.kind === 'kid') {
@@ -687,9 +1063,9 @@ function Mobs() {
       const vrm = m.p instanceof VrmPerson
       if (vrm) h = 0
       placePerson(m.p, m.s, m.y, h, m.yaw)
-      // 遠い人は描かない。芝生に座る人は VRM の人だけ
       tmp.copy(m.p.group.position)
-      const far = tmp.distanceTo(camera.position) > 220 || (m.kind === 'lawn' && !vrm)
+      // 遠い人は描かない。VRM の人を読み終わるまでは、仮の人形（棒人間）を出さない
+      const far = !vrm || tmp.distanceTo(camera.position) > 220
       m.p.group.visible = !far
       if (!far) {
         // 近くに来たら、こちらの顔を見る（走っている子は前を見たまま）

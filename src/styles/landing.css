@@ -1,0 +1,288 @@
+/* ---- 惑星への着陸 ---- */
+.land-prompt {
+  position: fixed;
+  left: var(--dock-center);
+  bottom: 118px;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  border: 1px solid rgba(140, 200, 255, 0.75);
+  border-radius: 18px;
+  background: rgba(14, 22, 36, 0.88);
+  color: #cfe6ff;
+  z-index: 5;
+}
+
+.surface-view {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: transparent;
+}
+
+/* 地表の場面を出しているあいだは、後ろの宇宙が透けないように黒で塞ぐ */
+.surface-view.solid {
+  background: #000;
+}
+
+.surface-view > div:first-child canvas {
+  touch-action: none;
+}
+
+.surface-curtain {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+}
+
+.surface-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #e8eef6;
+  font-size: 14px;
+}
+
+.surface-ui button {
+  pointer-events: auto;
+}
+
+.surface-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 48px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: 18px;
+  background: rgba(10, 14, 22, 0.7);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+/* 左上の列：説明・ミニマップ（スマホでは時刻と天気も）を縦に積む。たたんだぶんだけ詰まって、重ならない */
+.surface-left {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.surface-card {
+  position: relative;
+  max-width: 340px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(10, 14, 22, 0.72);
+  border: 1px solid rgba(160, 190, 230, 0.25);
+  pointer-events: auto;
+}
+
+.surface-card p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.surface-title {
+  all: unset;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.surface-stats {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+  color: #bcd2ec;
+}
+
+.surface-weight {
+  margin-top: 4px;
+  color: #ffd9a8;
+}
+
+.surface-hint {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(10, 14, 22, 0.55);
+  font-size: 12px;
+  color: #c8d4e4;
+  white-space: nowrap;
+}
+
+.surface-buttons {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+}
+
+/* 着陸船のまわりのボタンは数が多い（星によって 9 個まで）。画面からはみ出さないよう折り返す */
+.surface-buttons.lander-actions {
+  width: max-content;
+  max-width: calc(100% - 32px);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.surface-buttons button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+}
+
+.surface-buttons .secondary {
+  background: rgba(10, 14, 22, 0.65);
+  border-color: rgba(200, 220, 255, 0.4);
+}
+
+.surface-buttons .primary {
+  border: none;
+  background: #f2a65a;
+  color: #1a1206;
+  font-weight: 600;
+}
+
+.surface-buttons button {
+  white-space: nowrap;
+}
+
+/* 周辺観察：下のまんなか、全体マップのボタンの上の札 */
+.observe-panel {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 8px 14px;
+  border-left: 6px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: rgba(20, 16, 30, 0.8);
+  font-size: 13px;
+  z-index: 6;
+}
+
+.observe-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.observe-tag {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #10101a;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.observe-hint {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.observe-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.observe-buttons button {
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: none;
+  font-size: 12px;
+}
+
+.observe-buttons button.on,
+.observe-buttons button:hover {
+  background: rgba(155, 140, 217, 0.35);
+}
+
+/* 地表の調整ページ（#surface-lab） */
+.surface-lab {
+  position: fixed;
+  top: 64px;
+  right: 12px;
+  z-index: 60;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(8, 12, 20, 0.82);
+  color: #e8eef6;
+  font-size: 13px;
+  pointer-events: auto;
+}
+.surface-lab .lab-head { font-weight: 600; margin-bottom: 6px; }
+.surface-lab .lab-row { display: grid; grid-template-columns: 70px 1fr 52px; align-items: center; gap: 6px; margin: 4px 0; }
+.surface-lab .lab-row b { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+.surface-lab select { width: 100%; }
+.surface-lab .lab-foot { margin: 6px 0; }
+
+/* 地表の時計（現地時刻・時間の速さ・地球から見た月） */
+.surface-time {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(10, 14, 22, 0.6);
+  font-size: 12px;
+  color: #dbe4f0;
+  pointer-events: auto;
+  max-width: 260px;
+}
+.surface-time .time-now b { font-size: 18px; font-variant-numeric: tabular-nums; margin: 0 4px; }
+.surface-time .small { font-size: 11px; }
+.surface-time .time-rates { display: flex; gap: 4px; margin-top: 6px; }
+.surface-time .time-rates button {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.surface-time .time-rates button.active { background: rgba(255, 170, 80, 0.85); color: #1a1208; border-color: transparent; }
+.surface-time .weather-row { margin-top: 6px; }
+.surface-time .weather-row b { margin-left: 3px; }
+.surface-time .moon-inset { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.surface-time .moon-inset b { font-size: 13px; }
+body.touch .surface-time { position: relative; top: auto; right: auto; max-width: 230px; }
+body.touch .surface-time .time-rates { flex-wrap: wrap; }
+.surface-lab { top: 170px; }
+.surface-time .day-graph { margin-top: 8px; width: 210px; }
+.surface-time .day-now { display: flex; gap: 8px; white-space: nowrap; align-items: baseline; font-size: 12px; }
+.surface-time .day-now b { font-size: 16px; font-variant-numeric: tabular-nums; margin-left: 3px; }
+.surface-time .temp-chip b { color: #ff8a6a; }
+.surface-time .lux-chip b { color: #ffd27a; }
+.surface-time .day-graph svg { display: block; margin-top: 4px; overflow: visible; }
+.surface-time .g-label { font-size: 8px; fill: rgba(255, 255, 255, 0.6); }
+.surface-time .g-legend { display: flex; gap: 8px; margin-top: 2px; }
+.surface-time .g-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; }
+.surface-time .sw-temp { background: #ff6a4a; }
+.surface-time .sw-light { background: rgba(255, 200, 90, 0.7); }
+.surface-time .sw-night { background: rgba(60, 85, 160, 0.7); }
+body.touch .surface-time .day-graph { width: 100%; }

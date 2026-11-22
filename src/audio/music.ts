@@ -14,7 +14,29 @@ const MP3_DELAY = 1105 / 44100
 let gain: GainNode | null = null
 let started = false
 
-const level = () => (useStore.getState().settings.music ? volume() * LEVEL : 0)
+/** 自分の音楽を流している場面（月ミッション・月面の探検など）。1 つでもあれば、この BGM は消す。
+ * 場面ごとに分けて持つ（月面から発射台の章へ飛ぶと、月面の場面が閉じるのは新しい場面が始まったあとなので、
+ * ひとつの true/false だと、閉じた場面が BGM をもどしてしまっていた） */
+const holders = new Set<string>()
+
+const level = () => (useStore.getState().settings.music && holders.size === 0 ? volume() * LEVEL : 0)
+
+/** 場面の音楽に場所をゆずる・もどす（who：場面の名前） */
+export function holdBgm(who: string, on: boolean) {
+  if (on) holders.add(who)
+  else holders.delete(who)
+  fadeTo(0.6)
+}
+
+/** いまの大きさ（level）へなめらかに。流しはじめのフェードイン（2 秒）の途中でも、先の予定を消してから */
+function fadeTo(tc: number) {
+  const c = audio()
+  if (!c || !gain) return
+  const g = gain.gain
+  g.cancelScheduledValues(c.currentTime)
+  g.setValueAtTime(g.value, c.currentTime)
+  g.setTargetAtTime(level(), c.currentTime, tc)
+}
 
 async function start() {
   if (started) return
@@ -56,8 +78,6 @@ export function setupMusic() {
   useStore.subscribe((s, prev) => {
     if (s.settings === prev.settings) return
     if (s.settings.music && !started) void start()
-    if (!gain) return
-    const c = audio()
-    if (c) gain.gain.setTargetAtTime(level(), c.currentTime, 0.2)
+    fadeTo(0.2)
   })
 }

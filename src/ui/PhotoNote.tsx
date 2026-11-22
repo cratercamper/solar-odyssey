@@ -1,3 +1,4 @@
+import { saveData } from '../state/save'
 import { useEffect, useState } from 'react'
 import { useStore } from '../state/store'
 import { useLang } from '../i18n/lang'
@@ -5,11 +6,11 @@ import { ui } from '../i18n'
 
 // 写真モードに切り替えたときの短い解説。閉じられて、「次回から表示しない」も選べる
 
-const HIDE_KEY = 'solar-voyager:photo-note-hidden'
+const HIDE_KEY = 'photo-note-hidden'
 
 const hidden = () => {
   try {
-    return localStorage.getItem(HIDE_KEY) === '1'
+    return saveData.get(HIDE_KEY) === '1'
   } catch {
     return false
   }
@@ -34,7 +35,7 @@ export function PhotoNote() {
   const close = () => {
     if (never) {
       try {
-        localStorage.setItem(HIDE_KEY, '1')
+        saveData.set(HIDE_KEY, '1')
       } catch {
         // 保存できなくても閉じる
       }

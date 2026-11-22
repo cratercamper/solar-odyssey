@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { PROBES, dateMs } from '../data/probes'
 import { EPOCH_MS, formatDate } from '../data/ephemeris'
-import { closeProbes, pathAt, playProbe, probeById, probeClock, probePath, realDistanceNow, togglePlay, useProbes } from '../state/probes'
+import { closeProbes, pathAt, playProbe, probeById, probeClock, probePath, realDistanceNow, seekProbe, togglePlay, useProbes } from '../state/probes'
+import { heliocentric } from '../data/trajectory'
+import { ProbeCamPane } from './ProbeCamPane'
 import { useStore } from '../state/store'
 import { raceActive, useRace } from '../state/race'
 import { useLang } from '../i18n/lang'
@@ -25,6 +27,10 @@ function useReplayReadout(probeId: string | null) {
     const last = probe.stops[probe.stops.length - 1]
     const realFrom = dateMs(last.until ?? last.date) + YEAR_MS
     const read = () => {
+      if (probe.trajectory) {
+        setNow({ ms: probeClock.ms, au: Math.hypot(...heliocentric(probe.trajectory, probeClock.ms).r) })
+        return
+      }
       const d = probe.distance
       const real = d && probeClock.ms > realFrom ? d.au + (d.auPerYear * (probeClock.ms - dateMs(d.date))) / YEAR_MS : null
       setNow({ ms: probeClock.ms, au: real ?? (path.current ? pathAt(path.current, probeClock.ms, p).point.length() : 0) })
@@ -69,70 +75,73 @@ export function ProbePanel() {
   if (!open) return null
 
   return (
-    <section className="probe-panel" aria-label={ui().probePanel.probeJourneys}>
-      <header>
-        <h2>
-          {ui().probePanel.probeJourneys}
-          {probe && <span style={{ color: probe.color }}>{ui().probePanel.separator}{ui().probes[probe.id].name}</span>}
-        </h2>
-        <button className="close" onClick={closeProbes} aria-label={ui().probePanel.close}>
-          ×
-        </button>
-      </header>
+    <>
+      {probe?.trajectory && probe.model && <ProbeCamPane probe={probe} />}
+      <section className={`probe-panel${probe?.trajectory ? ' with-cam' : ''}`} aria-label={ui().probePanel.probeJourneys}>
+        <header>
+          <h2>
+            {ui().probePanel.probeJourneys}
+            {probe && <span style={{ color: probe.color }}>{ui().probePanel.separator}{ui().probes[probe.id].name}</span>}
+          </h2>
+          <button className="close" onClick={closeProbes} aria-label={ui().probePanel.close}>
+            ×
+          </button>
+        </header>
 
-      {!probe ? (
-        <>
-          <p className="muted">
-            {ui().probePanel.introNote}
-          </p>
-          <div className="probe-list">
-            {PROBES.map((p) => (
-              <button key={p.id} className="nav-item" onClick={() => playProbe(p.id)}>
-                <span className="probe-dot" style={{ background: p.color }} />
-                <span>
-                  {ui().probes[p.id].name}
-                  <span className="muted small"> {ui().probes[p.id].summary}</span>
-                </span>
+        {!probe ? (
+          <>
+            <p className="muted">
+              {ui().probePanel.introNote}
+            </p>
+            <div className="probe-list">
+              {PROBES.map((p) => (
+                <button key={p.id} className="nav-item" onClick={() => playProbe(p.id)}>
+                  <span className="probe-dot" style={{ background: p.color }} />
+                  <span>
+                    {ui().probes[p.id].name}
+                    <span className="muted small"> {ui().probes[p.id].summary}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="probe-date">
+              {formatDate(new Date(readout.ms))}
+              <span className="muted">
+                {ui().probePanel.sunDistancePrefix}
+                {readout.au < 10 ? readout.au.toFixed(1) : Math.round(readout.au)}
+                {ui().probePanel.sunDistanceSuffix}
+              </span>
+            </div>
+            <ol className="probe-events" ref={list}>
+              {probe.events.map((e, i) => (
+                <li key={e.date} className={i === event ? 'now' : i < event ? 'past' : ''} onClick={() => seekProbe(dateMs(e.date))}>
+                  <span className="probe-when">{formatDate(new Date(dateMs(e.date)))}</span>
+                  {ui().probes[probe.id].events[i].text}
+                </li>
+              ))}
+              {finished && (
+                <li className="now">
+                  {ui().probes[probe.id].last} {nowText(probe.id)}
+                </li>
+              )}
+            </ol>
+            <div className="probe-controls">
+              <button className="secondary" onClick={togglePlay}>
+                {finished ? ui().probePanel.replay : playing ? ui().probePanel.pause : ui().probePanel.play}
               </button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="probe-date">
-            {formatDate(new Date(readout.ms))}
-            <span className="muted">
-              {ui().probePanel.sunDistancePrefix}
-              {readout.au < 10 ? readout.au.toFixed(1) : Math.round(readout.au)}
-              {ui().probePanel.sunDistanceSuffix}
-            </span>
-          </div>
-          <ol className="probe-events" ref={list}>
-            {probe.events.map((e, i) => (
-              <li key={e.date} className={i === event ? 'now' : i < event ? 'past' : ''}>
-                <span className="probe-when">{formatDate(new Date(dateMs(e.date)))}</span>
-                {ui().probes[probe.id].events[i].text}
-              </li>
-            ))}
-            {finished && (
-              <li className="now">
-                {ui().probes[probe.id].last} {nowText(probe.id)}
-              </li>
-            )}
-          </ol>
-          <div className="probe-controls">
-            <button className="secondary" onClick={togglePlay}>
-              {finished ? ui().probePanel.replay : playing ? ui().probePanel.pause : ui().probePanel.play}
-            </button>
-            <button className="secondary" onClick={() => useProbes.setState({ probeId: null, playing: false })}>
-              {ui().probePanel.otherProbes}
-            </button>
-          </div>
-        </>
-      )}
-      <p className="muted small">
-        {ui().probePanel.pathsNote}
-      </p>
-    </section>
+              <button className="secondary" onClick={() => useProbes.setState({ probeId: null, playing: false })}>
+                {ui().probePanel.otherProbes}
+              </button>
+            </div>
+          </>
+        )}
+        <p className="muted small">
+          {probe?.trajectory ? ui().probePanel.realPathNote : ui().probePanel.pathsNote}
+        </p>
+      </section>
+    </>
   )
 }

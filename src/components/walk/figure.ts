@@ -5,7 +5,7 @@ import * as THREE from 'three'
 // idle（立つ）・walk（歩く）・run（走る）・sit（座る）・jump（跳ぶ）・wave（手を振る）
 
 /** ground：地面（芝生）に座る。ride：ホバースクーターに乗って、ハンドルを握る */
-export type Motion = 'idle' | 'walk' | 'run' | 'sit' | 'jump' | 'wave' | 'ground' | 'ride'
+export type Motion = 'idle' | 'walk' | 'run' | 'sit' | 'jump' | 'wave' | 'ground' | 'ride' | 'glide'
 
 export type Look = {
   /** 身長 m */

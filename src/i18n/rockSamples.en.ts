@@ -80,4 +80,17 @@ export const rockSamplesEn: Translation<RockSamplesJa> = {
     name: 'Surface rock',
     note: 'A fragment broken off by impacts. Its surface slowly darkens under radiation from space.',
   },
+  // race gold medal rewards
+  'layered-sulfate': {
+    name: 'Canyon layer rock (sulfate)',
+    note: 'A piece of the bright layers stacked thousands of metres high inside Valles Marineris. They were left behind by water-borne minerals, a sign that ancient Mars had plenty of water.',
+  },
+  troctolite: {
+    name: 'Troctolite (Apollo 17 sample 76535)',
+    note: 'A 4.2-billion-year-old rock of green olivine and white plagioclase. It cooled slowly deep under the Moon\'s surface and has been called the most interesting rock brought back from the Moon.',
+  },
+  'europa-salt': {
+    name: 'Yellow chaos salt',
+    note: 'Yellowish table salt seen on Europa\'s broken-up "chaos" ice. Jupiter\'s strong radiation probably tinted it. It may be salt from the ocean under the ice that reached the surface.',
+  },
 }

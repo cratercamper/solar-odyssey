@@ -6,6 +6,7 @@ import { APOLLO17, ALSEP_PARTS, type Historic } from '../../data/apollo17'
 import { useHistoric, visitHistoric } from '../../state/historic'
 import { roverPose, useRover } from '../../state/rover'
 import { useRally } from '../../state/rally'
+import { EVA_STOPS, useApolloEva } from '../../state/apolloEva'
 
 // アポロ17号の史跡（タウルス・リットロウ谷）：着陸船の下半分・旗・月面車・ALSEP と、観測点1〜9の光の柱。
 // ローバーで近づくと visitHistoric() で記録し、カード（HistoricCard）を出す。物には当たり判定はない。
@@ -296,7 +297,7 @@ function orangeSoil(h: (x: number, z: number) => number, cx: number, cz: number,
   return m
 }
 
-export function Apollo17({ terrain, prepare }: { terrain: Terrain; prepare: Prep }) {
+export function Apollo17({ terrain, prepare, eva = false }: { terrain: Terrain; prepare: Prep; eva?: boolean }) {
   const built = useMemo(() => {
     const M = makeMats(prepare)
     const flagTex = flagTexture()
@@ -314,6 +315,8 @@ export function Apollo17({ terrain, prepare }: { terrain: Terrain; prepare: Prep
     for (const it of APOLLO17) {
       const y = h(it.x, it.z)
       let obj: THREE.Object3D | null = null
+      // アポロ17号の追体験（章7）では、着陸船（上の段つき）と月面車は本物の模型（LunarModule・LunarRover）が出る
+      if (eva && (it.kind === 'lm' || it.kind === 'lrv')) continue
       if (it.kind === 'lm') {
         obj = descentStage(M)
         obj.rotation.y = 0.35
@@ -366,7 +369,7 @@ export function Apollo17({ terrain, prepare }: { terrain: Terrain; prepare: Prep
       beams.set(it.id, beam)
     }
     return { root, beams, fresh, seen, M, textures, beamGeo }
-  }, [terrain, prepare])
+  }, [terrain, prepare, eva])
 
   useEffect(
     () => () => {
@@ -393,6 +396,13 @@ export function Apollo17({ terrain, prepare }: { terrain: Terrain; prepare: Prep
   const tick = useRef(0)
   useFrame((st, dt) => {
     built.fresh.opacity = 0.22 + 0.1 * Math.sin(st.clock.elapsedTime * 2.4)
+    // 章7：光の柱は、次に向かう観測点だけ
+    if (eva) {
+      const e = useApolloEva.getState()
+      const want = e.step === 'drive' || e.step === 'stop' ? EVA_STOPS[e.leg]?.id : null
+      for (const [id, b] of built.beams) b.visible = id === want
+      return
+    }
     tick.current += dt
     if (tick.current < 0.25) return
     tick.current = 0

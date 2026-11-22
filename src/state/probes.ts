@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { PLANETS } from '../data/bodies'
 import { dateMs, PROBES, RYUGU, RYUGU_ID, type Probe } from '../data/probes'
 import { daysAt, EPOCH_MS, planetPosition, simTimeAt, trueAnomaly } from '../data/ephemeris'
+import { encounterPlanet, heliocentric, loadSamples, nearestEncounter, trajectoryStart, type Trajectory } from '../data/trajectory'
 import { sim } from './registry'
 import { useStore } from './store'
 import { useQuiz } from './quiz'
@@ -23,9 +24,11 @@ type ProbeState = {
   /** 最後に過ぎたできごと（-1 はまだ） */
   event: number
   finished: boolean
+  /** 道すじの本物の値（別のファイル）を読み込んだ回数。増えたら道すじを描き直す */
+  samples: number
 }
 
-export const useProbes = create<ProbeState>(() => ({ open: false, probeId: null, playing: false, event: -1, finished: false }))
+export const useProbes = create<ProbeState>(() => ({ open: false, probeId: null, playing: false, event: -1, finished: false, samples: 0 }))
 
 /** 再生中の時計（毎フレーム進めるので React の外） */
 export const probeClock = { ms: 0, hold: 0 }
@@ -56,9 +59,12 @@ export function closeProbes() {
 export function playProbe(id: string) {
   const probe = probeById(id)
   if (!probe) return
-  probeClock.ms = dateMs(probe.stops[0].date)
+  probeClock.ms = probe.trajectory ? trajectoryStart(probe.trajectory) : dateMs(probe.stops[0].date)
   probeClock.hold = 0
   useProbes.setState({ probeId: id, playing: true, event: -1, finished: false })
+  // 土星を回ったカッシーニの13年分などは別のファイル。打ち上げから着くまでのあいだに読み込む
+  if (probe.trajectory?.encounters.some((e) => e.samples))
+    loadSamples(probe.trajectory, import.meta.env.BASE_URL).then(() => useProbes.setState((s) => ({ samples: s.samples + 1 })))
 }
 
 export function togglePlay() {
@@ -78,14 +84,18 @@ export function advanceProbe(delta: number): number | null {
     else {
       const lastStop = dateMs(probe.stops[probe.stops.length - 1].until ?? probe.stops[probe.stops.length - 1].date)
       const pace = probeClock.ms < lastStop ? probe.pace.slow : probe.pace.fast
-      let next = probeClock.ms + delta * pace * YEAR_MS
+      let next = probeClock.ms + delta * (probe.trajectory ? encounterPace(probe.trajectory, probeClock.ms, pace) * DAY_MS : pace * YEAR_MS)
       // 次のできごとの日で止まる（日付を先へ飛ばしたときは、飛ばしたできごとは止まらずに過ぎる）
       let event = p.event
       while (event + 1 < probe.events.length && dateMs(probe.events[event + 1].date) < probeClock.ms) event++
       const upcoming = probe.events[event + 1]
       if (upcoming && next >= dateMs(upcoming.date)) {
-        next = dateMs(upcoming.date)
-        probeClock.hold = HOLD_SECONDS
+        // 本物の道すじでは、惑星のそばはゆっくり進めて字幕で説明するので、止まらない
+        const flyby = probe.trajectory && Math.abs(nearestEncounter(probe.trajectory, dateMs(upcoming.date)).days) < 1.5
+        if (!flyby) {
+          next = dateMs(upcoming.date)
+          probeClock.hold = HOLD_SECONDS
+        }
         event++
       }
       if (event !== p.event) useProbes.setState({ event })
@@ -98,6 +108,45 @@ export function advanceProbe(delta: number): number | null {
     }
   }
   return simTimeAt(probeClock.ms)
+}
+
+/** 惑星のそばでは、ゆっくり進める速さ（日／秒）。最接近までの日数に比べて進み、近いほど遅く（近づくのにも離れるのにも十数秒） */
+const RAMP_SECONDS = 2.2
+const MIN_DAYS_PER_SECOND: Record<string, number> = { earth: 0.03, neptune: 0.04 }
+/** 小惑星の表面へ降りる瞬間の速さ（日／秒）。1秒に約6分 */
+const DIP_DAYS_PER_SECOND = 0.004
+const MOMENT_RAMP_SECONDS = 1.2
+export function encounterPace(t: Trajectory, ms: number, yearsPerSecond: number) {
+  const { encounter, days } = nearestEncounter(t, ms)
+  const base = yearsPerSecond * 365.25
+  const min = MIN_DAYS_PER_SECOND[encounter.body] ?? 0.08
+  if (encounter.until !== undefined && days === 0) {
+    // とどまるあいだ（はやぶさ2とリュウグウ）：着いたとき・離れるときの前後はゆっくり、表面へ降りるときは、もっとゆっくり
+    const edge = Math.min(ms - encounter.ms, encounter.until - ms) / DAY_MS
+    let pace = Math.max(min, edge / RAMP_SECONDS)
+    for (const d of encounter.hover?.dips ?? []) pace = Math.min(pace, Math.max(DIP_DAYS_PER_SECOND, Math.abs(ms - d.ms) / DAY_MS / RAMP_SECONDS))
+    // 見どころ（ホイヘンスの切りはなしなど）は、もっと早くからゆっくりにはしない（13年を見せるので、近づくのは手早く）
+    for (const m of encounter.moments ?? []) pace = Math.min(pace, Math.max(m.pace, Math.abs(ms - m.ms) / DAY_MS / MOMENT_RAMP_SECONDS))
+    return Math.min(base, pace)
+  }
+  return Math.min(base, Math.max(min, Math.abs(days) / RAMP_SECONDS))
+}
+
+/** その日に飛ばす（できごとの一覧を押したとき）。惑星の通過なら、少し手前から */
+export function seekProbe(ms: number) {
+  const p = useProbes.getState()
+  const probe = probeById(p.probeId)
+  if (!probe) return
+  const t = probe.trajectory
+  const enc = t ? nearestEncounter(t, ms) : null
+  // とどまるあいだのできごと（タッチダウンなど）は、その2日前から
+  const stay = enc && enc.encounter.until !== undefined && enc.days === 0 && ms - enc.encounter.ms > 2 * DAY_MS
+  const at = stay ? ms - 2 * DAY_MS : enc && Math.abs(enc.days) < 1.5 ? enc.encounter.ms - 25 * DAY_MS : ms
+  probeClock.ms = Math.max(t ? trajectoryStart(t) : dateMs(probe.stops[0].date), Math.min(at, endMs(probe)))
+  probeClock.hold = 0
+  let event = -1
+  while (event + 1 < probe.events.length && dateMs(probe.events[event + 1].date) <= probeClock.ms) event++
+  useProbes.setState({ event, finished: false, playing: true })
 }
 
 // ---- 道すじ ----
@@ -153,6 +202,7 @@ function arc(a: THREE.Vector3, ta: number, b: THREE.Vector3, tb: number, out: Pa
 
 /** 探査機の道すじ（天文単位の空間）。打ち上げから再生の終わりまで */
 export function probePath(probe: Probe): PathPoint[] {
+  if (probe.trajectory) return realPath(probe, probe.trajectory)
   const out: PathPoint[] = []
   const stops = probe.stops
   const first = dateMs(stops[0].date)
@@ -198,6 +248,62 @@ export function pathAt(path: PathPoint[], ms: number, out: THREE.Vector3) {
 
 /** 今の、太陽からの本物の距離（天文単位） */
 export function realDistanceNow(probe: Probe) {
+  if (probe.trajectory && !probe.end) return heliocentric(probe.trajectory, EPOCH_MS).r.reduce((a, x) => a + x * x, 0) ** 0.5
   const d = probe.distance
   return d ? d.au + (d.auPerYear * (EPOCH_MS - dateMs(d.date))) / YEAR_MS : null
+}
+
+// ---- 本物の道すじ（JPL Horizons の値から） ----
+
+/** 黄道座標（x, y, z）を、画面の軸（x, 上, -y）に */
+export const eclipticToScreen = (r: number[], out = new THREE.Vector3()) => out.set(r[0], r[2], -r[1])
+
+/**
+ * アプリの惑星は、円の軌道に、本物の方向で並べている（本物の軌道は少しゆがんで傾いている）。
+ * 探査機が画面の惑星のところを通るように、通過のたびに「画面の惑星 − 本物の惑星」のずれを測り、
+ * そのあいだは時間でなめらかにつなげて足す（ずれは太陽からの距離の数％）
+ */
+const offsets = new WeakMap<Trajectory, { ms: number; d: THREE.Vector3 }[]>()
+function offsetAt(t: Trajectory, ms: number, out: THREE.Vector3) {
+  let list = offsets.get(t)
+  if (!list) {
+    // とどまる天体（リュウグウ）は、着いた日と離れた日の両方で合わせる
+    list = t.encounters.flatMap((e) =>
+      [e.ms, ...(e.until !== undefined ? [e.until] : [])].map((ms) => ({ ms, d: bodyAu(e.body, ms).sub(eclipticToScreen(encounterPlanet(e, ms).r)) })),
+    )
+    offsets.set(t, list)
+  }
+  if (ms <= list[0].ms) return out.copy(list[0].d)
+  for (let i = 1; i < list.length; i++) {
+    if (ms <= list[i].ms) {
+      const k = (ms - list[i - 1].ms) / (list[i].ms - list[i - 1].ms)
+      return out.lerpVectors(list[i - 1].d, list[i].d, k * k * (3 - 2 * k))
+    }
+  }
+  return out.copy(list[list.length - 1].d)
+}
+
+const shift = new THREE.Vector3()
+/** 本物の道すじの、その日の位置（天文単位の空間、画面の惑星に合わせたもの） */
+export function realProbeAu(t: Trajectory, ms: number, out = new THREE.Vector3()) {
+  return eclipticToScreen(heliocentric(t, ms).r, out).add(offsetAt(t, ms, shift))
+}
+
+function realPath(probe: Probe, t: Trajectory): PathPoint[] {
+  const out: PathPoint[] = []
+  const end = endMs(probe)
+  const last = t.encounters[t.encounters.length - 1].ms
+  let ms = trajectoryStart(t)
+  while (ms < end) {
+    out.push({ ms, p: realProbeAu(t, ms) })
+    const near = nearestEncounter(t, ms)
+    const days = Math.abs(near.days)
+    // とどまるあいだ：降りていく小惑星は細かく、土星を回るあいだは1日おき
+    const enc = near.encounter
+    const stay = days === 0 && enc.until !== undefined && !enc.hover
+    const step = stay ? 1 : days < 3 ? 0.05 : days < 40 ? 1 : ms < last + YEAR_MS ? 4 : 30
+    ms += step * DAY_MS
+  }
+  out.push({ ms: end, p: realProbeAu(t, end) })
+  return out
 }

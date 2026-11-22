@@ -1,0 +1,64 @@
+name: Screenshot smoke test
+
+# 起動・全体マップ・幅の狭い画面・スマホ・SF・コロニーの公園を開いて、エラーが出ないこと・3D が真っ黒でないことを確かめる。
+# 撮った画面は成果物（smoke-shots）に残る
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    # 場面が増えて 1 本で 30 分を超えるようになったので、4 つに分けて同時に走らせる（3 つでは 30 分ぎりぎりになった。場面は smoke.mjs --shard で順に配る）
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+        if: matrix.shard == 1
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: node tools/smoke/smoke.mjs --shard ${{ matrix.shard }}/4 --out smoke-shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-shots-${{ matrix.shard }}
+          path: smoke-shots
+          retention-days: 14
+
+  # Firefox（前に SF で黒い四角が出ると報告があった）。描き方の違いを見るためなので、失敗しても全体は止めない
+  firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps firefox
+      - run: sudo apt-get install -y xvfb libgl1-mesa-dri
+      - run: xvfb-run -a -s "-screen 0 1280x720x24" node tools/smoke/smoke.mjs flight sf --firefox --out smoke-shots-firefox
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-shots-firefox
+          path: smoke-shots-firefox
+          retention-days: 14

@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 const envs = new WeakMap<THREE.WebGLRenderer, THREE.Texture>()
 
-/** 映り込み用の環境マップ。作るのが重いので、望遠鏡どうしで使い回す */
+/** 映り込み用の環境マップ。作るのが重いので、望遠鏡や SF の構造物どうしで 1 つを使い回す（使う側で dispose しない） */
 export function roomEnvironment(gl: THREE.WebGLRenderer) {
   let env = envs.get(gl)
   if (!env) {

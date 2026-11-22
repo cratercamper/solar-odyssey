@@ -1,0 +1,353 @@
+/* 章3・4（DockHud.tsx） */
+.dk-title {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #ffd27a;
+}
+
+.dk-panel {
+  position: absolute;
+  left: 14px;
+  top: 84px;
+  width: 200px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(8, 12, 20, 0.62);
+  border: 1px solid rgba(160, 200, 255, 0.25);
+  font-size: 13px;
+}
+.dk-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 2px 0;
+}
+.dk-row span {
+  flex: 1;
+  color: #a9bbd0;
+  font-size: 12px;
+}
+.dk-row b {
+  font-weight: 600;
+  font-size: 15px;
+}
+.dk-row i {
+  font-style: normal;
+  font-size: 11px;
+  color: #ff8a70;
+}
+.dk-row.good b {
+  color: #9ff0b8;
+}
+.dk-row.bad b {
+  color: #ff8a70;
+}
+.dk-note {
+  font-size: 11px;
+  color: #a9bbd0;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.dk-warp {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #ffd27a;
+}
+
+.dk-dial {
+  display: block;
+  width: 110px;
+  height: 110px;
+  margin: 6px auto 2px;
+}
+.dk-dial-edge {
+  fill: rgba(0, 0, 0, 0.35);
+  stroke: rgba(200, 220, 255, 0.4);
+}
+.dk-dial-line {
+  stroke: rgba(200, 220, 255, 0.25);
+}
+.dk-dial-ok {
+  fill: none;
+  stroke: rgba(160, 240, 190, 0.5);
+  stroke-dasharray: 3 3;
+}
+.dk-dial-ok.in {
+  stroke: #9ff0b8;
+  stroke-dasharray: none;
+}
+.dk-dial-dot {
+  fill: #ffd27a;
+}
+
+/* 照準（COAS）：うすい緑の十字（本物は光る線が窓に映る） */
+.dk-coas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(60vmin, 520px);
+  height: min(60vmin, 520px);
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: rgba(150, 255, 170, 0.75);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 2px rgba(120, 255, 150, 0.6));
+}
+
+.dk-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #cfe0f4;
+  background: rgba(8, 12, 20, 0.55);
+  padding: 6px 12px;
+  border-radius: 14px;
+  white-space: nowrap;
+}
+.dk-hint.dk-aim {
+  bottom: 84px;
+  text-align: center;
+  white-space: normal;
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+}
+.dk-sub {
+  font-size: 11px;
+  color: #a9bbd0;
+}
+
+/* スマホ：横の十字と、前・うしろ */
+.dk-pad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.dk-pad-cross {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+.dk-pad-cross button {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+  touch-action: none;
+}
+.dk-pad-cross .u {
+  left: 49px;
+  top: 0;
+}
+.dk-pad-cross .d {
+  left: 49px;
+  bottom: 0;
+}
+.dk-pad-cross .l {
+  left: 0;
+  top: 49px;
+}
+.dk-pad-cross .r {
+  right: 0;
+  top: 49px;
+}
+.dk-pad-z {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.dk-pad-z button {
+  width: 96px;
+  height: 52px;
+  touch-action: none;
+}
+.dk-pad-z .go {
+  border-color: #f2a65a;
+  color: #ffd9a8;
+}
+
+.mm-end.dk-end {
+  pointer-events: auto;
+}
+
+/* 写真：ハッセルブラッドの枠（短い辺の 8 割） */
+.dk-drag {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+.dk-finder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 80vmin;
+  height: 80vmin;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+}
+.dk-finder i {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.22);
+}
+.dk-finder .g1,
+.dk-finder .g2 {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.dk-finder .g1 {
+  left: 33.3%;
+}
+.dk-finder .g2 {
+  left: 66.6%;
+}
+.dk-finder .g3,
+.dk-finder .g4 {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+.dk-finder .g3 {
+  top: 33.3%;
+}
+.dk-finder .g4 {
+  top: 66.6%;
+}
+.dk-finder span {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 1px;
+}
+.mm-hud button.dk-shutter {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  padding: 12px 28px;
+  border-radius: 26px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #f2a65a;
+  border: none;
+  color: #1a1206;
+}
+
+/* 見くらべ */
+.dk-compare {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(8, 12, 20, 0.86);
+  border: 1px solid rgba(160, 200, 255, 0.3);
+  pointer-events: auto;
+  text-align: center;
+}
+.dk-photos {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.dk-photos figure {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+.dk-photos img,
+.dk-nophoto {
+  display: block;
+  width: 100%;
+  max-width: 34vh;
+  margin: 0 auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #000;
+}
+.dk-photos figcaption {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #cfe0f4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dk-photos small {
+  color: #a9bbd0;
+  font-size: 11px;
+}
+.dk-stars {
+  color: #ffd060;
+  font-size: 18px;
+  letter-spacing: 3px;
+}
+.dk-compare .dk-note {
+  font-size: 12px;
+  margin: 10px 0 4px;
+}
+.dk-credit {
+  margin-top: 8px;
+  font-size: 10px;
+  color: #8fa3ba;
+}
+
+/* 写真を見くらべているあいだは、見出しを隠す（カードと重なるので） */
+.mm-hud:has(.dk-compare) .mm-caption {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  /* スマホ：ボタンは左上にたてに（右上は旅の帯、下は操作のボタン） */
+  .mm-hud .mm-buttons.dk-buttons {
+    top: 8px;
+    bottom: auto;
+    left: 8px;
+    right: auto;
+    align-items: flex-start;
+  }
+  .dk-panel {
+    top: 112px;
+    left: auto;
+    right: 8px;
+    width: 150px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .dk-row b {
+    font-size: 13px;
+  }
+  .dk-dial {
+    width: 70px;
+    height: 70px;
+  }
+  .mm-root[data-phase='dock'] .mm-caption {
+    bottom: 186px;
+  }
+  .dk-photos {
+    gap: 8px;
+  }
+}

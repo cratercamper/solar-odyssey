@@ -1,0 +1,270 @@
+/* ---- 着陸船で月の空を飛ぶ（FlightView / FlightPanel） ---- */
+.flight-view {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+.flight-view canvas {
+  touch-action: none;
+}
+
+.flight-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #e8eef6;
+  font-size: 14px;
+}
+
+.flight-ui button {
+  pointer-events: auto;
+}
+
+.flight-caption {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 18px;
+  background: rgba(10, 14, 22, 0.75);
+  color: #c8d4e4;
+  text-align: center;
+  max-width: calc(100vw - 32px);
+}
+
+.flight-hud {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  width: 230px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(10, 14, 22, 0.62);
+  border: 1px solid rgba(160, 200, 255, 0.25);
+  pointer-events: auto;
+}
+
+.flight-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.flight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 13px;
+  color: #b9c8da;
+}
+
+.flight-row b {
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.flight-row.gears button {
+  min-width: 34px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(10, 14, 22, 0.65);
+  border: 1px solid rgba(200, 220, 255, 0.4);
+  color: #e8eef6;
+  font-size: 16px;
+}
+
+.gear-bar {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.gear-bar i {
+  flex: 1;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(200, 220, 255, 0.15);
+}
+
+.gear-bar i.on {
+  background: #8fd0ff;
+}
+
+.flight-lap {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(200, 220, 255, 0.15);
+}
+
+.lap-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(200, 220, 255, 0.15);
+  overflow: hidden;
+}
+
+.lap-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #8fd0ff, #f2d98a);
+}
+
+.lap-dir {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #a9e0b5;
+}
+
+.lap-dir.warn {
+  color: #f2c47a;
+}
+
+.lap-best {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #b9c8da;
+}
+
+.flight-card {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 26px;
+  border-radius: 16px;
+  background: rgba(14, 22, 36, 0.88);
+  border: 1px solid rgba(242, 217, 138, 0.6);
+  font-size: 16px;
+  pointer-events: auto;
+  max-width: calc(100vw - 32px);
+}
+
+.flight-card button,
+.flight-buttons button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.flight-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(10, 14, 22, 0.55);
+  font-size: 12px;
+  color: #b9c8da;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+
+.flight-buttons {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+}
+
+.flight-buttons .secondary {
+  background: rgba(10, 14, 22, 0.65);
+  border-color: rgba(200, 220, 255, 0.4);
+}
+
+.flight-buttons .primary {
+  border: none;
+  background: #f2a65a;
+  color: #1a1206;
+  font-weight: 600;
+}
+
+.flight-pad {
+  position: absolute;
+  bottom: 130px;
+  display: flex;
+  gap: 14px;
+}
+
+.flight-pad.left {
+  left: 16px;
+}
+
+.flight-pad.right {
+  right: 16px;
+  flex-direction: column;
+}
+
+.flight-pad .pad {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.55);
+  border: 1px solid rgba(200, 220, 255, 0.45);
+  color: #e8eef6;
+  font-size: 20px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* スマホ：表示を小さく、ボタンは 2 段に */
+@media (max-width: 700px) {
+  .flight-hud {
+    left: 10px;
+    top: 10px;
+    width: 190px;
+    padding: 8px 10px;
+  }
+
+  .flight-buttons {
+    left: 10px;
+    right: 10px;
+    bottom: 16px;
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .flight-buttons button {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .flight-hud {
+    width: 168px;
+    font-size: 12px;
+  }
+
+  .flight-title {
+    display: none;
+  }
+
+  .flight-row {
+    font-size: 12px;
+  }
+
+  .flight-row.gears button {
+    min-width: 28px;
+    padding: 0 6px;
+  }
+
+  .flight-pad.left {
+    left: 10px;
+  }
+
+  .flight-pad.right {
+    right: 10px;
+  }
+}

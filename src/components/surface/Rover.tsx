@@ -392,7 +392,7 @@ const CELL = 5
 type RockBody = { id: number; x: number; z: number; r: number; h: number; t: number }
 type RockGrid = Map<string, RockBody[]>
 
-function rockBodies(terrain: Terrain): RockGrid {
+export function rockBodies(terrain: Terrain): RockGrid {
   const grid: RockGrid = new Map()
   // 広い天体の岩は、地面のタイルといっしょに持つ（wideNow.world.cells）
   if (isWide(terrain)) return grid
@@ -419,7 +419,7 @@ const siteBodies: RockBody[] = []
 const hillR = (r: RockBody) => r.r + 0.3 + 0.25 * r.h
 
 /** 岩の上に乗ったときの地面の高さ（岩をまるい丘とみなす）。岩の外なら base のまま */
-function onRocks(rocks: RockBody[], x: number, z: number, base: number) {
+export function onRocks(rocks: RockBody[], x: number, z: number, base: number) {
   let y = base
   for (const r of rocks) {
     const R = hillR(r)
@@ -477,7 +477,7 @@ function rockLift(
   return Math.max(0, withRocks - bare)
 }
 
-function nearRocks(grid: RockGrid, x: number, z: number, sites?: { x: number; z: number; size: number }[], taken?: Set<number>) {
+export function nearRocks(grid: RockGrid, x: number, z: number, sites?: { x: number; z: number; size: number }[], taken?: Set<number>) {
   nearOut.length = 0
   const cx = Math.floor(x / CELL)
   const cz = Math.floor(z / CELL)
@@ -853,7 +853,8 @@ export function Rover({
     }
   }, [sites, staticBodies, terrain])
   useEffect(() => {
-    if (phase !== 'drop') return
+    // 与圧ローバー（CrewRover.tsx）を出したときは、こちらは何もしない
+    if (phase !== 'drop' || useRover.getState().vehicle !== 'orv7') return
     const x = LANDER_POS.x
     const z = LANDER_POS.y
     st.current = {
@@ -899,10 +900,14 @@ export function Rover({
   useFrame((state, rawDt) => {
     const grp = group.current
     const s = st.current
-    const { phase, since, view } = useRover.getState()
+    const { phase, since, view, vehicle } = useRover.getState()
     if (!grp) return
-    grp.visible = phase !== 'none' && !!s
-    if (!grp.visible || !s) return
+    grp.visible = phase !== 'none' && !!s && vehicle === 'orv7'
+    if (!grp.visible || !s) {
+      // 採集の岩の光の柱は、無人ローバーで走っているときだけ
+      beacons.current.forEach((b) => b && (b.visible = false))
+      return
+    }
     const dt = Math.min(rawDt, 0.05)
     const T = roverNow() - since
     const rig = built.rig
@@ -1538,4 +1543,3 @@ export function Rover({
   )
 }
 
-useGLTF.preload(url('rover-orv7.glb'))

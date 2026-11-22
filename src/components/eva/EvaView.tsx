@@ -1,7 +1,7 @@
 import { Suspense, memo, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type MouseEvent as RMouseEvent } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
-import { dprFor, useLevel } from '../../state/quality'
+import { useDpr } from '../../state/quality'
 import { QualityGovernor } from '../QualityGovernor'
 import { useLang } from '../../i18n/lang'
 import { useShip } from '../../data/ships'
@@ -42,14 +42,14 @@ import { ui } from '../../i18n'
  * 影は PCF（three.js にはもう PCFSoft がなく、指定すると毎回 PCF に置き換えて作り直す）
  */
 const EvaCanvas = memo(function EvaCanvas() {
-  const level = useLevel()
+  const dpr = useDpr(1.75)
   const spec = useShip()
   const tint = useMemo(() => new THREE.Color(spec.swatch[0]), [spec])
   // 母船のまわりでは修理の依頼を出さない。奥行きの対数（logarithmicDepthBuffer）は使わない：
   // 手前の面が消えて船の中が透けることがあったので、代わりにカメラの near を少し遠くして精度を保つ（Tsumugi.tsx）
   const [free] = useState(() => evaSite.id === 'ship')
   return (
-    <Canvas shadows="percentage" dpr={Math.min(dprFor(level), 1.75)} gl={{ alpha: false }} camera={{ fov: 62, near: 0.05, far: free ? 40000 : 12000, position: [2.4, 1.7, 3.3] }}>
+    <Canvas shadows="percentage" dpr={dpr} gl={{ alpha: false }} camera={{ fov: 62, near: 0.05, far: free ? 40000 : 12000, position: [2.4, 1.7, 3.3] }}>
       <color attach="background" args={['#000']} />
       <Suspense fallback={null}>
         <EvaWorld spec={spec} />

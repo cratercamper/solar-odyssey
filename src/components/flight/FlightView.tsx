@@ -251,11 +251,12 @@ function SkyDome({ sun, earth }: { sun: THREE.Vector3; earth: THREE.Vector3 }) {
     earthTex.colorSpace = THREE.SRGBColorSpace
     return new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.9, metalness: 0, depthTest: false, depthWrite: false })
   }, [earthTex])
-  const sunMat = useMemo(() => new THREE.SpriteMaterial({ color: new THREE.Color(6, 5.6, 5), depthTest: false, depthWrite: false, toneMapped: false }), [])
+  const sunMat = useMemo(() => new THREE.SpriteMaterial({ map: dotTexture(), color: new THREE.Color(6, 5.6, 5), blending: THREE.AdditiveBlending, transparent: false, depthTest: false, depthWrite: false, toneMapped: false }), [])
   useEffect(
     () => () => {
       starMat.dispose()
       earthMat.dispose()
+      sunMat.map?.dispose()
       sunMat.dispose()
     },
     [starMat, earthMat, sunMat],

@@ -343,7 +343,7 @@ function Ship({ ctl }: { ctl: FlightCtl }) {
     const v = ctl.velocityDir(basis.v)
     basis.z.copy(v).negate()
     basis.y.copy(ctl.up).addScaledVector(basis.z, -ctl.up.dot(basis.z)).normalize()
-    basis.y.applyAxisAngle(basis.z, ctl.bank)
+    basis.y.applyAxisAngle(basis.z, -ctl.bank)
     basis.x.crossVectors(basis.y, basis.z)
     basis.m.makeBasis(basis.x, basis.y, basis.z)
     g.quaternion.setFromRotationMatrix(basis.m)

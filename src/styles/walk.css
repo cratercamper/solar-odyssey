@@ -170,3 +170,49 @@ body.touch .walk-buttons {
 body.touch .walk-ui kbd {
   display: none;
 }
+
+/* 翼の姿勢計（右下） */
+.walk-wing {
+  position: absolute;
+  right: 20px;
+  bottom: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 14px;
+  background: rgba(8, 12, 20, 0.55);
+  border: 1px solid rgba(110, 220, 255, 0.45);
+  color: #bdf1ff;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.walk-wing-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 118px;
+}
+.walk-wing-text b {
+  font-size: 15px;
+}
+.walk-wing-text .warn {
+  color: #ff9a6a;
+  font-size: 12px;
+}
+.walk-wing.stall {
+  border-color: rgba(255, 140, 90, 0.8);
+}
+body.touch .walk-wing {
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
+  font-size: 11px;
+}
+body.touch .walk-wing svg {
+  width: 64px;
+  height: 64px;
+}
+body.touch .walk-wing-text {
+  min-width: 96px;
+}

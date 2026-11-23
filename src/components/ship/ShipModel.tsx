@@ -8,6 +8,7 @@ import { useSpaceEnvOn } from '../SpaceLighting'
 import { findBaked, multiplyDetail } from './bakedMaps'
 import type { Flood } from '../../data/ships'
 import { bussardTexture, coilSpillTexture, coilTexture, deflectorTexture, hullTextures, nameTexture, shuttleBayTexture, windowBandTexture } from './hullTextures'
+import { radialGlowTexture } from '../radialGlow'
 
 // 自機「SV-01 ソーラーボイジャー」。円盤部・首・副船体・2本のナセルという構成は借りるが、
 // 寸法と細部はオリジナル。長さ約1、前方は -Z。
@@ -91,6 +92,7 @@ export function ShipModel({
   tint,
   floods = true,
   env = true,
+  own = false,
 }: {
   unitScale?: number | (() => number)
   registry?: string
@@ -100,6 +102,8 @@ export function ShipModel({
   floods?: boolean
   /** 宇宙の場面の映りこみ（環境マップ）を使う。別の Canvas（船外活動）に置くときは false */
   env?: boolean
+  /** 乗っている船（ブリッジの中から見ることがある） */
+  own?: boolean
 }) {
   const root = useRef<THREE.Group>(null!)
 
@@ -219,6 +223,8 @@ export function ShipModel({
   const impulse = useRef<THREE.MeshBasicMaterial>(null!)
   const strobes = useRef<THREE.MeshBasicMaterial[]>([])
   const halos = useRef<THREE.SpriteMaterial[]>([])
+  /** 艦橋のてっぺんのストロボ（乗っている船のブリッジの中からは見せない） */
+  const bridgeStrobe = useRef<THREE.Group>(null)
   const navLights = useRef<THREE.MeshBasicMaterial[]>([])
 
   useFrame(({ clock }, delta) => {
@@ -250,6 +256,12 @@ export function ShipModel({
     const flash = on ? 5 : 0.3
     strobes.current.forEach((m) => m.color.setRGB(flash, flash, flash))
     halos.current.forEach((m) => (m.opacity = on ? 1 : 0))
+    // ブリッジの中からは、真上 6 m ほどのこのストロボ（光る玉と、幅 8 m のにじみ）が光るたびに天窓が白くなるので、
+    // 灯の下向きの光はさえぎってあるものとして見せない（ほかの灯と、外からの見え方はそのまま）
+    if (bridgeStrobe.current) {
+      const st = useStore.getState()
+      bridgeStrobe.current.visible = !(own && st.mode === 'flight' && st.cameraMode === 'bridge')
+    }
     const nav = 0.7 + 0.5 * (Math.sin(t * Math.PI) > 0 ? 1 : 0)
     navLights.current.forEach((m, i) => (i % 2 === 0 ? m.color.setRGB(1.3 * nav, 0.04, 0.04) : m.color.setRGB(0.04, 1.3 * nav, 0.15)))
   })
@@ -271,8 +283,8 @@ export function ShipModel({
     if (m && !halos.current.includes(m)) halos.current.push(m)
   }
   /** ストロボ：小さな光る玉と、光ったときだけ広がる光のにじみ */
-  const strobe = (position: [number, number, number], size: number) => (
-    <group position={position}>
+  const strobe = (position: [number, number, number], size: number, ref?: React.Ref<THREE.Group>) => (
+    <group ref={ref} position={position}>
       <mesh>
         <sphereGeometry args={[size, 10, 10]} />
         <meshBasicMaterial ref={glowMat(strobes)} toneMapped={false} />
@@ -301,7 +313,7 @@ export function ShipModel({
         </mesh>
       </group>
       {/* 艦橋のてっぺんのストロボ（ブリッジの縦の縮みを受けないよう外に置く） */}
-      {strobe([0, saucerTop - 0.004 + 0.0148, SAUCER_POS[2] + 0.01], 0.00075)}
+      {strobe([0, saucerTop - 0.004 + 0.0148, SAUCER_POS[2] + 0.01], 0.00075, bridgeStrobe)}
       {/* 下部センサードーム */}
       <mesh position={[0, saucerBottom + 0.002, SAUCER_POS[2]]} scale={[1, 0.6, 1]}>
         <sphereGeometry args={[0.02, 24, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
@@ -463,22 +475,19 @@ export const STROBE_FLASH = 0.07
 export const STROBE_GAP = 0.25
 
 /** ストロボの光のにじみ（中心が明るく外へ消える丸） */
-let halo: THREE.CanvasTexture | null = null
+let halo: THREE.Texture | null = null
 export function haloTexture() {
   if (halo) return halo
-  const size = 64
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
-  const g = canvas.getContext('2d')!
-  const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-  grad.addColorStop(0, 'rgba(255,255,255,1)')
-  grad.addColorStop(0.15, 'rgba(255,255,255,0.6)')
-  grad.addColorStop(0.45, 'rgba(255,255,255,0.12)')
-  grad.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, size, size)
-  halo = new THREE.CanvasTexture(canvas)
-  halo.colorSpace = THREE.SRGBColorSpace
+  halo = radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.15, 255, 255, 255, 0.6],
+      [0.45, 255, 255, 255, 0.12],
+      [1, 255, 255, 255, 0],
+    ],
+    64,
+    true,
+  )
   return halo
 }
 

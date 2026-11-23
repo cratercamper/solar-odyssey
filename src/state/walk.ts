@@ -39,6 +39,10 @@ type WalkState = {
   sitting: boolean
   /** 近くに座れるベンチがある */
   benchNear: boolean
+  /** ビルの屋上のふちの近くにいる（腰かけられる） */
+  edgeNear: boolean
+  /** ホバースクーターで、ビルの平らな屋上の上を飛んでいる（降りると屋上に止まる） */
+  overRoof: boolean
   /** ホバースクーターに乗っている */
   riding: boolean
   /** ホバースクーターで空を飛んでいる（高速） */
@@ -83,6 +87,8 @@ export const useWalk = create<WalkState>(() => ({
   run: false,
   sitting: false,
   benchNear: false,
+  edgeNear: false,
+  overRoof: false,
   riding: false,
   flying: false,
   waterNote: 0,

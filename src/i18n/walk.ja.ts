@@ -25,6 +25,8 @@ export const walkJa = {
   viewChase: '後ろから',
   viewEye: '自分の目',
   sit: 'ベンチに座る',
+  /** ビルの屋上のふちで */
+  sitEdge: 'ふちに座る',
   stand: '立つ',
   jump: 'ジャンプ',
   run: '走る',
@@ -34,13 +36,17 @@ export const walkJa = {
   hop: 'ホップ',
   sky: '空を飛ぶ（高速）',
   skyOff: '地面へ降りる',
+  /** ビルの屋上の上で */
+  roofLand: '屋上へ降りる',
   skyNote: '窓（ガラス）の上には降りられません。橋か大地の上まで行ってから降りてください',
-  skyHint: 'W 進む・S ブレーキ・A D 曲がる・Shift ブースト（時速 360 km）・マウス 見回す・G 地面へ降りる・F 降りて歩く',
+  skyHint: 'W 進む・S ブレーキ・A D 曲がる・Shift ブースト（時速 360 km）・マウス 見回す・G 地面か屋上へ降りる・F 降りて歩く',
   kmh: (v: number) => `時速 ${v} km`,
   waterNote: '水の上では降りられません。岸まで行ってから降りてください',
   rideHint: 'W 進む・S ブレーキ／後ろへ・A D 曲がる・Shift ブースト・スペース ホップ・G 空を飛ぶ・マウス 見回す・F 降りる',
   walkTo: (name: string) => `${name}に降りて歩く`,
   keysHint: 'W A S D 歩く・Shift 走る・スペース ジャンプ・マウス 見回す（クリックで固定）・ホイール 距離・E 座る・F ホバースクーター・V 見方・J 船へ',
+  /** 軸の駅で（スクーターもベンチもない。翼をつけられる） */
+  stationHint: 'W A S D 歩く・Shift 走る・スペース ジャンプ・マウス 見回す（クリックで固定）・ホイール 距離・R 翼をつける・V 見方・J 船へ',
   arrived: (name: string) => `${name}の公園に降りました。見上げると、向こう側の大地が空の代わりに広がっています`,
   gee: (g: number) => `重さ ${g.toFixed(2)} G`,
   elevUp: '軸へのエレベーターに乗る',
@@ -52,7 +58,12 @@ export const walkJa = {
   peopleLoading: '人を読み込み中…',
   wingsOn: '翼をつける',
   wingsOff: '翼をはずす',
-  wingsHint: 'W 速く（降りながら）・S 急降下・A D／マウス 曲がる・スペース 羽ばたく・Shift もっと速く・R 翼をはずす（着いてから）',
+  wingsHint: 'W 機首を下げる（降りて速く）・S 機首を上げる（上がって遅く）・A D／マウス 傾けて曲がる・スペース 羽ばたく・Shift もっと急降下・R 翼をはずす（着いてから）',
+  /** 翼の姿勢計：機首の角度・上がる（+）／下がる（-）速さ・地面からの高さ */
+  wingPitch: (deg: number) => `機首 ${deg > 0 ? '+' : ''}${deg}°`,
+  wingClimb: (v: number) => `${v >= 0 ? '上昇' : '降下'} ${Math.abs(v).toFixed(1)} m/s`,
+  wingAlt: (h: number) => `高さ ${Math.round(h).toLocaleString()} m`,
+  wingStall: '失速！ W で機首を下げて',
   wingsNote: '翼をつけました。デッキの先から飛び出して、羽ばたいて（スペース）軸を離れよう。下へ行くほど重くなり、翼で風を受けて滑空できます',
   flap: '羽ばたく',
 }

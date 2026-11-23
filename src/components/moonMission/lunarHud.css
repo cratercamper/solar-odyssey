@@ -284,6 +284,20 @@
     right: 10px;
     bottom: 140px;
   }
+  /* 「いま、やること」は矢印のボタンの上に、折り返して（計器と重なっていた） */
+  .lh-manual-hint {
+    bottom: 306px;
+    width: calc(100vw - 16px);
+  }
+  .lh-coach {
+    white-space: normal;
+    text-align: center;
+    font-size: 13px;
+  }
+  /* 字幕は、さらにその上 */
+  .mm-hud:has(.lh-pad) .mm-caption {
+    bottom: 372px;
+  }
 }
 
 /* 着陸のあとの結果は下に（着陸船が見えるように） */

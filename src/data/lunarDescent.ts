@@ -274,6 +274,8 @@ export type Descent = {
   /** 手動（P66）。降りる速さの指示（m/s、下が -） */
   manual: boolean
   vCmd: number
+  /** 手動のとき、自動の降りる速さに足す分（m/s、上が +。W/S・ボタンで 0.3 ずつ） */
+  trim: number
   /** おまかせ（最後まで自動で降りる） */
   auto: boolean
   /** 着陸レーダーが地面をとらえた */
@@ -331,6 +333,7 @@ export function startDescent(pl: Plane, f: SiteFrame, ground: Ground, before = 6
     pdiAt: null,
     manual: false,
     vCmd: -1,
+    trim: 0,
     auto: false,
     radar: false,
     said: new Set(),
@@ -452,8 +455,30 @@ export function takeOver(d: Descent) {
   d.manual = true
   d.auto = false
   d.vCmd = THREE.MathUtils.clamp(Math.round(d.vUp / 0.3) * 0.3, -6, 0)
+  d.trim = 0
   return true
 }
+
+/** 降下の状態の写し（手動に切り替えた所から、もう一度やり直すため） */
+export function cloneDescent(d: Descent): Descent {
+  return {
+    ...d,
+    r: d.r.clone(),
+    v: d.v.clone(),
+    dir: d.dir.clone(),
+    target: d.target.clone(),
+    spot: d.spot.clone(),
+    track: d.track.clone(),
+    said: new Set(d.said),
+    touch: d.touch ? { ...d.touch } : null,
+  }
+}
+
+/**
+ * 自動の降りる速さ（m/s、下が -）：高さに合わせて、だんだんゆっくり。地面の近くで 1 m/s（本物の接地も 1 m/s ほど）。
+ * 高いところではもう少し速く降りる（300 m から 90 秒かかって退屈だった。junji 2026-11-23）
+ */
+const sinkFor = (alt: number) => -THREE.MathUtils.clamp(1.0 + alt * 0.045, 1.0, 5.5)
 
 const MAX_TILT = THREE.MathUtils.degToRad(35)
 /** 機体が向きを変えられる速さ（rad/s） */
@@ -647,21 +672,29 @@ const _lt = new THREE.Vector3()
 function terminalAccel(d: Descent, input: DescentInput, out: THREE.Vector3) {
   const up = _up
   if (d.manual) {
-    d.vCmd = THREE.MathUtils.clamp(d.vCmd + input.rod * 0.3, -6, 1.5)
+    // 手動でも、降りる速さは自動の速さが土台（はじめての人は横の操縦だけに集中できる）。W/S で少し速く・ゆっくり。
+    // 推進剤が残り少なくなったら、ゆっくりにはできない（燃料切れで落ちないように）
+    d.trim = THREE.MathUtils.clamp(d.trim + input.rod * 0.3, -2.1, 1.5)
     input.rod = 0
-  } else {
-    // 自動：高さに合わせて、だんだんゆっくり
-    d.vCmd = -THREE.MathUtils.clamp(0.9 + d.alt * 0.028, 0.9, 5)
-  }
+    if (d.hover - BINGO < 15) d.trim = Math.min(d.trim, -0.6)
+    // 地面の近くでは、速く降りすぎない（脚がこわれない 2.4 m/s まで）
+    d.vCmd = Math.max(sinkFor(d.alt) + d.trim, d.alt < 30 ? -2.4 : -6)
+  } else d.vCmd = sinkFor(d.alt)
   const aUp = THREE.MathUtils.clamp((d.vCmd - d.vUp) * 1.2, -1.2, 2.5)
   out.copy(up).multiplyScalar(aUp)
   // 横
   const vh = _vh.copy(d.v).addScaledVector(up, -d.vUp)
   if (d.manual) {
+    // 押した向きへ「横の速さ」を指示する（離すと、機体が自分で横の動きを止める）。
+    // 押した分だけ傾き続ける操縦（本物の P66 に近い）は、ちょっと押すだけで行き過ぎて止められなかった（junji 2026-11-23）。
+    // 速さの上限は高さで小さく：着く前は 0.5 m/s ほど（脚が横すべりしない）
     const { down, right } = aimFrame(d)
     _tmp.copy(down).multiplyScalar(input.fwd).addScaledVector(right, input.right)
     if (_tmp.lengthSq() > 1) _tmp.normalize()
-    out.addScaledVector(_tmp, 1.1)
+    const vmax = THREE.MathUtils.clamp(0.3 + d.alt * 0.075, 0.3, 10)
+    const ah = _tmp.multiplyScalar(vmax).sub(vh).multiplyScalar(0.7)
+    if (ah.length() > 1.4) ah.setLength(1.4)
+    out.add(ah)
   } else {
     // 目標までの横のずれ
     const there = _tmp.copy(d.target).normalize().multiplyScalar(d.r.length()).sub(d.r)

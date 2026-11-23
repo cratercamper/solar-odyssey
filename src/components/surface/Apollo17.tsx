@@ -7,6 +7,7 @@ import { useHistoric, visitHistoric } from '../../state/historic'
 import { roverPose, useRover } from '../../state/rover'
 import { useRally } from '../../state/rally'
 import { EVA_STOPS, useApolloEva } from '../../state/apolloEva'
+import { radialGlowTexture } from '../radialGlow'
 
 // アポロ17号の史跡（タウルス・リットロウ谷）：着陸船の下半分・旗・月面車・ALSEP と、観測点1〜9の光の柱。
 // ローバーで近づくと visitHistoric() で記録し、カード（HistoricCard）を出す。物には当たり判定はない。
@@ -73,16 +74,11 @@ function numberTexture(n: number) {
 
 /** 真ん中が濃く、ふちが消える丸（オレンジの土） */
 function softDisc() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 64
-  const g = c.getContext('2d')!
-  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-  grd.addColorStop(0, 'rgba(255,255,255,1)')
-  grd.addColorStop(0.55, 'rgba(255,255,255,0.8)')
-  grd.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grd
-  g.fillRect(0, 0, 64, 64)
-  return new THREE.CanvasTexture(c)
+  return radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.55, 255, 255, 255, 0.8],
+    [1, 255, 255, 255, 0],
+  ])
 }
 
 function makeMats(prepare: Prep) {

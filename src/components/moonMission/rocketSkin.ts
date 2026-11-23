@@ -44,7 +44,9 @@ const SKIN = /* glsl */ `
     // ストリンガー：周り 16 cm ごとの、角の丸い山（波板のように光と影が並ぶ）
     float sp = fract(uv.x / 0.16);
     float ridge = smoothstep(0.0, 0.25, sp) * (1.0 - smoothstep(0.55, 0.8, sp));
-    float strAA = 1.0 - smoothstep(0.3, 0.55, pxX / 0.16);
+    // 1 本の山が画面の 7 画素より細くなったら消していく（法線の傾きは画素の差から作るので、細かいとチラチラの点々になる。
+    // スマホの 108 km の後ろからのカットで、第2段と第3段のあいだの筒が点々に見えた）
+    float strAA = 1.0 - smoothstep(0.14, 0.28, pxX / 0.16);
     float str = zone * ridge * strAA;
     // ストリンガーの区画の上下のふちの輪（太い継ぎ目）
     float band = skLine(uv.y / 0.9, 0.02, pxY / 0.9) * zone;

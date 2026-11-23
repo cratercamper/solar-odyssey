@@ -4,6 +4,7 @@ import { playMusic, preloadMusic, stopMusic } from '../audio/missionMusic'
 import { playStatic } from '../audio/sfx'
 import * as THREE from 'three'
 import {
+  cloneDescent,
   emptyInput,
   ignitePdi,
   landingStars,
@@ -182,13 +183,29 @@ function beginPdi() {
   playRadio('pdi', 3.6)
 }
 
+/** 手動に切り替えた瞬間の写し（うまく着けなかったら、ここからやり直せる。切り離しからだと長すぎた） */
+let manualSnap: Descent | null = null
+/** 手動に切り替えた所からやり直せるか */
+export const canRetryManual = () => manualSnap !== null
+
 /** 手動（P66）に切り替える */
 export function manual() {
   const d = lunar.desc
   if (!d || !takeOver(d)) return
+  manualSnap = cloneDescent(d)
   useMoonMission.setState({ auto: false })
   setCaption('manual')
   autoCam('window')
+}
+
+/** 手動に切り替えた所（高さ約 300 m）から、もう一度 */
+export function retryManual() {
+  if (!manualSnap) return
+  lunar.desc = cloneDescent(manualSnap)
+  lunar.input = emptyInput()
+  useMoonLunar.setState({ stars: 0 })
+  useMoonMission.setState({ phase: 'descent', since: missionNow(), auto: false, cam: 'window', camLocked: false })
+  setCaption('manual')
 }
 
 /** おまかせ（自動で最後まで） */
@@ -280,11 +297,14 @@ function warpFor(phase: string) {
     // 降下の窓：初めは少し早送りして、手本の時刻（0）が近づいたら等速（タイミングを合わせやすく）
     if (d.mode === 'coast') return d.t < PDI_IDEAL - 14 ? 2 : 1
     const pdi = d.t - (d.pdiAt ?? d.t)
+    // 2026-11-23：着陸が退屈すぎた（junji）。制動は速く早送りし、接近・最後の降下も少し速く
     if (d.mode === 'braking') {
       if (pdi < 20) return 1
-      return d.tgo < 40 ? 2 : 12
+      return d.tgo < 40 ? 4 : d.tgo < 90 ? 12 : 24
     }
-    if (d.mode === 'approach') return 1.3
+    if (d.mode === 'approach') return 3
+    // 最後の降下：高さ 60 m までは 2 倍（おまかせは 2.5 倍）、20 m までは 1.5 倍。接地のまぎわだけ等速
+    if (d.mode === 'terminal') return d.alt > 60 ? (d.manual ? 2 : 2.5) : d.alt > 20 ? 1.5 : 1
     return 1
   }
   return 1
@@ -432,6 +452,7 @@ const _dir = new THREE.Vector3()
 /** 12 周後：着陸船の物理を、PDI の少し前から始める */
 function beginUndock() {
   if (useMoonMission.getState().phase !== 'loi') return
+  manualSnap = null
   lunar.desc = startDescent(plane, FRAME, ground, UNDOCK_BEFORE)
   lunar.desc.groundOk = !!lunarMaps()
   lunar.desc.auto = useMoonMission.getState().auto

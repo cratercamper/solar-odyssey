@@ -153,6 +153,43 @@ export function roofAt(s: number, y: number, r: number) {
 }
 const roofs: Building[] = []
 
+/** これより高いビルは屋上が平ら（低い家は切妻屋根：WalkChunks と同じ境目） */
+export const FLAT_ROOF = 12
+
+/** 平らな屋上の上にいるなら、そのビル。h：今の高さ m（屋上とほぼ同じか、それより上にいるときだけ） */
+export function roofUnder(s: number, y: number, h: number): Building | null {
+  const w = stripAt(s)
+  if (!w) return null
+  roofs.length = 0
+  itemsIn(w.k, 'buildings', w.ps - 120, w.ps + 120, y - 120, y + 120, roofs)
+  let best: Building | null = null
+  for (const b of roofs) {
+    if (b.h < FLAT_ROOF || b.h > h + 0.3) continue
+    if (Math.abs(w.ps - b.s) <= b.w / 2 && Math.abs(y - b.y) <= b.d / 2 && (!best || b.h > best.h)) best = b
+  }
+  return best
+}
+
+/** 足もとの屋上の高さ（屋上の上でなければ 0） */
+export const roofFloor = (s: number, y: number, h: number) => roofUnder(s, y, h)?.h ?? 0
+
+/**
+ * 屋上のいちばん近いふち：ふちまでの距離 m と、ふちに腰かける所（s, y：ふちから out m 外）と、外を向く向き（WalkActors の体の向き）
+ */
+export function roofEdge(s: number, y: number, b: Building, out = 0.25) {
+  const w = stripAt(s)
+  if (!w) return null
+  const dx = w.ps - b.s
+  const dy = y - b.y
+  const ex = b.w / 2 - Math.abs(dx)
+  const ey = b.d / 2 - Math.abs(dy)
+  const sx = dx < 0 ? -1 : 1
+  const sy = dy < 0 ? -1 : 1
+  // 体の向き yaw は、前が (-sin yaw, -cos yaw)（s, y の向き）
+  if (ex < ey) return { dist: ex, s: walkS(w.k, b.s + sx * (b.w / 2 + out), s), y, yaw: Math.atan2(-sx, 0) }
+  return { dist: ey, s, y: b.y + sy * (b.d / 2 + out), yaw: Math.atan2(0, -sy) }
+}
+
 /* ---------- 歩く人を押し出す・止める ---------- */
 
 const near: (Building | Tree)[] = []

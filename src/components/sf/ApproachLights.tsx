@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ship } from '../../state/flight'
 import { COLONY_LENGTH as L, COLONY_PORT as PORT } from '../../data/sf'
+import { radialGlowTexture } from '../radialGlow'
 
 // コロニーの港へ入る船のための、宇宙へ伸びる誘導灯（オリジナルのデザイン。考え方は実在の方式から）。
 // - 接近の回廊：ISS へ近づく宇宙船は、ドッキング口から外へ広がる円すい形の「接近回廊」の中を通る決まり。
@@ -30,17 +31,12 @@ type Kind = 0 | 1 | 2 | 3
 // 0 回廊のブイ、1 流れる閃光、2 外側の目印、3 進入角指示灯
 
 function pointsTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 64
-  const g = c.getContext('2d')!
-  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-  grad.addColorStop(0, 'rgba(255,255,255,1)')
-  grad.addColorStop(0.2, 'rgba(255,255,255,0.8)')
-  grad.addColorStop(0.5, 'rgba(255,255,255,0.18)')
-  grad.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, 64, 64)
-  return new THREE.CanvasTexture(c)
+  return radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.2, 255, 255, 255, 0.8],
+    [0.5, 255, 255, 255, 0.18],
+    [1, 255, 255, 255, 0],
+  ])
 }
 
 const VERT = /* glsl */ `

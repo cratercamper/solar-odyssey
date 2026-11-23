@@ -137,3 +137,11 @@
     max-height: calc(100vh - 16px);
   }
 }
+
+/* ミッションで流れる曲（曲名のカードのかわりに、一覧の下にだけ小さく） */
+.cm-music {
+  margin: 10px 4px 2px;
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.6;
+}

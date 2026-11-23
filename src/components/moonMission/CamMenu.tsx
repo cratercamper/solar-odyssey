@@ -35,6 +35,7 @@ export function CamMenu() {
               {i === 0 && list.length > 1 && <i>{T.camBest}</i>}
             </button>
           ))}
+          <p className="cam-zoom">{T.camZoom}</p>
         </div>
       )}
     </span>

@@ -50,6 +50,7 @@ export function ChapterMenu() {
               </li>
             ))}
           </ol>
+          <p className="cm-music">♪ {T.music}</p>
         </div>
       )}
     </>

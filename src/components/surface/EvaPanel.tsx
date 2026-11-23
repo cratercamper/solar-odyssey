@@ -3,7 +3,7 @@ import { useLang } from '../../i18n/lang'
 import { ui } from '../../i18n'
 import { isTouchDevice } from '../../state/input'
 import { bindRoverKeys, roverInput, useRover } from '../../state/rover'
-import { EVA_STOPS, evaSite, leaveApolloEva, nextLeg, restartEva, skipDrive, takeSample, useApolloEva, watchLiftoff } from '../../state/apolloEva'
+import { EVA_STOPS, HOP, evaSite, hopDrive, leaveApolloEva, nextLeg, restartEva, skipDrive, takeSample, useApolloEva, watchLiftoff } from '../../state/apolloEva'
 import { RoverHud, RoverMap } from './RoverHud'
 import { RadioSubtitle } from '../moonMission/RadioSubtitle'
 import { useRadio } from '../../audio/radio'
@@ -93,9 +93,16 @@ export function EvaPanel() {
             {T.distance(km(dist))} <Direction turn={turn} />
           </div>
           {step === 'back' && <div className="ae-note">{T.parkHint}</div>}
-          <button className="secondary ae-skip" onClick={skipDrive} title={T.skipTip}>
-            {T.skip}
-          </button>
+          <div className="ae-skips">
+            {dist > HOP + 300 && (
+              <button className="secondary ae-skip" onClick={hopDrive} title={T.hopTip}>
+                {T.hop}
+              </button>
+            )}
+            <button className="secondary ae-skip" onClick={skipDrive} title={T.skipTip}>
+              {T.skip}
+            </button>
+          </div>
         </div>
       )}
 

@@ -435,3 +435,51 @@
     text-align: center;
   }
 }
+
+/*
+ * スマホのたて画面：表示が重ならないように（junji 2026-11-23「色々画面表示が重なっちゃって」）。
+ *   上：左に数字の板、右に「いまどこ」の帯。その下の右に、ボタン（カメラ・おまかせ・章・終わる）をたてに細く。
+ *   左上（数字の板の下）：図のカード（上昇の図・軌道の図・月の裏の図）を小さく。
+ *   下：字幕と、点火などの大きなボタン・操縦の部品だけ。
+ */
+@media (max-width: 700px) and (orientation: portrait) {
+  .mm-hud .mm-panel {
+    max-width: calc(100vw - 236px);
+    padding: 7px 9px;
+  }
+  .mm-hud .mm-buttons {
+    top: 94px;
+    bottom: auto;
+    right: 8px;
+    width: 150px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .mm-hud .mm-buttons > * {
+    max-width: 150px;
+  }
+  .mm-hud .mm-buttons button {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mm-hud .ac-card,
+  .mm-hud .lc-card,
+  .mm-hud .ac-card.raised,
+  .mm-hud .ac-card.high {
+    top: 178px;
+    bottom: auto;
+    left: 8px;
+    width: 250px;
+    transform: scale(0.74);
+    transform-origin: top left;
+  }
+  .radio-sub {
+    top: auto;
+    bottom: 230px;
+  }
+}

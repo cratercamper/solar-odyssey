@@ -12,6 +12,7 @@ import { DESERT_ID, DESERT_POS, EXO_RADIUS as R, EXO_TEXT, GATE_ID, ICE_ID, ICE_
 import { useLang } from '../../i18n/lang'
 import { LABEL_Z } from '../labels'
 import { ui } from '../../i18n'
+import { radialGlowTexture } from '../radialGlow'
 
 type Star = {
   /** 星の色（明るさこみ）と、見かけの大きさ（表示単位の半径） */
@@ -38,16 +39,14 @@ const STAR_DISTANCE = 1500
 const UP = new THREE.Vector3(0, 1, 0)
 
 function glowTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 128
-  const g = c.getContext('2d')!
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64)
-  grad.addColorStop(0, 'rgba(255,255,255,1)')
-  grad.addColorStop(0.2, 'rgba(255,255,255,0.5)')
-  grad.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, 128, 128)
-  return new THREE.CanvasTexture(c)
+  return radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.2, 255, 255, 255, 0.5],
+      [1, 255, 255, 255, 0],
+    ],
+    128,
+  )
 }
 
 /**

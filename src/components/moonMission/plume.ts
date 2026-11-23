@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OUT_CHUNK } from './shaderOut'
+import { radialGlowTexture } from '../radialGlow'
 
 // ロケットの噴射の炎。円すい（ノズルの口が細い側）を、加算の光で描く。
 // 地上では細く締まった炎、空気の薄い高い所では、外へ大きく広がる（本物の映像でも高く上がるほど炎がふくらむ）。
@@ -52,7 +53,7 @@ const frag = /* glsl */ `
     // 横から見た縁はうすく、まん中は濃く（立体の炎らしく）
     float rim = pow(abs(dot(normalize(vN), normalize(vV))), uSoft);
     float n = noise(vec2(vUv.x * 9.0, vS * 7.0 - uTime * 9.0)) * 0.6 + noise(vec2(vUv.x * 23.0, vS * 19.0 - uTime * 17.0)) * 0.4;
-    float body = pow(1.0 - vS, 1.4) * (0.7 + 0.6 * n);
+    float body = pow(max(0.0, 1.0 - vS), 1.4) * (0.7 + 0.6 * n);
     float hot = smoothstep(0.35, 0.0, vS);
     vec3 col = mix(uEdge, uCore, hot * rim);
     float a = body * rim * uPower;
@@ -94,15 +95,11 @@ export function plumeGeometry() {
 let glowTex: THREE.Texture | null = null
 export function glowTexture() {
   if (glowTex) return glowTex
-  const c = document.createElement('canvas')
-  c.width = c.height = 64
-  const g = c.getContext('2d')!
-  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-  grd.addColorStop(0, 'rgba(255,255,255,1)')
-  grd.addColorStop(0.25, 'rgba(255,255,255,0.55)')
-  grd.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grd
-  g.fillRect(0, 0, 64, 64)
-  glowTex = new THREE.CanvasTexture(c)
+  // canvas のグラデーションは使わない（iPhone で、引きのばすと赤・緑のしみになる。radialGlow.ts）
+  glowTex = radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.25, 255, 255, 255, 0.55],
+    [1, 255, 255, 255, 0],
+  ])
   return glowTex
 }

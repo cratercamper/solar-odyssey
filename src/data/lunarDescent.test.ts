@@ -12,7 +12,6 @@ import {
   stepStack,
   takeOver,
   targetOffset,
-  sideSpeeds,
   landingStars,
   LOI_IDEAL,
   PDI_LATE,
@@ -95,20 +94,46 @@ describe('powered descent', () => {
     const { d } = descend({
       manual: (d, inp) => {
         if (!taken) taken = takeOver(d)
+        // 矢印は「その向きへ動く」指示：目標の向きへ、近づくほど弱く押す
         const o = targetOffset(d)
-        const v = sideSpeeds(d)
-        inp.fwd = THREE.MathUtils.clamp((THREE.MathUtils.clamp(o.fwd * 0.06, -8, 8) - v.fwd) * 0.6, -1, 1)
-        inp.right = THREE.MathUtils.clamp((THREE.MathUtils.clamp(o.right * 0.06, -8, 8) - v.right) * 0.6, -1, 1)
-        const want = -Math.min(4, 0.6 + d.alt * 0.025)
-        if (d.vCmd < want - 0.15) inp.rod = 1
-        else if (d.vCmd > want + 0.15) inp.rod = -1
+        inp.fwd = THREE.MathUtils.clamp(o.fwd * 0.1, -1, 1)
+        inp.right = THREE.MathUtils.clamp(o.right * 0.1, -1, 1)
       },
     })
-    console.log('manual', d.touch, Math.round(d.prop))
+    console.log('manual', d.touch, Math.round(d.prop), targetOffset(d).dist)
     expect(d.mode).toBe('landed')
     expect(d.manual).toBe(true)
     expect(Math.abs(d.touch!.vUp)).toBeLessThan(1.2)
     expect(d.touch!.miss).toBeLessThan(60)
     expect(landingStars(d)).toBe(3)
+  })
+  it('a first-time pilot who mashes a direction and lets go still lands safely', () => {
+    let taken = false
+    let held = 0
+    const { d } = descend({
+      manual: (d, inp) => {
+        if (!taken) taken = takeOver(d)
+        // 初めの 6 秒、右を押しっぱなし。そのあとは何もしない（W/S も押さない）
+        held += 0.1
+        inp.right = held < 6 ? 1 : 0
+        inp.fwd = 0
+      },
+    })
+    expect(d.mode).toBe('landed')
+    expect(Math.abs(d.touch!.vUp)).toBeLessThan(2.5)
+    expect(d.touch!.vSide).toBeLessThan(1)
+    expect(landingStars(d)).toBeGreaterThan(0)
+  })
+  it('holding "faster" all the way down cannot break the legs', () => {
+    let taken = false
+    const { d } = descend({
+      manual: (d, inp) => {
+        if (!taken) taken = takeOver(d)
+        inp.rod = -1
+      },
+    })
+    expect(d.mode).toBe('landed')
+    expect(Math.abs(d.touch!.vUp)).toBeLessThan(3)
+    expect(landingStars(d)).toBeGreaterThan(0)
   })
 })

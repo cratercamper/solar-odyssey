@@ -18,6 +18,7 @@ import { launchRover, roverAutoGas, roverCtl, roverInput, roverPose, useRover, u
 import { useLanding } from '../../state/landing'
 import { lowMemory, useLevel } from '../../state/quality'
 import { MAP_KEYS, shrinkTexture } from './shrinkTexture'
+import { radialGlowTexture } from '../radialGlow'
 
 // 峡谷レースの場面：光の門、コンピューターが運転する 3 台のローバー、門の判定・順位・タイム。
 // 自分のローバーは Rover.tsx がそのまま走らせ、ここからは roverCtl（置く・止める・色・押す）で動かす。
@@ -219,17 +220,11 @@ const BOT_POSE = (() => {
 let glowTex: THREE.Texture | null = null
 function glowTexture() {
   if (glowTex) return glowTex
-  const N = 64
-  const c = document.createElement('canvas')
-  c.width = c.height = N
-  const g = c.getContext('2d')!
-  const grd = g.createRadialGradient(N / 2, N / 2, 0, N / 2, N / 2, N / 2)
-  grd.addColorStop(0, 'rgba(255,255,255,1)')
-  grd.addColorStop(0.25, 'rgba(255,255,255,0.55)')
-  grd.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grd
-  g.fillRect(0, 0, N, N)
-  glowTex = new THREE.CanvasTexture(c)
+  glowTex = radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.25, 255, 255, 255, 0.55],
+    [1, 255, 255, 255, 0],
+  ])
   return glowTex
 }
 

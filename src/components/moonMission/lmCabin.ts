@@ -18,7 +18,7 @@ const WIN_LEN = Math.hypot(WIN_DY, WIN_DZ)
 
 /** 船長の目（船長のからだは描かない）：左の三角の窓から月面を見下ろす。右に計器盤と着陸船操縦士 */
 export const LM_EYE = new THREE.Vector3(-0.6, 4.95, -1.12)
-export const LM_LOOK = new THREE.Vector3(-0.66, 4.3, -3.0)
+export const LM_LOOK = new THREE.Vector3(-0.62, 4.45, -3.0)
 
 /**
  * 骨で曲げた宇宙服を、ふつうの（骨の無い）形に焼きこむ。

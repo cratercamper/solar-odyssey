@@ -17,7 +17,8 @@ mkdirSync(OUT, { recursive: true })
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const server = await serve(DIST)
 const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] })
-const ctx = await browser.newContext({ viewport: { width: W, height: H } })
+// DPR：画面の細かさ（スマホは 3）。HASH：#debug に足す（phone でスマホの軽い設定）
+const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: Number(process.env.DPR || 1) })
 await ctx.addInitScript((q) => {
   try {
     localStorage.setItem('solar-voyager:settings', JSON.stringify({ lang: 'ja', music: false, muted: true, quality: q }))
@@ -25,7 +26,7 @@ await ctx.addInitScript((q) => {
 }, QUALITY)
 const page = await ctx.newPage()
 page.on('pageerror', (e) => console.log('PAGEERROR', e.message))
-await page.goto(`http://localhost:${server.address().port}/#debug`)
+await page.goto(`http://localhost:${server.address().port}/#debug${process.env.HASH ? ',' + process.env.HASH : ''}`)
 await page.waitForFunction(() => window.__sv && window.__sv.moonMission, null, { timeout: 120000 })
 await sleep(3000)
 await page.evaluate(() => window.__sv.moonMission.start())

@@ -95,6 +95,12 @@
   color: #ffd27a;
   transition: transform 0.2s linear;
 }
+.ae-skips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
 .ae-skip {
   font-size: 13px !important;
   padding: 6px 14px !important;

@@ -10,6 +10,7 @@ import { LABEL_Z, useHideBehindSun } from '../labels'
 import { useSite } from './useSite'
 import { useFarLod } from '../../hooks/useFarLod'
 import { moonCityModel } from './moonCityModel'
+import { radialGlowTexture } from '../radialGlow'
 
 // 月の都（『竹取物語』から。オリジナルのデザイン）。月の裏側の真ん中、クレーターの底にある光の都。
 // 建物（御殿・門・塀・太鼓橋の架かる光る池・五重の塔・桂の大木・町並み）は moonCityModel.ts。
@@ -30,18 +31,15 @@ const up = new THREE.Vector3()
 
 /** 灯や後光に使う、まるくぼけた光 */
 function softTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 64
-  const g = c.getContext('2d')!
-  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-  grad.addColorStop(0, 'rgba(255,255,255,1)')
-  grad.addColorStop(0.35, 'rgba(255,255,255,0.55)')
-  grad.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, 64, 64)
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
+  return radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.35, 255, 255, 255, 0.55],
+      [1, 255, 255, 255, 0],
+    ],
+    64,
+    true,
+  )
 }
 
 /** 月の丸みに合わせた、地面の高さ（模型の単位） */

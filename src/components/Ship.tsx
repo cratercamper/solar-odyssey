@@ -427,8 +427,8 @@ export function Ship() {
     flightControl.holding = hold.current !== null
     const zoomIn = st.mode === 'map' ? 1 : 1 / shipZoom.factor
     group.current.position.copy(ship.position)
-    // チャージビームを溜めているあいだ、船体を小刻みに震わせる
-    if (beamFx.tremble > 0) group.current.position.add(v.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(beamFx.tremble * shipScale() * 0.025))
+    // チャージビームを溜めているあいだ、船体を小刻みに震わせる（ブリッジの中では震わせない：部屋は震えないので、窓の下の船体だけ数 m 跳ねる）
+    if (beamFx.tremble > 0 && !(st.mode === 'flight' && st.cameraMode === 'bridge')) group.current.position.add(v.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(beamFx.tremble * shipScale() * 0.025))
     group.current.quaternion.copy(ship.quaternion)
     group.current.scale.setScalar(shipScale())
     // 船体の傾き：機首の左右の回りの速さ（ヨー）に合わせて、ゆっくり傾けて戻す
@@ -485,7 +485,8 @@ export function Ship() {
       }
       if (launchFx.camera > 0 && !bridgeView) launchCamera(cam, dt)
       if (flyIn.t < 1) flyInCamera(cam, rawDelta)
-      if (st.settings.beamFx.shake) shakeCamera(cam, rawDelta, shipScale())
+      // ブリッジの中では揺らさない（部屋は揺れないので、宇宙のカメラだけ数 m 跳ねて、窓の下の船体がばたばた動き、目が船体にもぐる）
+      if (st.settings.beamFx.shake && !bridgeView) shakeCamera(cam, rawDelta, shipScale())
       else beamFx.shake = 0
     }
 
@@ -512,7 +513,7 @@ export function Ship() {
       <group ref={group} name="ownship" scale={SHIP_SCALE}>
         <group ref={bank}>
           <Suspense fallback={null}>
-            <OwnShipModel spec={spec} unitScale={shipScale} />
+            <OwnShipModel spec={spec} unitScale={shipScale} own />
           </Suspense>
           <EngineFx key={spec.id} spec={spec} />
           {spec.id === 'arcadia' && (

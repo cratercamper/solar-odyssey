@@ -6,6 +6,7 @@ import type { Terrain } from './terrain'
 import { APOLLO17 } from '../../data/apollo17'
 import { LIFTOFF_AT, evaNow, useApolloEva } from '../../state/apolloEva'
 import { TV_EYE, lrvPose } from './LunarRover'
+import { radialGlowTexture } from '../radialGlow'
 
 // アポロ17号の追体験・章7：タウルス・リトロー谷に立つ着陸船チャレンジャー号（上の段つき。模型は apollo.glb）。
 // 最後に、月面車のテレビカメラ（TV_EYE）から見送る離陸：下の段を発射台にして、上の段だけが飛び立つ。
@@ -80,16 +81,11 @@ export function LunarModule({ terrain, prepare }: { terrain: Terrain; prepare: (
     owned.push(geo, bitsMat)
     // エンジンの光（ほとんど見えない炎。点火の一瞬だけ明るい）
     // まるくぼける光（テクスチャなしだと四角になる）
-    const gc = document.createElement('canvas')
-    gc.width = gc.height = 64
-    const g2 = gc.getContext('2d')!
-    const grad = g2.createRadialGradient(32, 32, 0, 32, 32, 32)
-    grad.addColorStop(0, 'rgba(255,255,255,1)')
-    grad.addColorStop(0.25, 'rgba(255,255,255,0.45)')
-    grad.addColorStop(1, 'rgba(255,255,255,0)')
-    g2.fillStyle = grad
-    g2.fillRect(0, 0, 64, 64)
-    const glowTex = new THREE.CanvasTexture(gc)
+    const glowTex = radialGlowTexture([
+      [0, 255, 255, 255, 1],
+      [0.25, 255, 255, 255, 0.45],
+      [1, 255, 255, 255, 0],
+    ])
     owned.push(glowTex)
     const glowMat = new THREE.SpriteMaterial({ map: glowTex, color: new THREE.Color(2.2, 1.5, 0.8), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })
     const glow = new THREE.Sprite(glowMat)

@@ -23,6 +23,8 @@ export const apolloEvaJa = {
   right: '右へ',
   ahead: 'まっすぐ',
   behind: 'うしろ',
+  hop: '⏩ 1 km 先へ',
+  hopTip: 'まっすぐ走るだけの所を、目的地へ向かって 1 km 進めます（本物の距離はそのまま）',
   skip: '⏩ 移動を飛ばす',
   skipTip: '本物の月面車は時速 10 km ほど。目的地の手前まで一気に進みます',
   arrived: '着いた！',

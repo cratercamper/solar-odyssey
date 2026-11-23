@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { skinCraftMaterial } from './craftSkin'
 
 // アポロの宇宙船（apollo.glb）：司令船・機械船（csm）と着陸船（lm、脚つき）。月のまわりの場面とドッキングの場面で使う。
 // glTF の向き：+Y 上、-Z 前。司令船は先端（ドッキングの探り棒の付け根）が原点で、機首が +Y。着陸船は足の裏が原点
@@ -29,6 +30,8 @@ export function useCraft(): Craft {
       if (!mesh.isMesh) return
       // しわや継ぎ目は glb に焼き込み済み（tools/blender/bake_mission.py）
       mesh.material = (mesh.material as THREE.MeshStandardMaterial).clone()
+      // 近くで見たときの細かさ（テープ・継ぎ目・しわ）をシェーダーで足す
+      skinCraftMaterial(mesh.material)
     })
     const lm = new THREE.Group()
     lm.name = 'lm'

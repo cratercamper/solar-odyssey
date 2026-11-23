@@ -31,6 +31,13 @@
 .mm-hud .cam-panel button.now {
   border-color: rgba(123, 227, 154, 0.7);
 }
+.cam-zoom {
+  margin: 4px 2px 0;
+  max-width: 190px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(220, 232, 255, 0.7);
+}
 .cam-panel i {
   font-style: normal;
   font-size: 11px;

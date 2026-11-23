@@ -27,14 +27,15 @@ export const PROBE = 0.5
 /** 離れる前の司令船の先端の高さ（アダプタ 8.5 m の上に機械船 7.45 m） */
 export const CSM_START_Y = 8.5 + 7.45
 /** 場面の長さ（秒） */
-const SEP_TIME = 7
-const TURN_TIME = 7
+// 2026-11-23 に約半分へ（junji「3 章のドッキングは時間を 2 倍くらいに早めても」）。豆知識のカードが読めるだけは残す
+export const SEP_TIME = 4.5
+export const TURN_TIME = 4.5
 const CAPTURE_TIME = 3.6
-const LATCH_TIME = 14
-const EJECT_TIME = 16.5
-const EVADE_TIME = 7
+const LATCH_TIME = 10
+const EJECT_TIME = 10
+const EVADE_TIME = 5
 /** 引き出しの切り抜きの中で、ばねが押し出す瞬間（秒） */
-export const EJECT_AT = 6.6
+export const EJECT_AT = 4.2
 /** ドッキングの切り抜きの中で、留め金が閉まる「ガチャン」（秒） */
 export const KACHUNK_AT = 4.4
 
@@ -256,7 +257,7 @@ export function tickDock(dt: number) {
       break
     case 'eject':
       // ばねで押し出す（秒速 0.3 m 前後）。早送りで見せる
-      if (t > EJECT_AT) dock.out += dt * 1.2
+      if (t > EJECT_AT) dock.out += dt * 2
       if (t > EJECT_AT && t - dt <= EJECT_AT) setCaption('ejected')
       if (t >= EJECT_TIME) {
         set('evade')
@@ -264,7 +265,7 @@ export function tickDock(dt: number) {
       }
       break
     case 'evade':
-      dock.out += dt * 1.2
+      dock.out += dt * 2
       if (t >= EVADE_TIME) set('dockEnd')
       break
     case 'aim': {

@@ -295,7 +295,7 @@ export function VariantModel({ spec, unitScale = 1, env = true }: { spec: ShipSp
 }
 
 /** 乗っている船の模型（SV-01 か、ほかの船） */
-export function OwnShipModel({ spec, unitScale, env = true }: { spec: ShipSpec; unitScale?: number | (() => number); env?: boolean }) {
+export function OwnShipModel({ spec, unitScale, env = true, own = false }: { spec: ShipSpec; unitScale?: number | (() => number); env?: boolean; own?: boolean }) {
   // 船ごとに作り直す（灯火や投光器の数が船ごとに違うので、前の船の分を残さない）
-  return spec.model ? <VariantModel key={spec.id} spec={spec} unitScale={unitScale} env={env} /> : <ShipModel unitScale={unitScale} env={env} />
+  return spec.model ? <VariantModel key={spec.id} spec={spec} unitScale={unitScale} env={env} /> : <ShipModel unitScale={unitScale} env={env} own={own} />
 }

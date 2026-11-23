@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { frameAt, landPoint } from './park'
+import { radialGlowTexture } from '../radialGlow'
 
 // 公園を速く走るためのホバースクーター（このアプリのオリジナル）。
 // 立って乗る、ハンドルつきの浮く板：真珠色の板のふちに水色の光の帯、板の下に前後 2 つの浮上ポッド。
@@ -43,16 +44,11 @@ function slab(shape: THREE.Shape, h: number, bevel = 0) {
 let glowTex: THREE.Texture | null = null
 function glowTexture() {
   if (glowTex) return glowTex
-  const c = document.createElement('canvas')
-  c.width = c.height = 64
-  const x = c.getContext('2d')!
-  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32)
-  g.addColorStop(0, 'rgba(255,255,255,1)')
-  g.addColorStop(0.35, 'rgba(255,255,255,0.45)')
-  g.addColorStop(1, 'rgba(255,255,255,0)')
-  x.fillStyle = g
-  x.fillRect(0, 0, 64, 64)
-  glowTex = new THREE.CanvasTexture(c)
+  glowTex = radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.35, 255, 255, 255, 0.45],
+    [1, 255, 255, 255, 0],
+  ])
   return glowTex
 }
 

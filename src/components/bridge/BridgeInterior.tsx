@@ -153,6 +153,8 @@ class ZoomView {
   private p = new THREE.Vector3()
   private up = new THREE.Vector3()
   private fwd = new THREE.Vector3()
+  private q = new THREE.Quaternion()
+  private qHead = new THREE.Quaternion()
 
   constructor() {
     // スマホでは絵を小さめにして軽くする（窓の幅は画面の半分ほどなので、これで足りる）
@@ -174,7 +176,9 @@ class ZoomView {
     const target = st.targetId ? bodies.get(st.targetId) : undefined
     const cam = this.camera
     cam.position.copy(eye.position)
-    this.up.set(0, 1, 0).applyQuaternion(eye.quaternion)
+    // 大画面は船に付いたセンサー：目のカメラの向きから首の向き（bridgeEye）を外して、船の向きだけで向ける
+    this.q.copy(eye.quaternion).multiply(this.qHead.copy(bridgeEye.quaternion).invert())
+    this.up.set(0, 1, 0).applyQuaternion(this.q)
     cam.up.copy(this.up)
     let want: number
     if (target) {
@@ -185,7 +189,7 @@ class ZoomView {
       want = THREE.MathUtils.radToDeg(2 * Math.atan(target.radius / d)) / 0.6
     } else {
       // 目標がなければ、船の正面を 4 倍に
-      this.fwd.set(0, 0, -1).applyQuaternion(eye.quaternion)
+      this.fwd.set(0, 0, -1).applyQuaternion(this.q)
       cam.lookAt(this.p.copy(cam.position).add(this.fwd))
       want = 62 / 4
     }

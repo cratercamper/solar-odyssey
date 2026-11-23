@@ -289,4 +289,8 @@
   .mm-root[data-phase='home'] .mm-caption {
     bottom: 220px;
   }
+  /* 角度の計器（下から 160〜290px）が出ているあいだは、字幕・豆知識をその上へ（同じ所に重なって読めなかった） */
+  .mm-root[data-phase='home']:has(.rt-center) .mm-caption {
+    bottom: 304px;
+  }
 }

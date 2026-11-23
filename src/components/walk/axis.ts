@@ -40,6 +40,9 @@ export function nearDoor(s: number, y: number, h: number): 'up' | 'down' | null 
 export const DECK_END = STATION.y1 + 30
 /** 駅かデッキの床の上か */
 export const onStation = (y: number) => y >= STATION.y0 && y <= DECK_END
+/** 足もとの床の高さ。駅かデッキの床（円筒の内がわ）は、その高さかそれより上にいるときだけ。
+ *  デッキの先から出て床より下へ沈んだ人には床はない：駅の下へもどっても、下から床の上へ上がらない */
+export const floorUnder = (h: number, y: number) => (h >= STATION_H - 0.01 && onStation(y) ? STATION_H : 0)
 
 /** エレベーターのかごの今の位置（0〜1）。WalkActors が動かし、WalkAxis が描く */
 export const elevCar = { t: 0 }

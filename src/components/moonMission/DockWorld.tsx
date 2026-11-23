@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { loadCatalog } from '../Sky'
 import { currentLevel, lowMemory } from '../../state/quality'
 import { useMoonMission } from '../../state/moonMission'
@@ -15,6 +14,8 @@ import {
   KACHUNK_AT,
   LM_Y,
   PROBE,
+  SEP_TIME,
+  TURN_TIME,
   dock,
   dockGet,
   earthDistance,
@@ -27,6 +28,8 @@ import { earthMaterial, atmosphereMaterial } from './earth'
 import { s4bAft, skinParts } from './rocketSkin'
 import { glowTexture } from './plume'
 import { setLegs, useCraft, type Craft } from './craft'
+import { applyCraftZoom, useCraftZoom } from './craftZoom'
+import { useSpaceEnv } from './spaceEnv'
 
 // 章3（ドッキング）と章4（青い地球）の世界：第3段（S-IVB、saturn.glb の S3）・アダプタの板 4 枚・着陸船と司令船（apollo.glb）・地球。
 // 座標は第3段のてっぺんが原点、+Y が第3段の前（state/moonDock.ts）。地球はほんとうの大きさと距離（数万 km 先）。
@@ -74,22 +77,13 @@ function earthQuaternion() {
 // ---- 光と空 -----------------------------------------------------------------------------------
 
 function Lights() {
-  const gl = useThree((s) => s.gl)
-  const scene = useThree((s) => s.scene)
   const camera = useThree((s) => s.camera)
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const room = new RoomEnvironment()
-    const env = pmrem.fromScene(room, 0.04).texture
-    scene.environment = env
-    scene.environmentIntensity = 0.22
-    return () => {
-      if (scene.environment === env) scene.environment = null
-      env.dispose()
-      pmrem.dispose()
-      room.dispose()
-    }
-  }, [gl, scene])
+  // 映りこむ景色：まるく光る地球と、真っ黒な空
+  const body = useMemo(() => ({ down: EARTH_DIR, angR: 0, sun: SUN_DIR }), [])
+  useSpaceEnv(() => {
+    body.angR = Math.asin(Math.min(1, EARTH_R / Math.max(EARTH_R, earthDistance(dockGet()))))
+    return body
+  }, 'earth')
   const light = useMemo(() => {
     const l = new THREE.DirectionalLight('#fff6ea', 4.2)
     const t = new THREE.Object3D()
@@ -119,7 +113,7 @@ function Sky() {
   const steps = small || currentLevel() === 'low' ? 8 : currentLevel() === 'medium' ? 12 : 16
   const [day, night, clouds, water] = useTexture([
     big ? `${base}textures/earth/bm_dec_8k.jpg` : `${base}textures/${small ? '2k' : '4k'}_earth_daymap.jpg`,
-    `${base}textures/2k_earth_nightmap.jpg`,
+    `${base}textures/earth/bm_night_2k.jpg`,
     `${base}textures/${small ? '2k' : '4k'}_earth_clouds.jpg`,
     `${base}textures/earth/bm_water_4k.png`,
   ])
@@ -311,14 +305,14 @@ function csmPose(craft: Craft) {
   const endY = LM_Y + DROGUE_Y + PROBE + 17 + 8
   if (step === 'sep') {
     // まっすぐ前へ離れる（ゆっくり加速して、すべる）
-    const k = Math.min(1, t / 7)
+    const k = Math.min(1, t / SEP_TIME)
     csm.position.set(0, CSM_START_Y + (endY - CSM_START_Y) * (k * k * (3 - 2 * k)), 0)
     csm.quaternion.identity()
     return
   }
   if (step === 'turn') {
     // 機械船のまんなかあたりを軸に、180° 回る。横のずれもすこしずつ
-    const k = THREE.MathUtils.smootherstep(t / 7, 0, 1)
+    const k = THREE.MathUtils.smootherstep(t / TURN_TIME, 0, 1)
     _q.setFromAxisAngle(_v.set(1, 0, 0), Math.PI * k)
     const off = _w.set(0, 4, 0).applyQuaternion(_q)
     csm.position.set(0.9 * k, endY - 4, DROGUE_Z * k + 0.55 * k).add(off)
@@ -333,6 +327,7 @@ function csmPose(craft: Craft) {
 
 function Scene() {
   const craft = useCraft()
+  useCraftZoom()
   const stage = useStage()
   const target = useTarget()
   useEffect(() => () => stage.owned.forEach((o) => o.dispose()), [stage])
@@ -376,7 +371,7 @@ function Scene() {
     // 着陸船：つないだあとは司令船といっしょに第3段から出ていく
     craft.lm.position.set(0, LM_Y + (step === 'eject' || step === 'evade' || step === 'dockEnd' || marble ? dock.out : 0), 0)
     // 第3段：離れたあとは、ゆっくり向きを変えて遠ざかる
-    const away = step === 'evade' || step === 'dockEnd' ? dock.t : 0
+    const away = step === 'evade' || step === 'dockEnd' ? dock.t * 1.4 : 0
     stage.stage.visible = !marble
     stage.stage.position.set(-away * 0.5, -away * away * 0.35, 0)
     stage.stage.rotation.set(0, 0, away * 0.03)
@@ -469,6 +464,8 @@ function Scene() {
         fov = 46
       }
     }
+    // ホイール・2 本指で宇宙船に寄る（窓からのときはそのまま）。中心は着陸船の口（つなぎ目）
+    if (!snap) applyCraftZoom(want, look, lmTop, 5)
     // ガチャン：留め金が閉まった瞬間、画面がゆれる
     if (step === 'latch' && t > KACHUNK_AT && t < KACHUNK_AT + 0.6) {
       const k = (KACHUNK_AT + 0.6 - t) * 0.06

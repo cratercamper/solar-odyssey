@@ -2,17 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { buildChunk, chunkCenterDir, chunkSize, keyOf, MOON_R, type ChunkKey } from '../flight/moonGlobe'
 import { loadCatalog } from '../Sky'
 import { currentLevel, lowMemory } from '../../state/quality'
 import { lunar, tickLunar, UNDOCK_BEFORE, useMoonLunar } from '../../state/moonLunar'
-import { autoCam, useMoonMission } from '../../state/moonMission'
+import { autoCam, useMoonMission, type MissionCam } from '../../state/moonMission'
 import { FRAME, groundAt, loadLunarMaps, lunarMaps, SUN_DIR, TRACK, TRACK_PLANE, valleyShadows, valleyWeight, type LunarMaps, type ShadowMap } from './lunarTerrain'
 import { earthMaterial, atmosphereMaterial } from './earth'
 import { plumeGeometry, plumeMaterial } from './plume'
 import { APOLLO_URL, DROGUE, useCraft, type Craft } from './craft'
+import { applyCraftZoom, resetCraftZoom, useCraftZoom } from './craftZoom'
+import { useSpaceEnv } from './spaceEnv'
 import { buildLmCabin, LM_EYE, LM_LOOK, type LmCabin } from './lmCabin'
+import { radialGlowTexture } from '../radialGlow'
 
 // 月ミッション第2弾の場面：月を丸ごと（月の中心が原点、向きは moonGlobe.ts と同じ）。
 // 月の地面は四分木のかけら（着陸地点のまわりは本物の谷の地形と、前もって計算した山の影）、空には星・太陽・地球。
@@ -434,7 +436,7 @@ function Sky() {
       }),
     [],
   )
-  const [day, night, clouds] = useTexture([`${base}textures/2k_earth_daymap.jpg`, `${base}textures/2k_earth_nightmap.jpg`, `${base}textures/2k_earth_clouds.jpg`])
+  const [day, night, clouds] = useTexture([`${base}textures/2k_earth_daymap.jpg`, `${base}textures/earth/bm_night_2k.jpg`, `${base}textures/2k_earth_clouds.jpg`])
   const earthMat = useMemo(() => {
     day.colorSpace = THREE.SRGBColorSpace
     night.colorSpace = THREE.SRGBColorSpace
@@ -493,20 +495,17 @@ function Sky() {
 
 /** 太陽のまるい光（まん中は白く、まわりへぼんやり） */
 function glowTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 128
-  const g = c.getContext('2d')!
-  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64)
-  r.addColorStop(0, 'rgba(255,255,255,1)')
-  r.addColorStop(0.14, 'rgba(255,255,255,1)')
-  r.addColorStop(0.2, 'rgba(255,250,240,0.35)')
-  r.addColorStop(0.45, 'rgba(255,245,230,0.08)')
-  r.addColorStop(1, 'rgba(255,245,230,0)')
-  g.fillStyle = r
-  g.fillRect(0, 0, 128, 128)
-  const t = new THREE.CanvasTexture(c)
-  t.colorSpace = THREE.SRGBColorSpace
-  return t
+  return radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.14, 255, 255, 255, 1],
+      [0.2, 255, 250, 240, 0.35],
+      [0.45, 255, 245, 230, 0.08],
+      [1, 255, 245, 230, 0],
+    ],
+    128,
+    true,
+  )
 }
 
 const _q = new THREE.Quaternion()
@@ -719,24 +718,17 @@ function Dust() {
 // ---- 光と映りこみ --------------------------------------------------------------------------
 
 function Lights() {
-  const gl = useThree((s) => s.gl)
-  const scene = useThree((s) => s.scene)
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl)
-    const room = new RoomEnvironment()
-    const env = pmrem.fromScene(room, 0.04).texture
-    scene.environment = env
-    scene.environmentIntensity = 0.25
-    return () => {
-      if (scene.environment === env) scene.environment = null
-      env.dispose()
-      pmrem.dispose()
-      room.dispose()
-    }
-  }, [gl, scene])
+  const camera = useThree((s) => s.camera)
+  // 映りこむ景色：下の月面（太陽に照らされた灰色）と、真っ黒な空
+  const body = useMemo(() => ({ down: new THREE.Vector3(), angR: 0, sun: SUN_DIR }), [])
+  useSpaceEnv(() => {
+    const r = camera.position.length()
+    body.down.copy(camera.position).multiplyScalar(-1 / Math.max(1, r))
+    body.angR = Math.asin(Math.min(1, MOON_R / Math.max(MOON_R, r)))
+    return body
+  }, 'moon')
   const sun = useRef<THREE.DirectionalLight>(null)
   const target = useMemo(() => new THREE.Object3D(), [])
-  const camera = useThree((s) => s.camera)
   useFrame(() => {
     // 太陽の光は、いつもカメラのそばを照らす（向きだけが大事）
     target.position.copy(camera.position)
@@ -766,7 +758,8 @@ function earthShot(t: number, at: number | null, before: number, after: number) 
 function CameraRig({ craft, cabin: lmc }: { craft: Craft; cabin: LmCabin }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
   const state = useMemo(() => ({ pos: new THREE.Vector3(), look: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0), init: false, groundCam: new THREE.Vector3(), phase: '' }), [])
-  const tmp = useMemo(() => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3(), q: new THREE.Quaternion() }), [])
+  const tmp = useMemo(() => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3(), q: new THREE.Quaternion(), center: new THREE.Vector3() }), [])
+  useCraftZoom()
   useFrame((st, dt) => {
     const ms = useMoonMission.getState()
     const phase = ms.phase
@@ -867,7 +860,8 @@ function CameraRig({ craft, cabin: lmc }: { craft: Craft; cabin: LmCabin }) {
         want.copy(LM_EYE).applyMatrix4(lm.matrixWorld)
         look.copy(LM_LOOK).applyMatrix4(lm.matrixWorld)
         up.set(0, 1, 0).applyQuaternion(tmp.q.copy(lm.quaternion))
-        fov = 72
+        // 窓のまわりの壁より、窓の外（月面）が大きく入るように、窓のまん中をねらって狭めに
+        fov = 62
         snap = true
       } else if (cam === 'wide' || phase === 'landed') {
         // 地面から見上げる（着陸地点の近く）。着陸したら、まわりをゆっくり回る
@@ -910,6 +904,11 @@ function CameraRig({ craft, cabin: lmc }: { craft: Craft; cabin: LmCabin }) {
         if (want.length() < minR) want.setLength(minR)
       }
     }
+    // ホイール・2 本指で宇宙船に寄る（窓の中と、望遠で地球を見るときはそのまま）
+    if (cam !== 'window' && fov > 20) {
+      const center = tmp.center.copy(up).multiplyScalar(phase === 'coast' || phase === 'loi' ? 5 : 2.5).add(lm.position)
+      applyCraftZoom(want, look, center, 6)
+    }
     // なめらかに追う（窓・地面のカメラは、ぴったり）。宇宙船は秒速 1.7 km で動くので、宇宙船からの相対で追う
     const anchor = lm.position
     want.sub(anchor)
@@ -918,6 +917,7 @@ function CameraRig({ craft, cabin: lmc }: { craft: Craft; cabin: LmCabin }) {
     if (phase !== state.phase) {
       state.phase = phase
       snap = true
+      resetCraftZoom()
     }
     if (!state.init || snap) {
       state.pos.copy(want)
@@ -958,7 +958,10 @@ export function LunarWorld() {
   const craft = useCraft()
   const lmCabin = useMemo(() => buildLmCabin(), [])
   useEffect(() => () => lmCabin.dispose(), [lmCabin])
-  useFrame((_, dt) => tickLunar(dt))
+  useFrame((_, dt) => {
+    tickLunar(dt)
+    loiCuts(dt)
+  })
   // 降下を始めたら、カメラはうしろから
   const phase = useMoonMission((s) => s.phase)
   useEffect(() => {
@@ -976,6 +979,55 @@ export function LunarWorld() {
       <CameraRig craft={craft} cabin={lmCabin} />
     </>
   )
+}
+
+/**
+ * おまかせでは 7 秒ごとにカメラを切りかえる（8 秒ルール：同じ絵が長く続かないように）。
+ * 月の裏でブレーキ（章6）：うしろから → 遠くから（月を背に小さく） → 船長の窓（月面が流れる）。エンジンに火が入った瞬間は、炎の見えるうしろから。
+ * 章7：切り離し（等速のところ）と制動はうしろ ↔ 遠く（制動のあいだは窓が空を向いているので窓は使わない）。
+ * 接近（ピッチオーバーから）は船長の窓を主に、ときどきうしろから。手動にしたら切りかえない。
+ * 自分でカメラを選んだら（camLocked）、切りかえない
+ */
+const cuts = { t: 0, i: 0, burning: false, mode: '' }
+const CUTS: Record<string, MissionCam[]> = {
+  loi: ['chase', 'wide', 'window'],
+  undock: ['chase', 'wide'],
+  brake: ['chase', 'wide'],
+  approach: ['window', 'chase'],
+}
+function cutMode() {
+  const s = useMoonMission.getState()
+  if (s.phase === 'loi') return 'loi'
+  const d = lunar.desc
+  if (!d) return ''
+  if (s.phase === 'undock') return 'undock'
+  if (s.phase !== 'descent' || d.manual) return ''
+  return d.mode === 'braking' ? 'brake' : d.mode === 'approach' ? 'approach' : ''
+}
+function loiCuts(dt: number) {
+  const s = useMoonMission.getState()
+  const mode = cutMode()
+  if (mode !== cuts.mode) {
+    // 場面がかわったら、その場面の最初のカメラから（そのカメラは場面の側で選ばれている）
+    cuts.mode = mode
+    cuts.t = 0
+    cuts.i = 0
+    cuts.burning = false
+  }
+  if (!mode || !s.auto || s.camLocked) return
+  const burning = mode === 'loi' && !!lunar.stack?.burning
+  cuts.t += dt
+  if (burning && !cuts.burning) {
+    cuts.i = 0
+    cuts.t = 0
+    autoCam('chase')
+  } else if (cuts.t >= 7) {
+    const list = CUTS[mode]
+    cuts.t = 0
+    cuts.i = (cuts.i + 1) % list.length
+    autoCam(list[cuts.i])
+  }
+  cuts.burning = burning
 }
 
 useGLTF.preload(APOLLO_URL)

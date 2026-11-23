@@ -17,6 +17,7 @@ import { JUNGLE, TRAIL_W, jungleLayout } from './jungle'
 import { WalkChunks } from './WalkChunks'
 import { WalkBridges } from './WalkBridges'
 import { WalkAxis } from './WalkAxis'
+import { radialGlowTexture } from '../radialGlow'
 
 // コロニーの中を歩く場面の、動かないもの：遠くのコロニー全体（宇宙の場面の形を 1/M 倍）、
 // 公園の地面・池・木・ベンチ・街灯・遊具・噴水、空気のかすみ、昼と夜の光。
@@ -650,18 +651,15 @@ function benchGeometry() {
 
 /** まん中が明るく、外へ向かって消える丸 */
 function glowTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 128
-  const g = c.getContext('2d')!
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64)
-  grad.addColorStop(0, 'rgba(255,255,255,0.9)')
-  grad.addColorStop(0.35, 'rgba(255,255,255,0.45)')
-  grad.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = grad
-  g.fillRect(0, 0, 128, 128)
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
+  return radialGlowTexture(
+    [
+      [0, 255, 255, 255, 0.9],
+      [0.35, 255, 255, 255, 0.45],
+      [1, 255, 255, 255, 0],
+    ],
+    128,
+    true,
+  )
 }
 
 function lampGeometry() {

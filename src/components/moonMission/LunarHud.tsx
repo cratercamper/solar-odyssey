@@ -11,7 +11,9 @@ import {
   lunarReadout,
   manual,
   moveTarget,
+  canRetryManual,
   retryDescent,
+  retryManual,
   rod,
   setLunarAuto,
   stepOutside,
@@ -109,25 +111,16 @@ type Keys = { up: string; down: string; left: string; right: string; slow: strin
 const KEYS: Keys = { up: '↑', down: '↓', left: '←', right: '→', slow: 'W', fast: 'S' }
 const TOUCH_KEYS: Keys = { up: '▲', down: '▼', left: '◀', right: '▶', slow: 'W ▲', fast: 'S ▼' }
 
-/** 手で操縦するあいだの「いま、やること」。上がっている → 横の動き（降りる場所へ寄せる・止める）→ 降りる速さ、の順に見る */
+/**
+ * 手で操縦するあいだの「いま、やること」。矢印は「その向きへ動く」指示で、離すと機体が自分で止まる。
+ * 降りる速さは自動なので、見るのは降りる場所との距離だけ
+ */
 function coach(lm: { alt: number; vUp: number; fwd: number; right: number; toFwd: number; toRight: number }, keys: Keys) {
   const c = ui().moonMission.lunar.coach
-  if (lm.vUp > 0.3) return c.rising(keys)
-  // 降りる場所へ寄せる速さ（自動の操縦と同じ目安：遠いほど速く、12 m/s まで）
-  const want = (to: number) => Math.max(-12, Math.min(12, to * 0.09))
-  const ef = lm.fwd - want(lm.toFwd)
-  const er = lm.right - want(lm.toRight)
-  if (Math.max(Math.abs(ef), Math.abs(er)) > 1.5) {
-    if (Math.abs(ef) >= Math.abs(er)) {
-      if (ef > 0) return lm.fwd > 1.5 ? c.tooFast(Math.round(lm.fwd), keys.down) : c.siteBack(Math.round(-lm.toFwd), keys.down)
-      return lm.fwd < -1.5 ? c.driftBack(Math.round(-lm.fwd), keys.up) : c.siteAhead(Math.round(lm.toFwd), keys.up)
-    }
-    if (er > 0) return lm.right > 1.5 ? c.driftRight(Math.round(lm.right), keys.left) : c.siteLeft(Math.round(-lm.toRight), keys.left)
-    return lm.right < -1.5 ? c.driftLeft(Math.round(-lm.right), keys.right) : c.siteRight(Math.round(lm.toRight), keys.right)
-  }
-  if (lm.alt > 40 && lm.vUp > -1.5) return c.faster(keys)
-  if (lm.alt < 25 && lm.vUp < -1.5) return c.slower(keys)
-  return c.steady
+  const dist = Math.hypot(lm.toFwd, lm.toRight)
+  if (dist < 12) return Math.hypot(lm.fwd, lm.right) > 1 ? c.letGo : c.steady
+  if (Math.abs(lm.toFwd) >= Math.abs(lm.toRight)) return lm.toFwd > 0 ? c.siteAhead(Math.round(lm.toFwd), keys.up) : c.siteBack(Math.round(-lm.toFwd), keys.down)
+  return lm.toRight > 0 ? c.siteRight(Math.round(lm.toRight), keys.right) : c.siteLeft(Math.round(-lm.toRight), keys.left)
 }
 
 /** 高さの帯：高さ（右の数字）と、上下の速さ（矢印の長さ）と、指示した降りる速さ */
@@ -331,6 +324,11 @@ function LandEnd({ lm, stars, best }: { lm: { touch: { vUp: number; vSide: numbe
         {ok && (
           <button className="mm-continue" onClick={() => startChapter(7)}>
             {auto.left !== null ? T.autoNext(t.evaNext, auto.left) : t.evaNext}
+          </button>
+        )}
+        {!ok && canRetryManual() && (
+          <button className="mm-continue" onClick={() => (auto.cancel(), retryManual())}>
+            {t.retryManual}
           </button>
         )}
         <button onClick={() => (auto.cancel(), retryDescent())}>{t.again}</button>

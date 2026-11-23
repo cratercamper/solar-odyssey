@@ -2,8 +2,8 @@
 
 import { GET, R_EARTH } from './apolloTimeline'
 
-/** 近づく場面の早送り（本物の速さで、時間だけ 4 倍） */
-export const DOCK_WARP = 4
+/** 近づく場面の早送り（本物の速さで、時間だけ 8 倍。4 倍では長すぎた。junji 2026-11-23「2 倍くらいに早めても」） */
+export const DOCK_WARP = 8
 /** つなげる条件：近づく速さ（m/s）と、横のずれ（m）。本物の決まりは 1 ft/s・1 ft ほど */
 export const CAPTURE_SPEED = 0.35
 export const CAPTURE_OFF = 0.25

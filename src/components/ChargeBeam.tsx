@@ -10,6 +10,7 @@ import { useLevel } from '../state/quality'
 import { usePostFxActive } from './SpaceLighting'
 import { ui } from '../i18n'
 import { beamHum, playChargeFire, playChargeStep, startChargeHum, type ChargeHum } from '../audio/sfx'
+import { radialGlowTexture } from './radialGlow'
 
 // チャージビーム（長押しで溜めて、離して撃つ）の見た目と破壊。
 // 溜め：外から発射口へ吸い込まれる光の粒・大きくなる光の球・段階が上がるたびの光の輪。
@@ -292,19 +293,13 @@ function flowTexture() {
 
 /** 光の球の、中心ほど明るい丸 */
 function glowTexture() {
-  const size = 64
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
-  const ctx = canvas.getContext('2d')!
-  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-  g.addColorStop(0, 'rgba(255,255,255,1)')
-  g.addColorStop(0.12, 'rgba(255,255,255,0.95)')
-  g.addColorStop(0.3, 'rgba(255,255,255,0.35)')
-  g.addColorStop(0.6, 'rgba(255,255,255,0.08)')
-  g.addColorStop(1, 'rgba(255,255,255,0)')
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, size, size)
-  return new THREE.CanvasTexture(canvas)
+  return radialGlowTexture([
+    [0, 255, 255, 255, 1],
+    [0.12, 255, 255, 255, 0.95],
+    [0.3, 255, 255, 255, 0.35],
+    [0.6, 255, 255, 255, 0.08],
+    [1, 255, 255, 255, 0],
+  ])
 }
 
 function ribbonMaterial(kind: 'CORE' | 'OUTER' | 'SPIRAL', flow: THREE.Texture, phase = 0) {

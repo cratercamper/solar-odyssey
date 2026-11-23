@@ -8,6 +8,7 @@ import { useStore } from '../state/store'
 import { momentAge, setPhoto, useDiscovery } from '../state/discovery'
 import { useLang } from '../i18n/lang'
 import { ui } from '../i18n'
+import { radialGlowTexture } from './radialGlow'
 
 // 発見の瞬間（A2）：スキャン中は船から岩へ光の線と、岩をなでる輪。見つけた瞬間に岩が光って、写真を撮る。
 // 見つけた岩には、名前（なければ仮符号）の札が残る。札・ボタンの文言は i18n/discovery
@@ -95,16 +96,14 @@ function useFxObjects() {
 let haloTex: THREE.Texture | null = null
 function haloTexture() {
   if (haloTex) return haloTex
-  const c = document.createElement('canvas')
-  c.width = c.height = 128
-  const g = c.getContext('2d')!
-  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64)
-  r.addColorStop(0, 'rgba(255,255,255,1)')
-  r.addColorStop(0.25, 'rgba(200,255,240,0.7)')
-  r.addColorStop(1, 'rgba(120,230,210,0)')
-  g.fillStyle = r
-  g.fillRect(0, 0, 128, 128)
-  haloTex = new THREE.CanvasTexture(c)
+  haloTex = radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.25, 200, 255, 240, 0.7],
+      [1, 120, 230, 210, 0],
+    ],
+    128,
+  )
   return haloTex
 }
 

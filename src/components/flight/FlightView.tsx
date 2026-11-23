@@ -11,6 +11,7 @@ import { useLanding } from '../../state/landing'
 import { loadCatalog } from '../Sky'
 import { currentLevel, lowMemory, useDpr } from '../../state/quality'
 import { FlightPanel, flightPad } from './FlightPanel'
+import { radialGlowTexture } from '../radialGlow'
 
 // 着陸船で月の空を飛ぶ場面。月は丸ごと一つの球（moonGlobe.ts の四分木のかけら）、空には星・太陽・地球。
 // 着陸船のうしろから追いかけるカメラ。操縦は flightControl.ts。
@@ -158,7 +159,12 @@ function MoonGlobe({ map, sun, earth }: { map: GlobalMap; sun: THREE.Vector3; ea
       const size = chunkSize(k.level)
       chunkCenterDir(k, cd)
       const ang = Math.acos(THREE.MathUtils.clamp(cd.dot(camDir), -1, 1))
-      if (k.level > 1 && ang - (size / MOON_R) * 0.8 > horizon) return
+      if (k.level > 1 && ang - (size / MOON_R) * 0.8 > horizon) {
+        // 地平線の向こうのかけらも、親が分かれているあいだは使ったことにする（捨てると親の 4 つの子がそろわず、粗い親が 1 コマ出る）
+        const s = chunks.get(keyOf(k))
+        if (s) s.used = f
+        return
+      }
       const dist = Math.max(0, cd.multiplyScalar(MOON_R).distanceTo(cam) - size * 0.75)
       const self = chunks.get(keyOf(k))
       if (k.level < settings.max && dist < size * settings.split) {
@@ -283,16 +289,14 @@ function SkyDome({ sun, earth }: { sun: THREE.Vector3; earth: THREE.Vector3 }) {
 
 /** 丸い光の点のテクスチャ */
 function dotTexture() {
-  const c = document.createElement('canvas')
-  c.width = c.height = 32
-  const g = c.getContext('2d')!
-  const r = g.createRadialGradient(16, 16, 0, 16, 16, 16)
-  r.addColorStop(0, 'rgba(255,255,255,1)')
-  r.addColorStop(0.35, 'rgba(255,255,255,0.8)')
-  r.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = r
-  g.fillRect(0, 0, 32, 32)
-  return new THREE.CanvasTexture(c)
+  return radialGlowTexture(
+    [
+      [0, 255, 255, 255, 1],
+      [0.35, 255, 255, 255, 0.8],
+      [1, 255, 255, 255, 0],
+    ],
+    32,
+  )
 }
 
 /** 金属が真っ黒にならないように、部屋の光の映りこみ（宇宙なので弱く） */

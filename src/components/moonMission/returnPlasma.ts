@@ -51,7 +51,7 @@ const shockFrag = /* glsl */ `
     #include <logdepthbuf_fragment>
     float face = abs(dot(normalize(vN), normalize(vV)));
     float n = noise(vec2(vUv.x * 18.0, vUv.y * 6.0 - uTime * 14.0)) * 0.5 + 0.5;
-    float a = (0.35 + 0.65 * pow(1.0 - face, 1.5)) * uHeat * (0.75 + 0.5 * n);
+    float a = (0.35 + 0.65 * pow(max(0.0, 1.0 - face), 1.5)) * uHeat * (0.75 + 0.5 * n);
     vec3 col = mix(plasma(uHeat, 0.0), vec3(1.0, 0.55, 0.3), 0.35) * 1.6;
     gl_FragColor = vec4(col * a, a);
   }
@@ -72,7 +72,7 @@ const wakeFrag = /* glsl */ `
     float s = vUv.y;
     float face = abs(dot(normalize(vN), normalize(vV)));
     float flow = noise(vec2(vUv.x * 10.0, s * 9.0 - uTime * 22.0)) * 0.6 + noise(vec2(vUv.x * 29.0, s * 31.0 - uTime * 41.0)) * 0.4;
-    float body = pow(1.0 - s, 1.2) * smoothstep(0.0, 0.08, s + 0.02);
+    float body = pow(max(0.0, 1.0 - s), 1.2) * smoothstep(0.0, 0.08, s + 0.02);
     float a = body * pow(face, 1.2) * uHeat * (0.35 + 0.9 * flow) * 0.75;
     vec3 col = plasma(uHeat, s) * 1.1;
     gl_FragColor = vec4(col * a, a);

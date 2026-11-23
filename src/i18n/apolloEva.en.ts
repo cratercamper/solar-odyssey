@@ -24,6 +24,8 @@ export const apolloEvaEn: Translation<typeof apolloEvaJa> = {
   right: 'to the right',
   ahead: 'straight ahead',
   behind: 'behind you',
+  hop: '⏩ 1 km ahead',
+  hopTip: 'Jump 1 km straight toward the destination (the real distances stay the same)',
   skip: '⏩ Skip the drive',
   skipTip: 'The real Rover drove at about 10 km/h. This jumps to just before the stop',
   arrived: 'Arrived!',

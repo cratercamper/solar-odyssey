@@ -135,6 +135,19 @@ export function skipDrive() {
   lrvTeleport.to = { x, z, heading: Math.atan2(-dx, -dz) }
 }
 
+/** 目的地へまっすぐ 1 km 進む（遠い区間の早送り。本物の距離はそのままで、まっすぐ走るだけの所を縮める） */
+export const HOP = 1000
+export function hopDrive() {
+  const s = useApolloEva.getState()
+  if (s.step !== 'drive' && s.step !== 'back') return
+  const t = evaTarget()
+  const dx = t.x - roverPose.x
+  const dz = t.z - roverPose.z
+  const d = Math.hypot(dx, dz)
+  if (d < HOP + 300) return skipDrive()
+  lrvTeleport.to = { x: roverPose.x + (dx / d) * HOP, z: roverPose.z + (dz / d) * HOP, heading: Math.atan2(-dx, -dz) }
+}
+
 /** 石を採る */
 export function takeSample() {
   const s = useApolloEva.getState()

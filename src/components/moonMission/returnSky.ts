@@ -271,6 +271,19 @@ export const CLOUD_GLSL = /* glsl */ `
     dd -= cNoise3(pb / 80.0) * 0.35 * (1.0 - dd);
     return 0.06 * clamp(dd * 2.0, 0.0, 1.0);
   }
+  // 雲の「近く」か（ふちより少し外まで true）。大きな歩幅で探すとき、うすいふちを飛びこして
+  // 点ごとに当たったり外れたりすると、雲のふちが点々になる。少し外から細かい歩幅に切りかえる
+  bool cNear(vec3 pa) {
+    float C = cCover(pa.xz);
+    if (C <= 0.0 || pa.y < CB - 60.0 || pa.y > CT) return false;
+    float hN = (pa.y - CB) / (CT - CB);
+    float hs = hN / (0.35 + 0.65 * C);
+    float cg = C * (1.0 - smoothstep(0.5, 1.2, hs));
+    if (cg <= 0.0) return false;
+    vec3 pb = vec3(pa.x + uCloudOff.x, pa.y, pa.z + uCloudOff.y);
+    float base = cNoise3(pb / 520.0) * 0.6 + cNoise3(pb / 210.0) * 0.4;
+    return base - (1.0 - cg) > -0.12;
+  }
   float cHG(float g, float mu) { return (1.0 - g * g) / (12.566 * pow(1.0 + g * g - 2.0 * g * mu, 1.5)); }
   // ro：目（高さは海面から）、rd：向き、tMax：そこまで（海や地面）。haze：その向きの遠くの空の光（遠い雲はこの色にとける）。
   // 返す：rgb = 雲から目に届く光（目までの空気は入れない）、a = 雲を通りぬける光の割合
@@ -287,7 +300,8 @@ export const CLOUD_GLSL = /* glsl */ `
     if (t1 <= t0) return vec4(0.0, 0.0, 0.0, 1.0);
     // はじめは大きな歩幅で雲を探し、雲に入ったら一歩もどって細かく（雲の面のもこもこが、縞にならないように）
     const int N = CLOUD_N;
-    float ds = (t1 - t0) / 16.0;
+    float dsC = (t1 - t0) / 16.0;
+    float ds = dsC;
     float fine = 0.0;
     float mu = dot(rd, sun);
     // 前へ強く散る（太陽の近くの雲のふちが光る）＋ 少しうしろへ
@@ -308,21 +322,21 @@ export const CLOUD_GLSL = /* glsl */ `
       if (t > t1) break;
       vec3 pa = ro + rd * t;
       float top;
-      float s = cDens(pa, top);
-      if (s > 0.0 && fine < 0.5) {
-        // 雲に当たった：ひとつ前の点とのあいだを半分ずつ分けて、雲の面を見つけ、そこから細かい歩幅で
+      if (fine < 0.5) {
+        if (!cNear(pa)) { t += ds; continue; }
+        // 雲の近くに来た：ひとつ前の点とのあいだを半分ずつ分けて、雲の近くの面を見つけ、そこから細かい歩幅で
         //（面から同じ間かくで点を取るので、雲の面に縞が出ない）
         fine = 1.0;
         float lo = max(t0, t - ds), hi = t;
         for (int b = 0; b < 5; b++) {
           float mid = 0.5 * (lo + hi);
-          float tq;
-          if (cDens(ro + rd * mid, tq) > 0.0) hi = mid; else lo = mid;
+          if (cNear(ro + rd * mid)) hi = mid; else lo = mid;
         }
         ds = clamp(ds * 0.06, 15.0, 70.0);
         t = hi + ds * 0.5;
         continue;
       }
+      float s = cDens(pa, top);
       if (s > 0.0) {
         // 日の光：ここから太陽の方へ、3 点で雲の量をはかる（太陽の側のこぶは明るく、反対の側は暗い）。
         // 何度も散る光があるので、弱まりは 1 回の散乱より少なめ（2 つの重みで足す）
@@ -345,6 +359,10 @@ export const CLOUD_GLSL = /* glsl */ `
         L += T * a * mix(lit, haze, 1.0 - exp(-hazeAir / 20000.0));
         T *= 1.0 - a;
         if (T < 0.02) break;
+      } else if (!cNear(pa)) {
+        // 雲のあいだのすき間に出た：また大きな歩幅で、その先の雲を探す
+        fine = 0.0;
+        ds = dsC;
       }
       t += ds;
     }

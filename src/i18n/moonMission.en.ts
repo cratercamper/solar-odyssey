@@ -98,6 +98,8 @@ export const moonMissionEn: Translation<typeof moonMissionJa> = {
     blackout: 'The real blackout lasted 3 minutes 20 seconds. All Houston could do was wait',
     mains: 'Apollo 17 came down about 2 km (1.3 miles) from its target point',
     splash: 'A 12-day, 13-hour, 52-minute journey. So far, the last time people landed on the Moon',
+    recoveryHeli: 'The helicopter dropped the swimmers, then lifted the three astronauts one by one and flew them to the carrier',
+    recoveryCollar: 'The collar keeps the command module steady in the waves. The spacecraft itself was hoisted aboard the carrier later',
   } as Record<string, string>,
   chapters: {
     button: 'Scene',
@@ -250,6 +252,8 @@ export const moonMissionEn: Translation<typeof moonMissionJa> = {
     drogue: ['Drogue parachutes', 'About 7 km up. Two small chutes steady the capsule and slow it down'],
     mains: ['Three main parachutes', '25 m across. They open part-way first, then spread out'],
     splash: ['Splashdown!', 'December 19, 1972, in the Pacific. The recovery ship USS Ticonderoga is waiting'],
+    recoveryHeli: ['Recovery helicopter', 'A helicopter from the carrier USS Ticonderoga comes to a hover over the command module'],
+    recoveryCollar: ['Flotation collar', 'Swimmers jump into the sea and inflate a flotation collar around the command module'],
   },
   lunar: {
     stackName: 'Command module America + lunar module Challenger',

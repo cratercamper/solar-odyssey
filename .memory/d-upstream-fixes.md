@@ -1,14 +1,16 @@
 ---
 name: d-upstream-fixes
-description: "Bugs found in the game, while playing it or while working with its code. Each entry gives what a player sees, where it is in the code, why it happens, a suggested change or a branch of this fork with a fix where there is one, how to check it, and where it works a console snippet that shows it. Kept current: an entry is removed once the original game fixes the bug, and newly found bugs are added. A player's suggestion is marked as one."
+description: "Bugs found in the game, while playing it or while working with its code. Each entry gives what a player sees, where it is in the code, why it happens, a suggested change or a branch of this fork with a fix where there is one, how to check it, and where it works a console snippet that shows it. Kept current: an entry is removed once the original game fixes the bug, and newly found bugs are added. A suggestion, a player's or ours, is marked as one, and so is a to-do: a part that looks unfinished."
 type: reference
 ---
 
 # Bugs found in the game
 
 Bugs we found in the game, while playing it or while working with its code. Each entry says what a player sees, where
-it is in the code, why it happens, a change that would fix it where we have one, how to check it, and how much it matters. The list is
-kept current: when the original game fixes one of these bugs, its entry is removed, and bugs found later are added.
+it is in the code, why it happens, a change that would fix it where we have one, how to check it, and how much it
+matters. The list is kept current: when the original game fixes one of these bugs, its entry is removed, and bugs
+found later are added. Some entries are not bugs, and say so in their title: **a suggestion**, an idea for the
+game, from a player or from Claude Code, and **a to-do**, a part that looks unfinished, listed in case it helps.
 
 **How these bugs were found.** Most entries were seen by cratercamper while playing the game. Claude Code then found
 the cause in the code, and for some of them measured it in the game, in headless Chromium. A few were found by Claude
@@ -16,25 +18,30 @@ Code alone, while measuring other bugs. Each entry says who found the bug, wheth
 its severity. The severities are our estimates, on this scale: **high**, makes normal play worse for most players;
 **medium**, makes one part of the game worse on common machines; **low**, rare or cosmetic.
 
-**Checked against** the original game's `main` at commit `642a0ec` (#213). File and line numbers are at that commit.
-Where an entry gives a measurement made on an earlier commit, it names the commit, and the code involved is the same
-at `642a0ec`. Paths: `FlightView.tsx`, `FlightPanel.tsx` and `flightControl.ts` are in `src/components/flight/`;
-`ReturnWorld.tsx` in `src/components/moonMission/`; `WalkActors.tsx`, `WalkAxis.tsx`, `WalkWorld.tsx`,
-`WalkChunks.tsx`, `park.ts` and `cylinder.ts` in `src/components/walk/`; `ColonyModel.tsx`, `ColonyInterior.tsx` and
-`colonyCity.ts` in `src/components/sf/`; `BridgeInterior.tsx` in `src/components/bridge/`; `ShipModel.tsx` in
-`src/components/ship/`; `SizeCompare.tsx`, `sizeCompare.css`, `Hud.tsx`, `TouchBar.tsx` and `GalleryPanel.tsx` in
-`src/ui/`; the texts (`*.en.ts`, `*.ja.ts`) in `src/i18n/`.
+**Checked against** the original game's `main` at commit `642a0ec` (#213). File and line numbers are at that commit,
+except in the section on scene 9/9 of the Moon mission, which gives them at `936d242` (#219). Where an entry gives a
+measurement made on another commit, it names the commit, and the code involved is the same at the commit of its line
+numbers. Paths: `FlightView.tsx`, `FlightPanel.tsx` and `flightControl.ts` are in `src/components/flight/`;
+`ReturnWorld.tsx` and `returnSea.ts` in `src/components/moonMission/`; `WalkActors.tsx`, `WalkAxis.tsx`,
+`WalkWorld.tsx`, `WalkChunks.tsx`, `park.ts` and `cylinder.ts` in `src/components/walk/`; `ColonyModel.tsx`,
+`ColonyInterior.tsx` and `colonyCity.ts` in `src/components/sf/`; `BridgeInterior.tsx` in `src/components/bridge/`;
+`ShipModel.tsx` in `src/components/ship/`; `ProbeCamCanvas.tsx` in `src/components/probeCam/`; `SaturnRing.tsx` in
+`src/components/`; `SizeCompare.tsx`, `sizeCompare.css`, `Hud.tsx`, `TouchBar.tsx`, `GalleryPanel.tsx` and
+`ProbePanel.tsx` in `src/ui/`; the texts (`*.en.ts`, `*.ja.ts`) in `src/i18n/`.
 
 **Fixes on branches of this fork.** Some entries name a branch `pr/<name>` of this fork with a fix, and its head
-commit. The original game's newest `main` (`a923a3d`, #216) is merged into these branches. Where cratercamper has played the
-fix, the entry says so.
+commit. The original game's `main` at `a923a3d` (#216) is merged into these branches. Where cratercamper has
+played the fix, the entry says so.
 
-**Show it.** Most entries have a snippet for the browser's console. Open the game with `#debug` at the end of the
-address (for example `…/?lang=en#debug`), open the browser's console, paste the snippet and press Enter. A snippet
-uses only the game's `window.__sv` (`src/debugHooks.ts`) and the page's own elements (buttons, name tags). It waits only for a limited time, and it returns a short
-message: what it did, what it measured, or why it stopped. Each snippet here was run in headless Chromium with
-software rendering: the colony walk and bridge snippets on `642a0ec`, the others on `25508aa` (#210), whose files for
-those parts are the same at `642a0ec`. Some move you or change a setting: reload the page afterwards.
+**Show it.** Most entries have a snippet for the browser's console. Where an entry has none, or only steps to follow
+by hand, we can write one when asked, unless the entry says why a snippet cannot show it. Open the game with `#debug`
+at the end of the address (for example `…/?lang=en#debug`), open the browser's console, paste the snippet and press
+Enter. A snippet uses only the game's `window.__sv` (`src/debugHooks.ts`) and the page's own elements (buttons, name
+tags). It waits only for a limited time, and it returns a short message: what it did, what it measured, or why it
+stopped. Each snippet here was run in headless Chromium with software rendering: the colony walk and bridge snippets
+on `642a0ec`, the probe journey snippet on `a923a3d` (#216), the scene 9/9 snippet on `936d242` (#219), the others on
+`25508aa` (#210), whose files for those parts are the same at `642a0ec`. Some move you or change a setting: reload the
+page afterwards.
 
 ## Moon flight (✈ Fly over the Moon)
 
@@ -63,38 +70,28 @@ labels with drei's `Html`.
 The last scene, 9/9 in the menu "Choose a scene", is "Lift-off, rendezvous and the return to Earth". The snippet
 below starts it with `chapter(8)`, because the code counts the scenes from 0 (the launch pad is 0). The game's own
 texts count chapters from 1, so their "chapter 8" is a different scene, Exploring the Moon.
+Re-checked on `936d242` (#219), whose sea and sky are new: the line numbers in this section are at that commit, and
+the snippet was run there. At `2d4c89d` (#221) every line this section cites is still there, word for word (read, not
+run): in `ReturnWorld.tsx` at other line numbers, in `returnSea.ts` at the same ones.
 
-### Moon mission: during "Hold the entry angle" the capsule falls straight down
+### Moon mission: the glowing plasma does not follow the tilt of the heat shield
 
-Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our estimate): only the picture is wrong,
-for the 15 s of this step; the play works.
+Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our estimate): cosmetic.
 
-- **What a player sees:** during "Hold the entry angle", while the note "The Apollo corridor was only about 2° wide…"
-  shows, the capsule falls straight down at the Earth. The Earth grows, but the ground under the capsule does not move.
-  On its way to the entry point, a real capsule flies along its orbit, sideways over the ground.
-- **Where and why:** in this step the height falls from 9,000 km to 122 km (`ReturnWorld.tsx:312`). `range`, the
-  ground covered, stays 0 outside the air and the sea (:346, :361), and `earthOrient` (:367) keeps the entry point
-  under the capsule in every frame. So the Earth only grows.
-- **Measured** (on `7c276d7`, #208; `ReturnWorld.tsx` there is the same as at `642a0ec` up to line 683): the point
-  under the capsule stayed at 0.07°N 173.33°W from 0.5 s to 14.9 s of the step. For comparison, an orbit that meets the
-  entry interface at 11.0 km/s and −6.5° (the step's own numbers) covers about 9,700 km of ground (87°) from 9,000 km
-  up, in about 32 minutes, and there it descends at about 49° below the horizon. The step's angle starts at −28°
-  (:488).
-- **Change:** a proposal, because it changes the look. Turn the Earth by the ground still to be covered before the
-  entry point, so that it reaches 0 at the entry interface. We tried this on our side. It is on no branch, so these numbers cannot be
-  checked on GitHub. In that try, the ground moved very fast under the capsule (300-1,150 km/s on screen), stopped at
-  the entry interface, and then moved at about 109 km/s. The Sun and the line between day and night turned with the
-  Earth. Whether that looks right is the author's choice.
-- **How to check:** this snippet starts scene 9/9 (if it is not running) and jumps to the step. Watch the ground under
-  the capsule. The other entries of this section use the same snippet, with other values in its line
-  `const STEP = …`:
+- **What a player sees:** during the entry, the glowing "lens" of plasma in front of the capsule stays in line with
+  the flight path. The capsule flies tilted, so the lens does not sit on its heat shield: there is a gap between them.
+- **Why:** the fireball, its bowl included, is aimed along the flight path (`ReturnWorld.tsx:622`), while the heat
+  shield is tilted 22° (`TRIM`, :37) off it (:610-613). Measured on `936d242`: 22.00° between the fireball's aim and
+  the capsule's axis, at 74 km and at 71 km.
+- **Show it:** this snippet starts scene 9/9 (if it is not running), jumps to the entry and runs on to 75 km up. The
+  other entries of this section use the same snippet, with other values in its line `const STEP = …`:
 
 ```js
 (async () => {
   // STEP: 'corridor', 'entry' or 'chutes'. KM: in 'entry', run on
   // to this height in km (0 = stay at its start). CAM: null, or
   // 'chase', 'window', 'wide' (as the camera buttons do).
-  const STEP = 'corridor', KM = 0, CAM = null
+  const STEP = 'entry', KM = 75, CAM = null
   const sv = window.__sv
   if (!sv) return 'No window.__sv: load the page with #debug.'
   const mm = sv.moonMission.state, rs = sv.moonReturn
@@ -130,35 +127,48 @@ for the 15 s of this step; the play works.
 })()
 ```
 
-### Moon mission: the glowing plasma does not follow the tilt of the heat shield
+### Moon mission: below 30 km the sea stands still while the clouds move on
 
-Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our estimate): cosmetic.
+Found by Claude Code in the code and measured in headless Chromium on `936d242`; not seen in play. An earlier form
+of it, the clouds and the sea moving opposite ways, was seen in play by cratercamper and is fixed by #219. Severity:
+**low** (our estimate): cosmetic.
 
-- **What a player sees:** during the entry, the glowing "lens" of plasma in front of the capsule stays in line with the
-  flight path. The capsule flies tilted, so the lens does not sit on its heat shield: there is a
-  gap between them.
-- **Why:** the fireball, its bowl included, is aimed along the flight path (`ReturnWorld.tsx:515`), while the heat
-  shield is tilted 22° (`TRIM`, :35) off it (:503).
-- **Show it:** the snippet above with `STEP = 'entry'`.
+- **What a player sees** (from the numbers below, not looked at frame by frame): the sea's pattern (its waves, glints,
+  and calm and windy patches, `returnSea.ts:93`, :116-118) jumps once at 30 km and then stands still, while the clouds
+  and their shadows keep moving with the ground the capsule covers.
+- **Why:** the sea is moved by `range` (`uOffset`, `ReturnWorld.tsx:509`), and `range` is set only while the Earth's
+  sphere is drawn (:415-417, :432), which ends below 30 km. The clouds follow the flight's own `e.range`
+  (`cloudRun.range`, :518-519, :523, :528), with the same sign as the sea.
+- **Measured** (separate runs): the sea's offset was −2,201,898 m at 30.0 km and 0 at 28.8 km; between 19.7 and
+    18.5 km the clouds' offset went from −2,245,037 to −2,246,355 m while the sea's stayed 0. About 31 km of ground is
+  still covered between 30 km and the drogue chutes at 7.3 km, in about 12 s of play (computed from the flight model,
+  `src/data/reentry.ts`, with the autopilot that the snippet turns on).
+- **Change** (not tried): move the sea by the same distance as the clouds, `cloudRun.range`; it is set at :518-519,
+  after the sea's offset at :509, so it would have to be set first. At the splash that offset is about 2,230 km, where
+  the shader's 32-bit floats step by 0.25 m, while the shortest waves are about 0.36 m long (`returnSea.ts:44`): seen
+  from close, the small waves would break up, so the offset needs a nearer starting point.
+- **Show it:** the snippet above with `STEP = 'entry', KM = 20`.
 
-### Moon mission: the first clouds rush the wrong way
+### Moon mission: the Earth turns about a tilted axis, so the ground moves 6.7° off the flight direction
 
-Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our estimate): cosmetic.
+Found by Claude Code in the code and measured in headless Chromium on `936d242`; not seen in play. Severity: **low**
+(our estimate): cosmetic.
 
-- **What a player sees:** below 40 km, the first clouds move fast in the direction of travel, and the sea moves the
-  other way. Below 30 km both stop.
-- **Why:** the clouds are moved by `-range` (`ReturnWorld.tsx:426`) and the sea's pattern the other way (:422). And
-  `range` is set only while the Earth's sphere is drawn (:344-347, :361), which ends below 30 km.
-- **Show it:** the snippet above with `STEP = 'entry', KM = 39`.
-
-### Moon mission: the ocean shows as a square
-
-Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our estimate): cosmetic.
-
-- **What a player sees:** when the sea first shows, its edges can be seen near the horizon: it is a square.
-- **Why:** the ocean is a flat square, 420 km wide (`ReturnWorld.tsx:215`). Above about 3.5 km its edge, 210 km away,
-  is nearer than the horizon (the horizon is 619 km away at 30 km up, 800 km at 50 km).
-- **Show it:** the snippet above with `STEP = 'entry', KM = 45`: a straight edge shows below the curved horizon.
+- **What a player sees** (not looked at in a frame): during the entry, until the sea takes over at 30 km, the ground
+  under the capsule moves 6.7° sideways off the direction of flight; by 30 km the capsule is about 250 km to the side
+  of the track the code aims for (computed). Before the entry, the Earth's swing on the approach (:444) turns about
+  the same wrong axis.
+- **Why:** in the code run each frame (`useFrame`, :371), `up` and `fwd` are the shared scratch vectors `_a` and `_b`
+  (`ReturnWorld.tsx:436-437`). `earthOrient` writes into `_a` and `_b` for its own work (:76-77), so after the call at
+  :438 both hold other values. The turn by the ground covered (:439) and the swing before the entry (:444) take their
+  axis from them, and it comes out as `P_EI`, the entry point's direction in the Earth model (:68), used as if it were
+  a direction in the scene: (−0.993, 0.001, 0.116) instead of (−1, 0, 0). The same reuse is in `642a0ec` (:365-366,
+  :73-82).
+- **Measured:** 0.22 s into "Hold the entry angle", the point under the capsule was at 73.52°N 113.47°E. A turn about
+  the axis above gives the same point within 0.05°; the intended axis would give 68.43°N 107.59°E.
+- **Change** (not tried): give `up` and `fwd` vectors of their own at :436-437 (for example `new THREE.Vector3()`
+  held outside the frame), or compute the axis before calling `earthOrient`.
+- **Show it:** the snippet above with `STEP = 'corridor'`.
 
 ## Colony walk
 
@@ -622,6 +632,104 @@ Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our
 })()
 ```
 
+## Probe journeys (Learn → Probe journeys)
+
+Voyager 2, Hayabusa2 and Cassini follow their real paths, from NASA JPL Horizons, with a view of the probe beside the
+map (`ProbePanel.tsx:79`). Voyager 1 and New Horizons follow rough arcs and have no such view (the comment on
+`trajectory`, `src/data/probes.ts:30`). This part of the game is new and still growing, so besides a bug, this section
+lists a player's suggestion and a to-do. Checked on `a923a3d` (#216), in headless Chromium, in a page 1280 × 713 px;
+the files involved are the same at `642a0ec`.
+
+### Probe journeys: Saturn's rings do not show in Cassini's view
+
+Seen in play by cratercamper; cause found by Claude Code and measured in headless Chromium. Severity: **low** (our
+estimate): cosmetic.
+
+- **What a player sees:** in Cassini's journey, the view of the probe on the right shows Saturn without its rings,
+  at every date we tried (2004-07-31, 2008-06-01, 2013-01-01, 2017-03-29, 2017-04-20, 2017-08-01); at 2017-03-29
+  only a faint patch of straight streaks shows where they should be. In a test with the ring drawn plain red
+  (2004-07-31, 2008-06-01, 2013-01-01, 2017-04-20), it is there, in the right place, and wide open at the last three.
+- **Where and why** (our reading of the code, and the tests below): `PlanetSphere` draws the ring with
+  `<ringGeometry>` (`ProbeCamCanvas.tsx:311`) and `<meshStandardMaterial map={ringMap} alphaMap={ringMap} …>` (:312).
+  Three things go wrong:
+  1. The ring geometry keeps three.js's default UVs, laid flat across the disc, while the texture is a single strip
+     from the inner edge to the outer one, so its bands come out as straight stripes across the disc instead of
+     circles. The game's own Saturn re-lays the UVs radially (`SaturnRing.tsx:76-89`).
+  2. three.js reads an `alphaMap` from its green channel, so the opacity is the texture's alpha times its green.
+     React Three Fiber marks a texture given as `map` as sRGB, so that green is decoded first: the opacity is at
+     most 0.26 with this texture, 0.07 on average, against 0.60 for its alpha alone (computed from the texture, not
+     measured on screen).
+  3. Seen from the face away from the Sun, a `meshStandardMaterial` gets only the ambient light (0.12,
+     `ProbeCamCanvas.tsx:576`). `SaturnRing.tsx:52-54` lets some sunlight through the ring on that side.
+- **Tests** (a copy of `a923a3d` changed only in `ProbeCamCanvas.tsx:311-312`): with the UVs re-laid as
+  `SaturnRing.tsx` does and without the `alphaMap`, the rings show from the sunlit face (2017-03-29, Cassini 63° above
+  them, the Sun 27°), Cassini Division included, and faintly from the other face (2008-06-01, 2013-01-01, 2017-04-20:
+  the Sun on one side of the rings, Cassini on the other; computed with the game's own `probeNow` and
+  `poleOf('saturn')`, `src/data/probeView.ts`). cratercamper looked at that copy in play: the rings show.
+- **Change:** none tried beyond these tests. One way: re-lay the UVs as `SaturnRing.tsx:76-89` does, drop the
+  `alphaMap` (the texture's own alpha is enough), and on the face away from the Sun let light through as
+  `SaturnRing.tsx:52-54` does. `SaturnRing` itself takes the Sun to be at the world's origin (:49), which the
+  probe's view does not; there the Sun's direction is set in `SunLight` (`ProbeCamCanvas.tsx:225`).
+- **Show it:**
+
+```js
+(async () => {
+  // Cassini's journey, paused on 2017-03-29: Cassini sees the
+  // sunlit face of the rings from 63 degrees above them.
+  // 2017-04-20 shows the face away from the Sun.
+  const date = '2017-03-29'
+  const sv = window.__sv
+  if (!sv || !sv.probes) {
+    return 'No __sv.probes: open the page with #debug.'
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+  sv.probes.open()
+  sv.probes.play('cassini')
+  for (let i = 0; i < 300; i++) {
+    if (document.querySelector('.probe-cam canvas')) break
+    await wait(100)
+  }
+  if (!document.querySelector('.probe-cam canvas')) {
+    return 'The probe view did not open within 30 s.'
+  }
+  sv.probes.state.setState({ playing: false })
+  sv.probes.clock.ms = Date.parse(date + 'T00:00:00Z')
+  return 'Paused on ' + date + ': are Saturn\'s rings there?'
+})()
+```
+
+### A player's suggestion (not a bug): Cassini's journey could end inside Saturn's clouds
+
+From cratercamper, after playing.
+
+- **Now:** Cassini's journey stops at `2017-09-15T10:30:50Z` (`src/data/probes.ts:104`). The view on the right then
+  reads "61,813 km to Saturn", from Saturn's centre (`src/ui/ProbeCamPane.tsx:123`). The game's Saturn has a radius
+  of 58,232 km (`src/data/bodies.ts:75`; the real equator is at 60,268 km), so the journey stops about 3,600 km
+  above it: Saturn fills the view as a flat beige frame, with the caption "Before its fuel ran out, it dove into
+  Saturn, sending data to Earth until the very last moment." (`src/i18n/probeCam.en.ts:117`).
+- **The suggestion:** as the last step, take the view on down into the clouds. The game already flies the player's
+  ship into the clouds of a giant planet: `CloudInterior` (`src/components/PlanetBody.tsx:144`), with the depth, the
+  pressure and the temperature during the dive (`src/state/proximity.ts:108-112`).
+
+### To-do (not a bug): the probe's view covers the buttons in the middle of the screen
+
+Seen in play by cratercamper; measured by Claude Code in headless Chromium. Severity: **low** (our estimate):
+cosmetic.
+
+- **What a player sees:** while the view of the probe is open, it covers the right part of the buttons centred on
+  the screen: on a page 1280 px wide, 76 of the 100 px of "SF" (in "Real / SF" at the top), the Scale row below
+  it after "Easy", and 62 of the 132 px of "Cockpit M" at the bottom. From 1320 px wide the Scale row sits beside
+  "Real / SF" (`src/styles/sf-scale.css:92-99`, :102-107 below that width) and is covered whole.
+- **Where:** the view is placed over them on purpose: `src/styles/probeCam.css:8-9` (its z-index 6 is above the
+  z-index 5 of "Real / SF" and the Scale row). It fills the right half of the screen (`right: 12px`,
+  `width: calc(50vw - 18px)`, :6, :10), while the buttons are centred on the middle: `.sf-badge`
+  (`src/styles/sf-scale.css:33-37`) and `.mode-button`
+  (`src/styles/core.css:93-97`, `--dock-center` is 50% on a screen wider than 1180 px, `sf-scale.css:5`, :10-14).
+- **A player's suggestion** (cratercamper's): "Real / SF" may not be needed during a journey at all; a button that
+  closes the journey could stand there instead. Today the journey closes with the × of its panel
+  (`ProbePanel.tsx:86`), and leaving the map closes it too (`ProbePanel.tsx:67`), so "Cockpit M" also ends it.
+- **How to check:** by hand: on a computer screen, open Learn → Probe journeys → Voyager 2.
+
 ## Other
 
 ### Moon mission: the Moon's terrain may flash flat, as the Moon flight did (not checked)
@@ -629,7 +737,7 @@ Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our
 Found by Claude Code in the code; not seen in play, not measured. Severity: unknown. The Moon flight's flat flash was
 fixed in #209, in `FlightView.tsx` only. The Moon mission's terrain has the same early return for a piece beyond the
 horizon (`src/components/moonMission/LunarWorld.tsx:354`) and the same clean-up of unused pieces (:385-391). We have
-not checked whether it flashes there.
+not checked whether it flashes there; we can check it and write a snippet when asked.
 
 ### "Cockpit V" and "Cockpit M" name a view the game does not have
 
@@ -649,3 +757,84 @@ Seen in play by cratercamper; cause found by Claude Code. Severity: **low** (our
   "Toggle overview map / cockpit" → "Toggle overview map / flight". Do not change the rover's "View from the
   driver's seat" (`crewRover.en.ts:11`): the rover has a real driver's seat.
 - **How to check:** by hand: start the game and press V. No snippet: one key shows it.
+
+### A suggestion (not a bug): lock the mouse without the system's pointer acceleration
+
+From Claude Code, reading the code; not tried in play.
+
+- **Now:** driving the rover with the mouse adds up the mouse's movement while it is locked: `roverMouse.steer +
+  e.movementX * MOUSE_STEER` (`src/state/rover.ts:268`; `MOUSE_STEER = 0.0045`, :149). The lock is a plain
+  `el.requestPointerLock?.()` (:243). The ship's mouse look (`src/components/Ship.tsx:156-157`, lock at :212), the
+  space walk's (`src/state/eva.ts:323-324`, lock at `src/components/eva/EvaView.tsx:524`) and the colony walk's
+  (`src/state/walk.ts:279-280`, lock at `src/components/walk/WalkView.tsx:306`) work the same way. A plain lock gives
+  `movementX` after the system's pointer acceleration, which is on by default in Windows and macOS: a quick flick
+  counts for more than the same distance moved slowly, so how far the rover steers depends on how fast the hand moves,
+  not only how far.
+- **The suggestion:** ask for raw mouse counts with the Pointer Lock option `unadjustedMovement: true`, and where the
+  browser or the system refuses it (`NotSupportedError`), lock as now. This follows web.dev's article "Disable mouse
+  acceleration to provide a better FPS gaming experience" (2020), which asks again for a plain lock on
+  `NotSupportedError`. MDN's compatibility data lists the option in Chrome 88 (Windows, macOS 10.15.1 and later,
+  ChromeOS; not yet Linux), Firefox 152 and Safari 18.4. In headless Chromium 156 and Firefox 160, without a click,
+  `requestPointerLock` reads the option and returns a Promise. Not checked: which browser and system then refuse it,
+  whether raw counts then arrive, and whether the second, plain request still counts as the player's click (the
+  change also remembers a refusal, so the next click asks for a plain lock straight away).
+- **It changes the feel:** the mouse values were set with the counts the system gives today, after its pointer speed
+  and acceleration: `MOUSE_STEER` (`rover.ts:149`), `MOUSE_SENSITIVITY`, `HEAD_SENSITIVITY` and `OBSERVE_DRAG`
+  (`Ship.tsx:30`, :41, :611), and the 0.0022 of the two walks (`eva.ts:323-324`, `walk.ts:279-280`). Raw counts skip
+  both. A fast movement turns less than now and a slow one may turn more, and the whole scale follows the mouse's own
+  resolution (DPI). A player who slowed a high-resolution mouse in the system would turn faster, and the game has no
+  mouse setting of its own. So the values may need tuning again. That is the author's choice.
+- **Change** (one new file and one line in each of the four places; `tsc --noEmit` passes on `642a0ec`, and a planted
+  type error fails it; not run in the game):
+
+```ts
+// src/state/pointerLock.ts (new)
+// Lock the mouse to the 3D view. Asks for raw mouse counts (no
+// pointer acceleration from the system) where the browser offers
+// them, so the same hand movement always steers or turns the same
+// amount; a plain lock where it does not.
+let rawMouse = true
+
+const refused = (err: unknown) =>
+  console.error('ERROR: pointer lock refused; click again', err)
+
+export function lockPointer(el: Element) {
+  if (!rawMouse) {
+    void el.requestPointerLock?.()?.catch(refused)
+    return
+  }
+  const p = el.requestPointerLock?.({ unadjustedMovement: true })
+  void p?.catch((err: unknown) => {
+    if ((err as Error | undefined)?.name !== 'NotSupportedError') {
+      refused(err)
+      return
+    }
+    rawMouse = false // remembered for the next click
+    void el.requestPointerLock()?.catch(refused)
+  })
+}
+```
+
+```ts
+// src/state/rover.ts:243
+// (import { lockPointer } from './pointerLock')
+if (e.button === 0) lockPointer(el)
+
+// src/components/Ship.tsx:212
+// (import { lockPointer } from '../state/pointerLock')
+const lock = () => lockPointer(gl.domElement)
+
+// src/components/eva/EvaView.tsx:524
+// (import { lockPointer } from '../../state/pointerLock')
+lockPointer(e.target)
+
+// src/components/walk/WalkView.tsx:306
+// (import { lockPointer } from '../../state/pointerLock')
+lockPointer(e.target)
+```
+
+- **How to check:** by hand, on Windows or macOS with pointer acceleration on: while driving the rover, click the 3D
+  view to lock the mouse, then move the mouse the same short distance (a few millimetres: the steering is full at
+  about 220 counts) once slowly and once quickly, and watch the steering mark on the rover's panel
+  (`src/components/surface/RoverHud.tsx:199-202`). Today the quick move steers further; with the change both should
+  steer the same. No snippet: it needs a real mouse.

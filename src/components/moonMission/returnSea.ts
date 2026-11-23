@@ -3,7 +3,7 @@ import { SCATTER_CHUNK } from './earth'
 import { CLOUD_GLSL, CLOUD_HIGH, SKY_LUT_GLSL, cloudUniforms, type CloudQuality, type SkyLut } from './returnSky'
 import { OUT_CHUNK } from './shaderOut'
 
-// 章9 の終わりの、海（components/moonMission/ReturnWorld.tsx）：太平洋の波・回収船・パラシュート。空と雲は returnSky.ts。
+// 章9 の終わりの、海（components/moonMission/ReturnWorld.tsx）：太平洋の波・パラシュート。空と雲は returnSky.ts、回収船とヘリは returnRecovery.ts。
 // 宇宙船のまわりの座標（宇宙船が原点、海面は y = -高さ）で使う。どれも画像ファイルなし（その場で作る）
 
 // ---- 海 ----------------------------------------------------------------------------------------
@@ -200,38 +200,6 @@ export function oceanMaterial(lut: SkyLut, radius: number, cloud: CloudQuality =
   return m
 }
 
-// ---- 回収船（航空母艦タイコンデロガ。全長 270 m） --------------------------------------------------
-
-export function makeShip() {
-  const g = new THREE.Group()
-  g.name = 'return-ship'
-  const grey = new THREE.MeshStandardMaterial({ color: '#7d858c', roughness: 0.75, metalness: 0.2 })
-  const deck = new THREE.MeshStandardMaterial({ color: '#4a4f55', roughness: 0.9 })
-  const dark = new THREE.MeshStandardMaterial({ color: '#2b2f33', roughness: 0.8 })
-  // 船体：へさきを細く
-  const hull = new THREE.BoxGeometry(250, 16, 28, 10, 1, 1)
-  const p = hull.getAttribute('position') as THREE.BufferAttribute
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i)
-    if (x > 60) p.setZ(i, p.getZ(i) * (1 - ((x - 60) / 65) ** 2 * 0.85))
-    if (p.getY(i) < 0) p.setZ(i, p.getZ(i) * 0.8)
-  }
-  hull.computeVertexNormals()
-  const h = new THREE.Mesh(hull, grey)
-  h.position.y = 2
-  const fd = new THREE.Mesh(new THREE.BoxGeometry(268, 1.5, 36), deck)
-  fd.position.set(4, 11, -2)
-  const island = new THREE.Mesh(new THREE.BoxGeometry(34, 14, 7), grey)
-  island.position.set(10, 19, 15)
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 16, 6), dark)
-  mast.position.set(12, 34, 15)
-  const stack = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 6), dark)
-  stack.position.set(0, 29, 15)
-  g.add(h, fd, island, mast, stack)
-  const owned = [hull, fd.geometry, island.geometry, mast.geometry, stack.geometry, grey, deck, dark]
-  return { group: g, dispose: () => owned.forEach((o) => o.dispose()) }
-}
-
 // ---- パラシュート -------------------------------------------------------------------------------
 
 /** 布の模様：主パラシュートはオレンジと白のひだ（リングセイル）、ドローグは白とオレンジの帯 */
@@ -264,6 +232,8 @@ export type Chute = {
   group: THREE.Group
   canopy: THREE.Mesh
   lines: THREE.LineSegments
+  /** 布のふくらみとはためき（uTime 秒、uBreathe -1..1） */
+  cloth: { uTime: { value: number }; uBreathe: { value: number } }
   radius: number
   height: number
   length: number
@@ -284,12 +254,54 @@ export function makeChute(kind: 'main' | 'drogue'): Chute {
   const geo = new THREE.LatheGeometry(pts, kind === 'main' ? 48 : 24)
   const tex = canopyTexture(kind)
   const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85, side: THREE.DoubleSide, emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.06, emissiveMap: tex })
+  // 布：吊りひもとひものあいだの布（ゴア）が外へふくらみ、すそはひもに引かれて波形になり、風ではためく。
+  // 本物の写真でも、傘のふちはぎざぎざで、ゴアごとに光と影の筋ができる
+  const M = kind === 'main' ? 24 : 12
+  const cloth = { uTime: { value: 0 }, uBreathe: { value: 0 } }
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, cloth)
+    sh.vertexShader = sh.vertexShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform float uTime;
+uniform float uBreathe;
+const float GORES = ${M.toFixed(1)};
+const float BULGE = ${(radius * 0.028).toFixed(3)};
+// d(phi, v)：外向きのふくらみ（ゴアのまん中で最大、ひもの所で 0）
+vec2 clothD(float phi, float v) {
+  float f = fract(phi * GORES / 6.2831853);
+  float s = sin(3.14159265 * f);
+  float hem = smoothstep(0.78, 1.0, v);
+  float flut = sin(uTime * 7.0 + phi * GORES * 0.5 + v * 6.0) * 0.5 + sin(uTime * 11.3 - phi * 9.0) * 0.3;
+  float a = BULGE * (1.0 + uBreathe * 0.25);
+  // 本体はふくらみ、すそはひもに引かれて内へ（波形のふち）
+  float d = a * s * sqrt(sin(3.14159265 * clamp(v, 0.0, 1.0)) + 0.15) - a * 1.6 * s * hem + BULGE * 0.5 * flut * hem;
+  // d の phi 微分（法線をかたむけて、ゴアの光と影の筋を出す）
+  float dd = a * 3.14159265 * GORES / 6.2831853 * cos(3.14159265 * f) * (sqrt(sin(3.14159265 * clamp(v, 0.0, 1.0)) + 0.15) - 1.6 * hem);
+  return vec2(d, dd);
+}`,
+      )
+      .replace(
+        '#include <beginnormal_vertex>',
+        `#include <beginnormal_vertex>
+float cPhi = atan(position.x, position.z);
+float cR = max(length(position.xz), 1e-3);
+vec2 cD = clothD(cPhi, uv.y);
+vec3 cT = vec3(cos(cPhi), 0.0, -sin(cPhi));
+objectNormal = normalize(objectNormal - cT * cD.y / (cR + cD.x) * sign(dot(objectNormal, vec3(position.x, 0.0, position.z))));`,
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+transformed.xz += position.xz / cR * cD.x;`,
+      )
+  }
   const canopy = new THREE.Mesh(geo, mat)
   canopy.position.y = length
   // 布は日の光で影を落とし、ほかの傘の影も受ける
   canopy.castShadow = canopy.receiveShadow = true
-  // 吊りひも：ふちの点から原点へ
-  const M = kind === 'main' ? 24 : 12
+  // 吊りひも：ふちの点から原点へ（ゴアのさかい目）
   const lp = new Float32Array(M * 6)
   const rimY = Math.cos(Math.PI / 2 - 0.06) * height
   for (let i = 0; i < M; i++) {
@@ -302,12 +314,14 @@ export function makeChute(kind: 'main' | 'drogue'): Chute {
   const lines = new THREE.LineSegments(lg, lm)
   const group = new THREE.Group()
   group.add(canopy, lines)
-  return { group, canopy, lines, radius, height, length, dispose: () => [geo, tex, mat, lg, lm].forEach((o) => o.dispose()) }
+  return { group, canopy, lines, cloth, radius, height, length, dispose: () => [geo, tex, mat, lg, lm].forEach((o) => o.dispose()) }
 }
 
 /** 開き具合（0 たたんだ・reef すぼめた・1 いっぱい）で形を変える */
-export function shapeChute(c: Chute, open: number, breathe: number) {
+export function shapeChute(c: Chute, open: number, breathe: number, time = 0) {
   const k = Math.max(0.02, open)
+  c.cloth.uTime.value = time % 1000
+  c.cloth.uBreathe.value = breathe
   // すぼめているあいだは細長く
   c.canopy.scale.set(k * (1 + breathe * 0.03), 1 + (1 - k) * 0.6 - breathe * 0.04, k * (1 + breathe * 0.03))
   c.lines.scale.set(k, 1, k)

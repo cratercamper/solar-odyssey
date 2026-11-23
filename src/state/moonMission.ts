@@ -149,6 +149,8 @@ export type CaptionKey =
   | 'drogue'
   | 'mains'
   | 'splash'
+  | 'recoveryHeli'
+  | 'recoveryCollar'
   // 第2弾
   | 'coast'
   | 'coastMoon'

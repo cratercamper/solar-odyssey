@@ -43,6 +43,7 @@ export type ReturnStep =
   | 'fail'
   | 'chutes'
   | 'splash'
+  | 'recovery'
   | 'end'
 
 /** 場面の長さ（秒） */
@@ -58,6 +59,10 @@ export const COAST_TIME = 16
 export const CMSEP_TIME = 8
 export const CORRIDOR_TIME = 15
 const SPLASH_TIME = 9
+/** 回収：ヘリコプターが来て、潜水員が浮き輪をつける（本物は何十分もかかった。ここでは短く） */
+export const RECOVERY_TIME = 26
+/** 回収の中で、潜水員が飛びこむ時刻（秒） */
+export const SWIMMERS_AT = 10
 /** 再突入の早送り */
 export const ENTRY_WARP = 10
 /** ランデブーの始まりの、2 つの船のへだたり（m） */
@@ -308,7 +313,15 @@ export function tickReturn(dt: number) {
     }
     case 'splash':
       ret.splashT = t
-      if (t >= SPLASH_TIME) set('end')
+      if (t >= SPLASH_TIME) {
+        set('recovery')
+        setCaption('recoveryHeli')
+      }
+      break
+    case 'recovery':
+      ret.splashT = SPLASH_TIME + t
+      if (t >= SWIMMERS_AT && t - dt < SWIMMERS_AT) setCaption('recoveryCollar')
+      if (t >= RECOVERY_TIME) set('end')
       break
     default:
       break
@@ -346,7 +359,7 @@ export function bindReturnKeys() {
 /** 確かめる用：その段階まで飛ばす（再突入はおまかせで） */
 export function returnSkip(to: ReturnStep) {
   if (!inHome()) startReturn()
-  const order: ReturnStep[] = ['rdv', 'docked', 'lmGone', 'teiWait', 'tei', 'coast', 'cmSep', 'corridor', 'entry', 'chutes', 'splash', 'end']
+  const order: ReturnStep[] = ['rdv', 'docked', 'lmGone', 'teiWait', 'tei', 'coast', 'cmSep', 'corridor', 'entry', 'chutes', 'splash', 'recovery', 'end']
   let guard = 0
   while (order.indexOf(useMoonReturn.getState().step) < order.indexOf(to) && guard++ < 40000) {
     const st = useMoonReturn.getState().step

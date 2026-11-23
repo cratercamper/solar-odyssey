@@ -116,8 +116,8 @@ const MissionCanvas = memo(function MissionCanvas({ world }: { world: World }) {
       <color attach="background" args={['#000']} />
       {/* 第1弾（地球から月へ向かうまで）と第2弾（月のまわり）は、別の世界 */}
       <Suspense fallback={null}>{world === 'moon' ? <LunarWorld /> : world === 'dock' ? <DockWorld /> : world === 'home' ? <ReturnWorld /> : <LaunchWorld />}</Suspense>
-      {/* 後処理（露出・光のにじみ）：いまは打ち上げの世界だけ。ほかの章は質感を合わせてから広げる */}
-      {world === 'launch' && <MissionPost />}
+      {/* 後処理（露出・光のにじみ）：打ち上げの世界と、地球へ帰る世界（9 章）。ほかの章は質感を合わせてから広げる */}
+      {(world === 'launch' || world === 'home') && <MissionPost />}
       <QualityGovernor />
       {debugOn && <FilmHook />}
     </Canvas>

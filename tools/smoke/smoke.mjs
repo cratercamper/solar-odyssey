@@ -551,7 +551,12 @@ const SCENARIOS = {
       await page.evaluate(() => window.__sv.pioneer.start())
       // 初めて：遊び方の案内（4 枚）→ 閉じると「いまやること」のカード
       await page.waitForSelector('.pio-guide', { timeout: 60000 })
-      for (let i = 0; i < 4; i++) await page.click('.pio-guide footer .pio-build')
+      // 重い画面では page.click の「押したあとの待ち」が 30 秒を超えることがあるので、DOM で押す（1 枚ずつ、次が出るのを待つ）
+      for (let i = 0; i < 4; i++) {
+        await page.waitForSelector('.pio-guide footer .pio-build', { timeout: 30000 })
+        await page.evaluate(() => document.querySelector('.pio-guide footer .pio-build').click())
+        await page.waitForTimeout(400)
+      }
       await visibleButton(page, '.pio-goal-go')
       const goal = await page.textContent('.pio-goal-text b')
       if (!goal) throw new Error('pioneer: no goal text')

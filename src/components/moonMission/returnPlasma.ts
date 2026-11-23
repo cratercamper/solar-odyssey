@@ -1,15 +1,25 @@
 import * as THREE from 'three'
+import { OUT_CHUNK, encodeOutput } from './shaderOut'
 
 // 章8 の再突入の火の玉（components/moonMission/ReturnWorld.tsx）：熱よけの前の衝撃波の光・うしろへ長くのびる尾・はがれて飛ぶ火の粉。
 // どれも「熱よけの面の中心が原点、進む向きが -Y」の形で作り、ReturnWorld が向きをそろえる。
 // uHeat（0〜1）で明るさ、色は熱さで変わる（薄い空気の高い所では桃色・紫、いちばん熱いと白・黄、終わりはオレンジ）
 
 const common = /* glsl */ `
-  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  // sin を使う乱数は、大きな値（時間が進んだあと）で精度が落ちて、四角い板のような模様になる。掛け算と fract だけの乱数に
+  float hash(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+  }
   float noise(vec2 p) {
     vec2 i = floor(p), f = fract(p);
     vec2 u = f * f * (3.0 - 2.0 * f);
     return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+  float n1(float x) {
+    float i = floor(x), f = fract(x);
+    return mix(hash(vec2(i, 0.0)), hash(vec2(i + 1.0, 0.0)), f * f * (3.0 - 2.0 * f));
   }
   vec3 plasma(float heat, float t) {
     // t：0 が衝撃波のすぐそば（いちばん熱い）、1 が尾の先
@@ -51,9 +61,11 @@ const shockFrag = /* glsl */ `
     #include <logdepthbuf_fragment>
     float face = abs(dot(normalize(vN), normalize(vV)));
     float n = noise(vec2(vUv.x * 18.0, vUv.y * 6.0 - uTime * 14.0)) * 0.5 + 0.5;
-    float a = (0.35 + 0.65 * pow(max(0.0, 1.0 - face), 1.5)) * uHeat * (0.75 + 0.5 * n);
+    // 熱よけの真ん中の前（よどみ点）がいちばん明るく、ふちへ向かってうすくなる（ふちに線が出ると、ガラスの泡のように見えた）
+    float a = (0.45 + 0.55 * face) * smoothstep(1.0, 0.55, vUv.y) * uHeat * (0.75 + 0.5 * n);
     vec3 col = mix(plasma(uHeat, 0.0), vec3(1.0, 0.55, 0.3), 0.35) * 1.6;
     gl_FragColor = vec4(col * a, a);
+    ${OUT_CHUNK}
   }
 `
 
@@ -73,14 +85,16 @@ const wakeFrag = /* glsl */ `
     float face = abs(dot(normalize(vN), normalize(vV)));
     float flow = noise(vec2(vUv.x * 10.0, s * 9.0 - uTime * 22.0)) * 0.6 + noise(vec2(vUv.x * 29.0, s * 31.0 - uTime * 41.0)) * 0.4;
     float body = pow(max(0.0, 1.0 - s), 1.2) * smoothstep(0.0, 0.08, s + 0.02);
-    float a = body * pow(face, 1.2) * uHeat * (0.35 + 0.9 * flow) * 0.75;
-    vec3 col = plasma(uHeat, s) * 1.1;
-    gl_FragColor = vec4(col * a, a);
+    float a = body * pow(face, 1.2) * uHeat * (0.35 + 0.9 * flow);
+    // 明るい空や雲の上でも見えるように、光の量は強め（画面の光のにじみも出る）
+    vec3 col = plasma(uHeat, s) * (1.2 + 1.6 * (1.0 - s));
+    gl_FragColor = vec4(col * a, min(1.0, a));
+    ${OUT_CHUNK}
   }
 `
 
 function mat(frag: string) {
-  return new THREE.ShaderMaterial({
+  return encodeOutput(new THREE.ShaderMaterial({
     vertexShader: vert,
     fragmentShader: frag,
     uniforms: { uHeat: { value: 0 }, uTime: { value: 0 } },
@@ -89,7 +103,7 @@ function mat(frag: string) {
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
     toneMapped: false,
-  })
+  }))
 }
 
 // ---- 火の粉（熱よけがはがれて飛ぶ。シェーダーの中で時間から位置を出す） ----
@@ -124,6 +138,7 @@ const sparkFrag = /* glsl */ `
     float d = length(gl_PointCoord - 0.5) * 2.0;
     float a = exp(-d * d * 3.0) * vA;
     gl_FragColor = vec4(vec3(1.0, 0.75, 0.4) * a * 2.0, a);
+    ${OUT_CHUNK}
   }
 `
 
@@ -145,8 +160,8 @@ export function makeFireball(): Fireball {
   // 衝撃波：熱よけの前に、おわんをかぶせた形（直径 3.9 m の熱よけより少し大きい）
   const sg = new THREE.SphereGeometry(1, 40, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)
   const sm = new THREE.Mesh(sg, shock)
-  sm.scale.set(2.8, 1.3, 2.8)
-  sm.position.y = 0.15
+  sm.scale.set(2.5, 0.9, 2.5)
+  sm.position.y = 0.1
   sm.renderOrder = 6
   // 尾：根元が熱よけの太さ、先へ向かって広がる円すい（長さ 1、+Y へ。ReturnWorld が長さを決める）
   const wg = new THREE.CylinderGeometry(7, 2.3, 1, 32, 20, true)
@@ -160,7 +175,7 @@ export function makeFireball(): Fireball {
   const seeds = new Float32Array(N)
   for (let i = 0; i < N; i++) seeds[i] = Math.random()
   pg.setAttribute('seed', new THREE.BufferAttribute(seeds, 1))
-  const sparks = new THREE.ShaderMaterial({
+  const sparks = encodeOutput(new THREE.ShaderMaterial({
     vertexShader: sparkVert,
     fragmentShader: sparkFrag,
     uniforms: { uTime: { value: 0 }, uHeat: { value: 0 }, uLen: { value: 60 } },
@@ -168,7 +183,7 @@ export function makeFireball(): Fireball {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     toneMapped: false,
-  })
+  }))
   const pts = new THREE.Points(pg, sparks)
   pts.frustumCulled = false
   pts.renderOrder = 7
@@ -184,10 +199,84 @@ export function updateFireball(f: Fireball, heat: number, time: number) {
   f.shock.uniforms.uHeat.value = Math.min(1, heat * 1.3)
   f.wake.uniforms.uHeat.value = heat
   f.sparks.uniforms.uHeat.value = Math.min(1, heat * 1.5)
-  f.shock.uniforms.uTime.value = time
-  f.wake.uniforms.uTime.value = time
-  f.sparks.uniforms.uTime.value = time
-  // 熱いほど尾は長い（最大 140 m）
-  f.wakeMesh.scale.set(1, 20 + heat * 120, 1)
+  // 時間は 1000 秒でくり返す（シェーダーの中の数が大きくなりすぎないように）
+  const tw = time % 1000
+  f.shock.uniforms.uTime.value = tw
+  f.wake.uniforms.uTime.value = tw
+  f.sparks.uniforms.uTime.value = tw
+  // 熱いほど尾は長い（最大 約 500 m。本物は流れ星のように、何 km も光の尾を引いた）
+  f.wakeMesh.scale.set(1 + heat * 0.6, 30 + heat * 470, 1 + heat * 0.6)
   f.sparks.uniforms.uLen.value = 25 + heat * 70
+}
+
+// ---- 窓の外のプラズマ（船の窓のカメラのときだけ。画面いっぱいに重ねる） ----
+// 本物の乗組員の話：窓の外がオレンジと桃色に光り、熱よけからはがれた火の粉と光の筋が、うしろへ流れていく
+
+const winVert = /* glsl */ `
+  varying vec2 vS;
+  void main() {
+    vS = position.xy;
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`
+const winFrag = /* glsl */ `
+  uniform float uHeat;
+  uniform float uTime;
+  uniform vec2 uFlow;
+  uniform float uAspect;
+  varying vec2 vS;
+  ${common}
+  void main() {
+    // 流れの向きにそった座標（along：流れていく向き、across：横）
+    vec2 p = vec2(vS.x * uAspect, vS.y);
+    vec2 f = normalize(uFlow);
+    float along = dot(p, f);
+    float across = dot(p, vec2(-f.y, f.x));
+    // 光の筋：横に細かく、流れの向きに長い乱数が、速く流れる
+    // 細い光の筋：流れと直角の向きだけの 1 次元の乱数で、筋（線）を作る（2 次元の乱数を引きのばすと、四角い板が並んで見えた）。
+    // 筋は少しうねり、明るさのかたまりが流れにそって速く走る
+    float L = across * 7.0 + 0.6 * sin(along * 0.8 - uTime * 1.1) + 0.3 * sin(along * 2.1 + uTime * 0.7);
+    float fil = n1(L) * 0.6 + n1(L * 2.7 + 5.0) * 0.4;
+    float ridge = pow(max(0.0, 1.0 - abs(fil * 2.0 - 1.0)), 8.0);
+    float pw = along * 0.5 - uTime * 6.0 + L * 0.37;
+    float pulse = 0.35 + 0.65 * (n1(pw) * 0.5 + n1(pw * 1.37 + 0.5) * 0.5);
+    float glow = 0.5 + 0.5 * n1(across * 1.3 + 9.0 + 0.4 * sin(along * 0.5 - uTime));
+    float streak = ridge * 1.3 * pulse + glow * 0.35;
+    // 熱よけの側（流れの上手）ほど明るい
+    float up = smoothstep(1.4, -1.0, along);
+    // 火の粉：小さく明るい点が、流れにそって飛ぶ
+    vec2 g = vec2(across * 14.0, along * 3.0 - uTime * 16.0);
+    vec2 cell = floor(g);
+    float r = hash(cell);
+    vec2 fp = fract(g) - vec2(0.5, 0.5 + 0.35 * (r - 0.5));
+    float flake = step(0.82, r) * exp(-dot(fp * vec2(3.0, 1.2), fp * vec2(3.0, 1.2)) * 40.0);
+    float flick = 0.85 + 0.15 * sin(uTime * 31.0 + r * 50.0);
+    vec3 col = plasma(uHeat, 0.15 + 0.6 * (1.0 - up)) * (0.12 + streak * 1.1) * (0.35 + 0.8 * up) * flick;
+    col += vec3(1.0, 0.8, 0.5) * flake * 2.2;
+    float a = uHeat * clamp(0.18 + streak * 0.55 + 0.25 * up, 0.0, 1.0);
+    gl_FragColor = vec4(col * uHeat * 0.6, a);
+    ${OUT_CHUNK}
+  }
+`
+
+export type WindowPlasma = { mesh: THREE.Mesh; mat: THREE.ShaderMaterial; dispose: () => void }
+
+export function makeWindowPlasma(): WindowPlasma {
+  const geo = new THREE.PlaneGeometry(2, 2)
+  const mat = encodeOutput(new THREE.ShaderMaterial({
+    vertexShader: winVert,
+    fragmentShader: winFrag,
+    uniforms: { uHeat: { value: 0 }, uTime: { value: 0 }, uFlow: { value: new THREE.Vector2(0, 1) }, uAspect: { value: 1 } },
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  }))
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.frustumCulled = false
+  mesh.renderOrder = 20
+  mesh.visible = false
+  mesh.name = 'return-window-plasma'
+  return { mesh, mat, dispose: () => (geo.dispose(), mat.dispose()) }
 }

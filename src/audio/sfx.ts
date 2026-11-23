@@ -406,3 +406,66 @@ export function beamHum(seconds: number, level: number) {
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.1)
   }
 }
+
+/**
+ * 大気圏突入の音（船の中で聞こえる、低いごうごうという音と、空気がこすれるざーっという音）。
+ * set(heat, g)：熱の強さ（0〜1）と G で、大きさと低いゆれを変える。stop() でゆっくり消える
+ */
+export function startEntryRoar() {
+  const c = audio()
+  if (!c) return null
+  const now = c.currentTime
+  const src = c.createBufferSource()
+  src.buffer = noiseBuffer(c, 4)
+  src.loop = true
+  // 低いごうごう（船体を伝わる振動）
+  const low = c.createBiquadFilter()
+  low.type = 'lowpass'
+  low.frequency.value = 140
+  low.Q.value = 0.9
+  const lowGain = c.createGain()
+  lowGain.gain.value = 0
+  // ざーっ（外の空気の流れ）
+  const hiss = c.createBiquadFilter()
+  hiss.type = 'bandpass'
+  hiss.frequency.value = 900
+  hiss.Q.value = 0.6
+  const hissGain = c.createGain()
+  hissGain.gain.value = 0
+  // G が強いほど、低い音が不規則にゆれる（6〜9 Hz のうねり）
+  const lfo = c.createOscillator()
+  lfo.frequency.value = 7
+  const lfoGain = c.createGain()
+  lfoGain.gain.value = 0
+  lfo.connect(lfoGain).connect(lowGain.gain)
+  src.connect(low).connect(lowGain).connect(out(c))
+  src.connect(hiss).connect(hissGain).connect(out(c))
+  src.start(now)
+  lfo.start(now)
+  let stopped = false
+  return {
+    set(heat: number, g: number) {
+      if (stopped) return
+      const t = c.currentTime
+      const k = Math.min(1, heat)
+      const gk = Math.min(1, g / 7)
+      lowGain.gain.setTargetAtTime(0.32 * Math.max(k, gk * 0.6), t, 0.25)
+      lfoGain.gain.setTargetAtTime(0.12 * gk, t, 0.25)
+      lfo.frequency.setTargetAtTime(6 + 3 * Math.random(), t, 0.5)
+      hissGain.gain.setTargetAtTime(0.1 * k, t, 0.25)
+      hiss.frequency.setTargetAtTime(600 + 900 * k, t, 0.4)
+    },
+    stop() {
+      if (stopped) return
+      stopped = true
+      const t = c.currentTime
+      for (const gn of [lowGain.gain, hissGain.gain, lfoGain.gain]) {
+        gn.cancelScheduledValues(t)
+        gn.setValueAtTime(gn.value, t)
+        gn.linearRampToValueAtTime(0, t + 1.5)
+      }
+      src.stop(t + 1.6)
+      lfo.stop(t + 1.6)
+    },
+  }
+}

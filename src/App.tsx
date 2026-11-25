@@ -74,6 +74,7 @@ import { BridgePanel } from './ui/BridgePanel'
 import { BridgeLabels } from './ui/BridgeLabels'
 import { PhotoNote } from './ui/PhotoNote'
 import { FirstThree } from './ui/FirstThree'
+import { NewContent } from './ui/NewContent'
 import { evaScene, useEva } from './state/eva'
 import { LazyScenes } from './ui/LazyScenes'
 import { useWalk, walkScene } from './state/walk'
@@ -191,6 +192,7 @@ export default function App() {
       <ScaleBadge />
       <PhotoNote />
       <FirstThree />
+      <NewContent />
       <ContextLost />
       <LazyScenes />
       <RockBook />

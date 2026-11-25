@@ -141,7 +141,7 @@
   max-height: 40vh;
 }
 
-/* スマホの縦：上に模型、下に説明、そのあいだに太陽系 */
+/* スマホの縦：上に模型、下に小さな説明、そのあいだに太陽系（道すじの地図） */
 @media (max-width: 720px) and (orientation: portrait) {
   .probe-cam {
     /* 上の操作ボタンの列は隠さない */
@@ -150,37 +150,46 @@
     right: 0;
     bottom: auto;
     width: auto;
-    height: 40vh;
+    height: 34vh;
     border-width: 0 0 1px;
     border-radius: 0;
   }
 
   .pc-top {
-    top: 8px;
+    top: 6px;
     left: 10px;
+    gap: 2px;
+  }
+
+  .pc-speed-label {
+    font-size: 11px;
   }
 
   .pc-speed-value {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .pc-near {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .pc-caption {
-    bottom: 22px;
-    width: calc(100% - 16px);
-    padding: 6px 10px;
-    font-size: 13px;
+    bottom: 18px;
+    width: calc(100% - 12px);
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.4;
   }
 
   .pc-credit {
-    bottom: 4px;
-    font-size: 9px;
+    bottom: 3px;
+    font-size: 8px;
   }
 
-  .probe-panel.with-cam {
+  /* 再生中の説明は、日付・今のできごと・ボタンだけの小さなカードに（ほかのできごとと注は隠す） */
+  .probe-panel.playing,
+  body.touch .probe-panel.playing {
+    top: auto;
     left: 8px;
     right: 8px;
     bottom: calc(var(--pad-b, 8px) + 4px);
@@ -189,14 +198,36 @@
     max-height: 30vh;
     gap: 4px;
     padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.45;
   }
 
-  .probe-panel.with-cam > p.muted.small {
+  .probe-panel.playing h2 {
+    font-size: 13px;
+  }
+
+  .probe-panel.playing .probe-date {
+    font-size: 15px;
+  }
+
+  .probe-panel.playing > p.muted.small,
+  .probe-panel.playing .probe-events li:not(.now) {
     display: none;
   }
 
-  .probe-panel.with-cam .probe-events li:not(.now) {
-    display: none;
+  .probe-panel.playing .probe-events {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 6em;
+  }
+
+  .probe-panel.playing .probe-events li {
+    padding: 2px 0 2px 8px;
+  }
+
+  .probe-panel.playing .probe-controls button {
+    min-height: 36px;
+    padding: 4px 8px;
   }
 }
 

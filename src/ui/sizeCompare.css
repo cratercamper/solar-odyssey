@@ -117,7 +117,8 @@
 .sc-chip.on::before {
   content: '✓ ';
 }
-/* 名札：もののすぐ下。画面で小さすぎるものは、印と名前を少しずつ下にずらす */
+/* 名札：もののすぐ下。画面で小さすぎるものは、名前を上へずらす（重ならないように少しずつ）。
+   星が見えないほど小さいもの（.dot）には、星の代わりに印の輪を、ほかの星と同じ下の線の上に */
 .sc-label {
   --stack: 0;
   position: relative;
@@ -144,14 +145,16 @@
 .sc-label.tiny {
   transform: translateY(calc(-60px - var(--stack) * 36px));
 }
-.sc-label.tiny::before {
+.sc-label.dot::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: calc(50% + 60px + var(--stack) * 36px);
+  /* 名札を上へずらした分をもどし（星の下のはし）、さらに輪の半径だけ上へ：輪の下のはしが下の線にのる */
+  top: calc(50% + 60px + var(--stack) * 36px - 9px);
   width: 14px;
   height: 14px;
-  margin: -7px 0 0 -7px;
+  /* 太さ 2px のふちを入れて 18px の輪。そのまん中を top / left に */
+  margin: -9px 0 0 -9px;
   border: 2px solid #ffd27a;
   border-radius: 50%;
   box-shadow: 0 0 8px rgba(255, 210, 122, 0.8);

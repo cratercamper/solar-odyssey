@@ -3,7 +3,11 @@ import { useLang } from '../../i18n/lang'
 import { ui } from '../../i18n'
 import { isTouchDevice } from '../../state/input'
 import { bindRoverKeys, roverInput, useRover } from '../../state/rover'
-import { EVA_STOPS, HOP, evaSite, hopDrive, leaveApolloEva, nextLeg, restartEva, skipDrive, takeSample, useApolloEva, watchLiftoff } from '../../state/apolloEva'
+import { EVA_STOPS, HOP, evaSite, hopDrive, leaveApolloEva, leaveLrv, nextLeg, restartEva, skipDrive, takeSample, useApolloEva, watchLiftoff } from '../../state/apolloEva'
+import { useSuitWalk } from '../../state/suitWalk'
+import { lrvPose } from './LunarRover'
+import { SuitWalkPanel } from './SuitWalkPanel'
+import type { SurfaceDef } from '../../data/surfaces'
 import { RoverHud, RoverMap } from './RoverHud'
 import { RadioSubtitle } from '../moonMission/RadioSubtitle'
 import { useRadio } from '../../audio/radio'
@@ -43,7 +47,7 @@ function Direction({ turn }: { turn: number }) {
   )
 }
 
-export function EvaPanel() {
+export function EvaPanel({ def }: { def: SurfaceDef }) {
   useLang()
   const T = ui().apolloEva
   const H = ui().apollo17
@@ -55,7 +59,23 @@ export function EvaPanel() {
   const view = useRover((r) => r.view)
   const radio = useRadio((r) => r.playing)
   useEffect(() => bindRoverKeys(), [])
-  const drive = phase === 'drive' && (step === 'drive' || step === 'back')
+  const walking = useSuitWalk((s) => s.on)
+  const vehicle = useRover((r) => r.vehicle)
+  // 月面車を降りられる：運転中（止まってから）か、観測点に着いたとき
+  const canGetOff = !walking && phase === 'drive' && vehicle === 'lrv' && (step === 'drive' || step === 'back' || step === 'stop' || step === 'sample')
+  useEffect(() => {
+    if (!canGetOff) return
+    const down = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyF' || e.repeat) return
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      e.preventDefault()
+      leaveLrv(lrvPose)
+    }
+    window.addEventListener('keydown', down)
+    return () => window.removeEventListener('keydown', down)
+  }, [canGetOff])
+  const drive = !walking && phase === 'drive' && (step === 'drive' || step === 'back')
   const stop = EVA_STOPS[Math.min(leg, EVA_STOPS.length - 1)]
   const site = evaSite(stop.id)
   const eva = leg >= EVA_STOPS.length ? 3 : stop.eva
@@ -113,6 +133,7 @@ export function EvaPanel() {
           </div>
           <div className="ae-name">{H[site.id].name}</div>
           <p>{H[site.id].story}</p>
+          {!walking && <p className="ae-note">{T.walkNote}</p>}
           <button className="primary" onClick={takeSample}>
             {T.take}
           </button>
@@ -171,6 +192,7 @@ export function EvaPanel() {
         </div>
       )}
 
+      {walking && <SuitWalkPanel def={def} eva />}
       {drive && <RoverHud />}
       {drive && isTouchDevice() && (
         <div className="rover-pad">
@@ -184,8 +206,13 @@ export function EvaPanel() {
           </div>
         </div>
       )}
-      {!tv && (
+      {!tv && !walking && (
         <div className="surface-buttons rover-actions">
+          {canGetOff && (
+            <button className="secondary ae-getoff" onClick={() => leaveLrv(lrvPose)} title={T.getOffTip}>
+              {T.getOff}
+            </button>
+          )}
           {drive && (
             <button className="secondary" onClick={() => useRover.getState().setView(view === 'chase' ? 'cam' : 'chase')}>
               {view === 'chase' ? T.toSeat : T.toChase}

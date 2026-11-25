@@ -45,6 +45,7 @@ import './moonMission.css'
 import { CamMenu } from './CamMenu'
 import { AscentCards } from './AscentCards'
 import { SaturnExplorer } from './SaturnExplorer'
+import { LifeTip, lifeTipNow } from './LifeTip'
 
 // 月ミッション（アポロ17号の追体験）の場面。宇宙の場面とは別の Canvas で描く（そのあいだ宇宙の場面は止める）。
 // 画面の上に、時刻・高さ・速さ・G、機首の手本の目盛り、出来事の字幕、終わりのカードを重ねる。
@@ -179,10 +180,13 @@ function Caption() {
     const id = setInterval(() => tick((n) => n + 1), 250)
     return () => clearInterval(id)
   }, [])
+  const age = caption ? missionNow() - caption.at : 1e9
+  const fact = caption ? ui().moonMission.facts[caption.key] : undefined
+  // 見出しも豆知識も出ていない静かなときは、船内のくらしのカード
+  const life = lifeTipNow(age > 14 || (age > 5.5 && !fact))
+  if (life) return <LifeTip id={life} />
   if (!caption) return null
-  const age = missionNow() - caption.at
   // 見出しが消えたあと、その場面の豆知識をしばらく出す
-  const fact = ui().moonMission.facts[caption.key]
   if (age > 5.5 && fact && age < 14)
     return (
       <div className="mm-caption mm-fact" key={`fact-${caption.at}`}>

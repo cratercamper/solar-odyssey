@@ -14,7 +14,7 @@ import { landed } from '../state/landing'
 import { ui } from '../i18n'
 
 /** 中で指を動かすとスクロールしてよい画面（ほかの場所では、なぞってもページは動かさない） */
-const SCROLLABLE = '.nav-panel, .log-panel, .quiz-run, .probe-panel, .stamp-book, .rock-book, .scope-view, .lang-picker, .bridge-panel, .race-bar, .notice-panel, .surface-left'
+const SCROLLABLE = '.nav-panel, .log-panel, .quiz-run, .probe-panel, .stamp-book, .rock-book, .scope-view, .lang-picker, .new-content, .bridge-panel, .race-bar, .notice-panel, .surface-left'
 
 /** お知らせを何件まで覚えておくか */
 const NOTICE_KEEP = 20

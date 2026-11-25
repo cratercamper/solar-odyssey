@@ -77,7 +77,7 @@ export function ProbePanel() {
   return (
     <>
       {probe?.trajectory && probe.model && <ProbeCamPane probe={probe} />}
-      <section className={`probe-panel${probe?.trajectory ? ' with-cam' : ''}`} aria-label={ui().probePanel.probeJourneys}>
+      <section className={`probe-panel${probe ? ' playing' : ''}${probe?.trajectory ? ' with-cam' : ''}`} aria-label={ui().probePanel.probeJourneys}>
         <header>
           <h2>
             {ui().probePanel.probeJourneys}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { LANDER_POS, type Terrain } from './terrain'
@@ -6,9 +6,11 @@ import { meshHeight, nearRocks, onRocks, rockBodies } from './Rover'
 import { isWide, roverRangeFor, wideNow, type RockBody } from './wideGround'
 import { ROVER_RANGE, crewPose, roverFocus } from '../../state/rover'
 import { useLanding } from '../../state/landing'
-import { CREW_HALF_L, CREW_HALF_W, CREW_NEAR, CREW_TOP_Y, bindSuitKeys, endSuitWalk, suitCam, suitDebug, suitInput, suitPose, useSuitWalk } from '../../state/suitWalk'
-import { loadSuit, makeSuitRig } from './suitModel'
-import { HIP_Y, SHIN, THIGH, makeAstronaut, type Rig } from './astronaut'
+import { CREW_HALF_L, CREW_HALF_W, CREW_NEAR, CREW_TOP_Y, LRV_HALF_L, LRV_HALF_W, LRV_NEAR, bindSuitKeys, endSuitWalk, suitCam, suitDebug, suitInput, suitPose, suitSpawn, useSuitWalk } from '../../state/suitWalk'
+import { lrvPose } from './LunarRover'
+import { evaOn } from '../../state/apolloEva'
+import { HIP_Y, SHIN, THIGH, type Rig } from './astronaut'
+import { makeApolloAstronaut } from './apolloSuit'
 import { Footprints } from './footprints'
 import { CYCLE_M, legAt } from './walkCycle'
 import { lowMemory } from '../../state/quality'
@@ -119,18 +121,11 @@ function Walker({ terrain, sky }: { terrain: Terrain; landerYaw: number; sky: Sk
   const gG = def.gravity
   const g = gG * 9.81
   const gait = gaitFor(gG)
-  const hand = useMemo(() => makeAstronaut(false), [])
-  const [model, setModel] = useState<Rig | null>(null)
-  useEffect(() => {
-    let dead = false
-    void loadSuit().then(async (src) => {
-      if (!src || dead) return
-      const r = await makeSuitRig(src, false)
-      if (!dead && r) setModel(r)
-    })
-    return () => void (dead = true)
-  }, [])
-  const rig = model ?? hand
+  // 自作のアポロ型の宇宙服（胸の操作箱・背中の生命維持装置、ひざから下に砂ぼこり）。
+  // 月ではアポロ 17 号の船長の姿（赤い帯・NASA の印・パッチ・国旗）。ほかの星では印と赤い帯を外す
+  const moon = def.id === 'moon'
+  const rig = useMemo(() => makeApolloAstronaut({ back: 'plss', leva: true, cdr: moon, rcu: true, dust: true, patches: moon }), [moon])
+  useEffect(() => () => rig.materials.forEach((m) => m.dispose()), [rig])
   useEffect(() => {
     rig.root.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) o.castShadow = true
@@ -164,9 +159,12 @@ function Walker({ terrain, sky }: { terrain: Terrain; landerYaw: number; sky: Sk
   // いま立って見ていた場所（着陸船の少し手前）から出る。着陸船の方を向いて、カメラは後ろから
   const st = useRef<Walk | null>(null)
   if (!st.current) {
-    const x = 0
-    const z = 0
-    const heading = Math.atan2(-(LANDER_POS.x - x), -(LANDER_POS.y - z))
+    // 月面車から降りたときは、その横から
+    const at = suitSpawn.at
+    suitSpawn.at = null
+    const x = at ? at.x : 0
+    const z = at ? at.z : 0
+    const heading = at ? at.heading : Math.atan2(-(LANDER_POS.x - x), -(LANDER_POS.y - z))
     st.current = { x, z, y: meshHeight(terrain, x, z), vy: 0, vx: 0, vz: 0, heading, grounded: true, crouch: -1, landed: 9, big: false, speedUp: 1, phase: 0, plant: [true, true], touched: -9, jumpAt: -9, stance: 0, airT: 0, flight: 0.6 }
     suitCam.yaw = heading + 0.5
     suitCam.pitch = 0.2
@@ -372,6 +370,28 @@ function Walker({ terrain, sky }: { terrain: Terrain; landerYaw: number; sky: Sk
       nearCrew = Math.hypot(ox, oz) < CREW_NEAR
     }
     if (nearCrew !== useSuitWalk.getState().nearCrew) useSuitWalk.setState({ nearCrew })
+    // アポロの月面車（章7 で降りて歩いているとき）：車体にぶつかり、そばなら乗れる
+    let nearLrv = false
+    if (lrvPose.on && evaOn() && s.y < lrvPose.y + 1.6) {
+      const cfx = -Math.sin(lrvPose.heading)
+      const cfz = -Math.cos(lrvPose.heading)
+      const dx = nx - lrvPose.x
+      const dz = nz - lrvPose.z
+      const f = dx * cfx + dz * cfz
+      const sd = dx * -cfz + dz * cfx
+      const hl = LRV_HALF_L + 0.3
+      const hw = LRV_HALF_W + 0.3
+      const pf = hl - Math.abs(f)
+      const ps = hw - Math.abs(sd)
+      if (pf > 0 && ps > 0) {
+        const f2 = pf < ps ? Math.sign(f || 1) * hl : f
+        const s2 = pf < ps ? sd : Math.sign(sd || 1) * hw
+        nx = lrvPose.x + cfx * f2 - cfz * s2
+        nz = lrvPose.z + cfz * f2 + cfx * s2
+      }
+      nearLrv = Math.hypot(Math.max(0, Math.abs(f) - LRV_HALF_L), Math.max(0, Math.abs(sd) - LRV_HALF_W)) < LRV_NEAR
+    }
+    if (nearLrv !== useSuitWalk.getState().nearLrv) useSuitWalk.setState({ nearLrv })
     // 大きな岩（腰より高い）は、上から乗る以外は越えられない
     for (const r of rockList.current) {
       if (r.h < 0.8 || s.y > r.t - 0.15) continue

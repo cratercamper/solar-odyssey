@@ -10,6 +10,11 @@ export const suitWalkEn: Translation<typeof suitWalkJa> = {
   /** Button next to the pressurized rover (E key on PC) */
   boardCrew: '🚐 Board Michikake',
   boardCrewKey: 'Or press E',
+  boardLrv: 'Get on the rover',
+  boardLrvKey: 'Or press E or F',
+  lrvFar: 'Walk up to the rover to get back on',
+  lrvHintPc: 'WASD to walk · Shift to run · Space to jump · drag to look around · E near the rover to get on',
+  lrvHintTouch: 'Left stick to walk · drag to look around · tap "Get on" near the rover',
   run: 'Run',
   jump: 'Jump',
   hintPc: 'WASD to walk · Shift to run · Space to jump · drag to look around',

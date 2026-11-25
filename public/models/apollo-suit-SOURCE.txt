@@ -1,0 +1,8 @@
+apollo-suit.glb — Apollo 17 era A7LB spacesuit (ch9 deep-space EVA, src/components/surface/apolloSuit.ts).
+Source: made for this app with tools/blender/build_apollo_suit.py (Blender bpy, procedural). No third-party model or texture.
+Parts are split at the Rig joints (torso / shoulder0.. / knee1); optional parts are tagged plss, ops, leva, cdr, rcu.
+Ambient occlusion is baked into vertex colours. meshopt compressed with tools/glb/compress.mjs.
+
+Insignia (2026-11-25): NASA insignia, Apollo 17 mission patch and US flag are redrawn from scratch by
+tools/blender/draw_apollo_decals.py (no photos or source images). Used only on the Apollo-scene suits,
+not for the app icon or promotion. Lunar dust amount is stored in the vertex colour alpha (1 = clean).

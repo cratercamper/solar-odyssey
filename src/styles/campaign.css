@@ -190,6 +190,7 @@ body.touch .campaign-card {
 /* キャンペーンのボタン（ほかの画面のボタンと同じ色づかい） */
 .campaign-start button.primary,
 .campaign-card button.primary,
+.campaign-goal button.primary,
 .campaign-start button.secondary,
 .campaign-card button.secondary,
 .campaign-goal button.secondary {
@@ -198,7 +199,8 @@ body.touch .campaign-card {
   cursor: pointer;
 }
 .campaign-start button.primary,
-.campaign-card button.primary {
+.campaign-card button.primary,
+.campaign-goal button.primary {
   padding: 8px 22px;
   border: none;
   background: #f2a65a;
@@ -206,7 +208,8 @@ body.touch .campaign-card {
   font-weight: 700;
 }
 .campaign-start button.primary:hover,
-.campaign-card button.primary:hover {
+.campaign-card button.primary:hover,
+.campaign-goal button.primary:hover {
   background: #ffb877;
 }
 .campaign-start button.secondary,
@@ -226,4 +229,76 @@ body.touch .campaign-card {
 .campaign-start .cs-go {
   padding: 16px 12px;
   font-size: 20px;
+}
+
+/* ---- 集中モード（キャンペーン中のふだん。cratercamper さんの案 2026-11-23）：次にすることだけ ---- */
+.campaign-goal .cg-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+}
+.campaign-goal .cg-menus {
+  padding: 2px 8px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.campaign-goal.focus {
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 16px;
+  padding: 10px 16px;
+  max-width: min(560px, calc(100vw - 24px));
+}
+.campaign-goal .cg-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  font-size: 15px;
+}
+.campaign-goal .cg-next {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+}
+.campaign-goal .cg-text {
+  font-weight: 600;
+}
+.campaign-goal .cg-do {
+  padding: 6px 18px;
+  font-size: 15px;
+}
+body.touch .campaign-goal .cg-step {
+  font-size: 13px;
+}
+body.touch .campaign-goal .cg-do {
+  padding: 6px 14px;
+  font-size: 14px;
+}
+/* 集中モードでかくすもの：航法コンピュータ・現実と SF・大きさの切りかえ・はじめての3つ・ブリッジや船外活動のボタン・
+   スマホの上のアイコンと右のワープの列・着陸の案内（札の「着陸する」と同じ）・地表の説明とほかの遊び */
+body.campaign-focus .nav-panel,
+body.campaign-focus .sf-badge,
+body.campaign-focus .scale-badge,
+body.campaign-focus .first-three,
+body.campaign-focus .first-three-chip,
+body.campaign-focus .mode-button,
+body.campaign-focus .bridge-button,
+body.campaign-focus .eva-button,
+body.campaign-focus .gallery-button,
+body.campaign-focus .launch-button,
+body.campaign-focus .hud-controls-toggle,
+body.campaign-focus .touch-bar,
+body.campaign-focus .touch-warp,
+body.campaign-focus .land-prompt,
+body.campaign-focus .surface-card,
+body.campaign-focus .lander-actions > :not(.primary) {
+  display: none !important;
 }

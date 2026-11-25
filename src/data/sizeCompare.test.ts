@@ -7,6 +7,10 @@ describe('size compare', () => {
     expect(items.map((i) => i.id)).toEqual(['moon', 'earth', 'jupiter'])
     for (let i = 1; i < items.length; i++) expect(items[i].x - items[i].width / 2).toBeGreaterThan(items[i - 1].x + items[i - 1].width / 2)
   })
+  it('lines up only the picks when the body itself is not shown, and nothing when nothing is picked', () => {
+    expect(lineup(null, ['jupiter', 'moon']).map((i) => i.id)).toEqual(['moon', 'jupiter'])
+    expect(lineup(null, [])).toEqual([])
+  })
   it('counts how many fit across', () => {
     const [moon, earth, jupiter] = lineup('jupiter', ['earth', 'moon'])
     expect(across(jupiter, earth)).toBe(11)

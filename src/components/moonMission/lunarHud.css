@@ -299,6 +299,13 @@
     bottom: 372px;
   }
 }
+@media (max-width: 700px) and (orientation: portrait) {
+  /* 本物の交信の字幕は、上のボタンの列のすぐ下へ（下は字幕・「いま、やること」・操縦の部品でいっぱい） */
+  .mm-hud:has(.lh-pad) .radio-sub {
+    top: 264px;
+    bottom: auto;
+  }
+}
 
 /* 着陸のあとの結果は下に（着陸船が見えるように） */
 .mm-end.lh-end {

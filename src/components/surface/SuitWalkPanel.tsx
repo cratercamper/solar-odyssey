@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { boardCrewRover, endSuitWalk, suitInput, useSuitWalk } from '../../state/suitWalk'
+import { boardCrewRover, boardLrv, endSuitWalk, suitInput, useSuitWalk } from '../../state/suitWalk'
 import { useLanding } from '../../state/landing'
 import { isTouchDevice } from '../../state/input'
 import { gaitFor } from './SuitWalk'
@@ -52,13 +52,15 @@ function Stick() {
   )
 }
 
-export function SuitWalkPanel({ def }: { def: SurfaceDef }) {
+/** eva：アポロ17号の章7 で月面車を降りて歩いているとき（着陸船へもどるボタンの代わりに、月面車に乗るボタン） */
+export function SuitWalkPanel({ def, eva = false }: { def: SurfaceDef; eva?: boolean }) {
   useLang()
   const t = ui().suitWalk
   const edge = useSuitWalk((s) => s.edge)
   const run = useSuitWalk((s) => s.run)
   const steps = useSuitWalk((s) => s.steps)
   const nearCrew = useSuitWalk((s) => s.nearCrew)
+  const nearLrv = useSuitWalk((s) => s.nearLrv)
   const menu = useLanding((l) => l.menu)
   const touch = isTouchDevice()
   // 外へ出たときだけ、この星の歩き方を一言
@@ -73,7 +75,7 @@ export function SuitWalkPanel({ def }: { def: SurfaceDef }) {
       {intro && <div className="sw-intro">{t.gait[gaitFor(def.gravity)](g)}</div>}
       {edge && <div className="sw-edge">{t.edge}</div>}
       <div className="surface-hint sw-hint">
-        {touch ? t.hintTouch : t.hintPc}
+        {eva ? (touch ? t.lrvHintTouch : t.lrvHintPc) : touch ? t.hintTouch : t.hintPc}
         {steps > 0 && <span className="sw-steps">{t.steps(steps)}</span>}
       </div>
       {touch && (
@@ -89,6 +91,17 @@ export function SuitWalkPanel({ def }: { def: SurfaceDef }) {
           </div>
         </div>
       )}
+      {eva ? (
+        <div className="surface-buttons sw-actions">
+          {nearLrv ? (
+            <button className="primary sw-board" onClick={boardLrv} title={touch ? undefined : t.boardLrvKey}>
+              {t.boardLrv}
+            </button>
+          ) : (
+            <div className="sw-lrv-far">{t.lrvFar}</div>
+          )}
+        </div>
+      ) : (
       <div className="surface-buttons sw-actions">
         <button className={`secondary${menu ? ' on' : ''}`} onClick={() => useLanding.setState({ menu: !menu })} title={ui().surfaceView.landerMenuTip}>
           {menu ? ui().surfaceView.hideMenu : ui().surfaceView.menu}
@@ -102,6 +115,7 @@ export function SuitWalkPanel({ def }: { def: SurfaceDef }) {
           {t.back}
         </button>
       </div>
+      )}
     </>
   )
 }

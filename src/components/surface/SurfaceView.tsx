@@ -1718,7 +1718,7 @@ function SurfacePanel({ def }: { def: SurfaceDef }) {
         </div>
       )}
       {phase === 'ascent' && <div className="surface-caption">{ui().surfaceView.liftOff}</div>}
-      {phase === 'surface' && eva && <EvaPanel />}
+      {phase === 'surface' && eva && <EvaPanel def={def} />}
       {phase === 'surface' && !eva && (
         <>
           {/* 左上の列：説明・（スマホでは）時刻と天気・ミニマップを上から順に積む。重ならず、たたんだぶんだけ詰まる */}

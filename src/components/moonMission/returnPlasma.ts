@@ -148,8 +148,13 @@ export type Fireball = {
   wake: THREE.ShaderMaterial
   sparks: THREE.ShaderMaterial
   wakeMesh: THREE.Mesh
+  /** 衝撃波のおわん。ReturnWorld が熱よけの面の向きにそろえる */
+  shockMesh: THREE.Mesh
   dispose: () => void
 }
+
+/** 衝撃波のおわんのふちの高さ（熱よけの中心から、機体の上へ m） */
+export const SHOCK_Y = 0.1
 
 /** 火の玉ひとそろい。group の原点が熱よけの中心、-Y が進む向き（尾は +Y へ） */
 export function makeFireball(): Fireball {
@@ -161,7 +166,7 @@ export function makeFireball(): Fireball {
   const sg = new THREE.SphereGeometry(1, 40, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)
   const sm = new THREE.Mesh(sg, shock)
   sm.scale.set(2.5, 0.9, 2.5)
-  sm.position.y = 0.1
+  sm.position.y = SHOCK_Y
   sm.renderOrder = 6
   // 尾：根元が熱よけの太さ、先へ向かって広がる円すい（長さ 1、+Y へ。ReturnWorld が長さを決める）
   const wg = new THREE.CylinderGeometry(7, 2.3, 1, 32, 20, true)
@@ -190,7 +195,7 @@ export function makeFireball(): Fireball {
   wm.frustumCulled = false
   sm.frustumCulled = false
   group.add(sm, wm, pts)
-  return { group, shock, wake, sparks, wakeMesh: wm, dispose: () => [shock, wake, sparks, sg, wg, pg].forEach((o) => o.dispose()) }
+  return { group, shock, wake, sparks, wakeMesh: wm, shockMesh: sm, dispose: () => [shock, wake, sparks, sg, wg, pg].forEach((o) => o.dispose()) }
 }
 
 /** 毎フレーム：熱の強さと時間 */

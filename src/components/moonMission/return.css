@@ -47,17 +47,6 @@
   height: 100%;
   background: linear-gradient(90deg, #7fe0a0, #ffd27a 55%, #ff7a5a);
 }
-.rt-lift {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.rt-lift i {
-  display: inline-block;
-  font-style: normal;
-  transition: transform 0.2s linear;
-  color: #9ff0b8;
-}
 .rt-note {
   font-size: 11px;
   color: #a9bbd0;
@@ -255,6 +244,62 @@
   display: none;
 }
 
+/* 揚力と重力の絵（LiftPicture.tsx） */
+.rt-pic {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(160, 200, 255, 0.2);
+}
+.rt-picpanel .rt-pic {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.rt-pic svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 2px 0;
+}
+.rt-pic-title {
+  font-size: 11px;
+  color: #a9bbd0;
+}
+.rt-pic-line {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #e6eef8;
+}
+.rt-pic-line.good {
+  color: #9ff0b8;
+}
+.rt-pic-line.bad {
+  color: #ff8a70;
+}
+.rt-pic-note {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #a9bbd0;
+}
+.rt-pic-note.good {
+  color: #9ff0b8;
+}
+.rt-pic text {
+  font-size: 11px;
+  font-weight: 600;
+}
+.rt-pic .rt-pic-l {
+  fill: #9ff0b8;
+}
+.rt-pic .rt-pic-g {
+  fill: #ffd27a;
+}
+.rt-pic .rt-pic-air {
+  fill: #a9c8ff;
+  font-weight: 400;
+}
+
 @media (max-width: 700px) {
   .mm-hud .mm-buttons.rt-buttons {
     top: 8px;
@@ -281,8 +326,8 @@
     bottom: 160px;
   }
   .rt-black {
-    top: auto;
-    bottom: 160px;
+    top: 160px;
+    bottom: auto;
     right: auto;
     left: 12px;
   }
@@ -293,4 +338,20 @@
   .mm-root[data-phase='home']:has(.rt-center) .mm-caption {
     bottom: 304px;
   }
+  /* 火の玉のあいだ：右の計器と揚力の絵（上から 112〜430px くらい）に重ならないように、字幕・豆知識を下の方へ */
+  .mm-root[data-phase='home']:has(.rt-panel:not(.rt-picpanel) .rt-pic) .mm-caption {
+    bottom: 150px;
+  }
+  .rt-pic-title {
+    font-size: 10px;
+  }
+  .rt-pic-line {
+    font-size: 11px;
+  }
+  .rt-pic-note {
+    font-size: 10px;
+  }
+}
+.rt-pic-note.turn {
+  color: #ffd27a;
 }

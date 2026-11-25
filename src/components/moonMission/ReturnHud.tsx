@@ -9,6 +9,7 @@ import { startChapter } from '../../state/missionChapters'
 import { ChapterMenu } from './ChapterMenu'
 import './return.css'
 import { CamMenu } from './CamMenu'
+import { AnglePicture, LiftPicture } from './LiftPicture'
 
 // 章8（離陸・再会・地球へ帰還）の画面：ランデブーの距離、地球へ向かう点火のボタン、突入の角度の目盛り、
 // 火の玉の中の高さ・速さ・G・揚力の向き、パラシュート、失敗と終わりのカード
@@ -70,6 +71,9 @@ function Corridor() {
   const left = CORRIDOR_TIME - ret.t
   return (
     <>
+      <div className="rt-panel rt-picpanel">
+        <AnglePicture angle={ret.angle} />
+      </div>
       <div className="rt-center">
         <div className="rt-k">{T.angle}</div>
         <div className={`rt-big ${inCorridor(ret.angle) ? 'good' : 'bad'}`}>{T.deg(ret.angle)}</div>
@@ -98,7 +102,6 @@ function EntryPanel() {
   if (!e) return null
   const black = blackout(e)
   const climbing = e.gamma > 0 && e.v > 7000
-  const lift = e.lift > 0.5 ? T.liftUp : e.lift < -0.5 ? T.liftDown : T.liftSide
   return (
     <>
       <div className="rt-panel">
@@ -118,14 +121,8 @@ function EntryPanel() {
           </i>
         </div>
         <div className="rt-note">{T.peak(e.peakG)}</div>
-        <div className="rt-row">
-          <span>{T.lift}</span>
-          <b className="rt-lift">
-            <i style={{ transform: `rotate(${Math.acos(Math.max(-1, Math.min(1, e.lift)))}rad)` }}>↑</i>
-            {lift}
-          </b>
-        </div>
         <div className="rt-warp">{T.warp(ENTRY_WARP)}</div>
+        <LiftPicture e={e} />
       </div>
       {black && <div className="rt-black">{T.blackout}</div>}
       {climbing && !auto && <div className="rt-climb">{T.climbing}</div>}
@@ -211,6 +208,15 @@ function Fail() {
       <div className="mm-end-buttons">
         <button className="mm-continue" onClick={() => retryEntry()}>
           {T.retry}
+        </button>
+        {/* 揚力の操縦はむずかしいので、失敗したら おまかせ（本物と同じく、船のコンピュータが回す）でもやり直せる */}
+        <button
+          onClick={() => {
+            setReturnAuto(true)
+            retryEntry()
+          }}
+        >
+          {T.retryAuto}
         </button>
         <button onClick={() => endMission()}>{T.back}</button>
       </div>

@@ -6,6 +6,7 @@ import { canCompare, defaultPicks, type Pick } from '../data/sizeCompare'
 type SizeCompareState = {
   /** くらべている星（開いていなければ null） */
   id: string | null
+  /** ならべているもの。くらべている星も、はじめはここに入っている（ボタンではずせる） */
   picks: Pick[]
   /** 寄って見ているもの（全体なら null） */
   focus: string | null
@@ -13,11 +14,11 @@ type SizeCompareState = {
 
 export const useSizeCompare = create<SizeCompareState>(() => ({ id: null, picks: [], focus: null }))
 
-/** 開く（くらべられない星なら地球） */
+/** 開く（くらべられない星なら地球）。その星もはじめから選んである（ほかのものとおなじに、はずせる） */
 export function openSizeCompare(id?: string | null) {
   if (document.pointerLockElement) document.exitPointerLock()
   const target = canCompare(id) ? id : 'earth'
-  useSizeCompare.setState({ id: target, picks: defaultPicks(target), focus: null })
+  useSizeCompare.setState({ id: target, picks: [target, ...defaultPicks(target)], focus: null })
 }
 export const closeSizeCompare = () => useSizeCompare.setState({ id: null, focus: null })
 

@@ -74,3 +74,9 @@
   border-radius: 10px;
   padding: 6px 12px 8px;
 }
+/* 横長で背の低い画面（スマホの横向きなど）：上の字幕（場面の説明 2 行）と重ならないように、その下へ */
+@media (max-height: 560px) and (min-aspect-ratio: 1/1) {
+  .radio-sub {
+    top: calc(13vh + 62px);
+  }
+}

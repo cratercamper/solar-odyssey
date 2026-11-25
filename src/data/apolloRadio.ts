@@ -2,9 +2,9 @@
 // 出典：Apollo Flight Journal / Apollo Lunar Surface Journal（apollojournals.org）の録音と文字起こし。
 // セリフは作らない。字幕の文は src/i18n/moonMission.* の radio.lines にある（原文と訳）。
 
-export type RadioWho = 'pao' | 'cdr' | 'capcom' | 'lmp' | 'cmp'
-export type RadioLineKey = 'count' | 'liftoff1' | 'liftoff2' | 'landed' | 'super' | 'goTli' | 'goTliAck' | 'arrived' | 'heardYou' | 'pdiCount' | 'pdiIgnition' | 'ohHey' | 'what' | 'orangeSoil' | 'dontMove' | 'allOver' | 'dontMove2' | 'stirred' | 'itIs' | 'leaveAsWeCame' | 'peaceHope' | 'ascentCount' | 'ascentIgnition' | 'onOurWay' | 'ratesGood' | 'captureHouston' | 'weCopy' | 'prime1' | 'markIt' | 'hereSheComes' | 'kachunk' | 'rippleFire' | 'onMyMark' | 'gotIt' | 'thereSheGoes' | 'stickForever' | 'rogerGene' | 'africa' | 'upperThird'
-export type RadioClipId = 'liftoff' | 'landed' | 'tli' | 'aos' | 'pdi' | 'orange' | 'lastWords' | 'ascent' | 'capture' | 'hardDock' | 'ejection' | 'earthView'
+export type RadioWho = 'pao' | 'cdr' | 'capcom' | 'lmp' | 'cmp' | 'crew'
+export type RadioLineKey = 'count' | 'liftoff1' | 'liftoff2' | 'landed' | 'super' | 'goTli' | 'goTliAck' | 'arrived' | 'heardYou' | 'pdiCount' | 'pdiIgnition' | 'ohHey' | 'what' | 'orangeSoil' | 'dontMove' | 'allOver' | 'dontMove2' | 'stirred' | 'itIs' | 'leaveAsWeCame' | 'peaceHope' | 'ascentCount' | 'ascentIgnition' | 'onOurWay' | 'ratesGood' | 'captureHouston' | 'weCopy' | 'prime1' | 'markIt' | 'hereSheComes' | 'kachunk' | 'rippleFire' | 'onMyMark' | 'gotIt' | 'thereSheGoes' | 'stickForever' | 'rogerGene' | 'africa' | 'upperThird' | 'goAt5' | 'earthWindow' | 'throttleCall' | 'likesIt' | 'beautiful' | 'nansen' | 'levelMassifs' | 'pitchoverCall' | 'proceeded' | 'camelot' | 'wow' | 'onTarget' | 'iSeeIt' | 'gotAll' | 'gotP66' | 'down200' | 'down5' | 'movingFwd' | 'feet90' | 'fwdVel' | 'standByTd' | 'standBy25' | 'fuelGood' | 'feet20' | 'feet10' | 'contactCall'
+export type RadioClipId = 'liftoff' | 'landed' | 'tli' | 'aos' | 'pdi' | 'orange' | 'lastWords' | 'ascent' | 'capture' | 'hardDock' | 'ejection' | 'earthView' | 'earthWindow' | 'throttle' | 'massifs' | 'pitchover' | 'p66' | 'at200' | 'forward' | 'touchdown' | 'tenFeet' | 'contact'
 
 export type RadioLine = { from: number; to: number; who: RadioWho; key: RadioLineKey }
 export type RadioClip = {
@@ -153,6 +153,104 @@ export const RADIO: Record<RadioClipId, RadioClip> = {
       { from: 10.2, to: 16.4, who: 'cdr', key: 'africa' },
       { from: 16.6, to: 27.0, who: 'cdr', key: 'upperThird' },
     ],
+  },
+  // ── 章7：動力降下（ALSJ の録音 a17a_1124856_to_1130348.mp3 から。時刻と言葉は a17.landing.html の書き起こし）──
+  // 点火から 5 分。正面の窓に地球（112:55:04）
+  earthWindow: {
+    file: 'audio/apollo17/descent-earthwindow.mp3',
+    length: 6.5,
+    get: '112:55:04',
+    lines: [
+      { from: 0.2, to: 3.0, who: 'cdr', key: 'goAt5' },
+      { from: 4.2, to: 6.5, who: 'cdr', key: 'earthWindow' },
+    ],
+  },
+  // 推力を絞る（112:57:21）
+  throttle: {
+    file: 'audio/apollo17/descent-throttle.mp3',
+    length: 5.5,
+    get: '112:57:21',
+    lines: [
+      { from: 0.2, to: 1.8, who: 'crew', key: 'throttleCall' },
+      { from: 2.1, to: 4.0, who: 'cdr', key: 'likesIt' },
+      { from: 4.1, to: 5.5, who: 'lmp', key: 'beautiful' },
+    ],
+  },
+  // 谷の目印のクレーターが見えた。山のてっぺんと同じ高さ（112:58:35）
+  massifs: {
+    file: 'audio/apollo17/descent-massifs.mp3',
+    length: 8.1,
+    get: '112:58:35',
+    lines: [
+      { from: 0.2, to: 4.4, who: 'cdr', key: 'nansen' },
+      { from: 4.6, to: 8.1, who: 'cdr', key: 'levelMassifs' },
+    ],
+  },
+  // ピッチオーバー。窓からカメロット・クレーター（112:59:18）
+  pitchover: {
+    file: 'audio/apollo17/descent-pitchover.mp3',
+    length: 8.7,
+    get: '112:59:18',
+    lines: [
+      { from: 0.2, to: 1.1, who: 'cdr', key: 'pitchoverCall' },
+      { from: 1.2, to: 2.3, who: 'lmp', key: 'proceeded' },
+      { from: 2.4, to: 4.3, who: 'cdr', key: 'camelot' },
+      { from: 4.4, to: 5.0, who: 'lmp', key: 'wow' },
+      { from: 5.0, to: 6.2, who: 'cdr', key: 'onTarget' },
+      { from: 6.2, to: 6.9, who: 'lmp', key: 'iSeeIt' },
+      { from: 6.9, to: 8.7, who: 'cdr', key: 'gotAll' },
+    ],
+  },
+  // 手動（P66）にした（113:00:51）
+  p66: {
+    file: 'audio/apollo17/descent-p66.mp3',
+    length: 2.5,
+    get: '113:00:51',
+    lines: [{ from: 0.2, to: 2.5, who: 'cdr', key: 'gotP66' }],
+  },
+  // ここから下は、シュミット飛行士の高さの読み上げ（フィート。1 フィート = 0.3 m）。ゲームでは本物と同じくらいの高さで流す
+  at200: {
+    file: 'audio/apollo17/descent-at200.mp3',
+    length: 4.6,
+    get: '113:00:55',
+    lines: [
+      { from: 0.2, to: 1.7, who: 'lmp', key: 'down200' },
+      { from: 3.1, to: 4.6, who: 'lmp', key: 'down5' },
+    ],
+  },
+  forward: {
+    file: 'audio/apollo17/descent-forward.mp3',
+    length: 5.3,
+    get: '113:01:15',
+    lines: [
+      { from: 0.2, to: 1.6, who: 'lmp', key: 'movingFwd' },
+      { from: 2.6, to: 3.4, who: 'lmp', key: 'feet90' },
+      { from: 3.8, to: 5.3, who: 'lmp', key: 'fwdVel' },
+    ],
+  },
+  touchdown: {
+    file: 'audio/apollo17/descent-touchdown.mp3',
+    length: 9.6,
+    get: '113:01:42',
+    lines: [
+      { from: 0.2, to: 1.3, who: 'cdr', key: 'standByTd' },
+      { from: 1.4, to: 4.1, who: 'lmp', key: 'standBy25' },
+      { from: 4.8, to: 5.7, who: 'lmp', key: 'fuelGood' },
+      { from: 7.3, to: 9.6, who: 'lmp', key: 'feet20' },
+    ],
+  },
+  tenFeet: {
+    file: 'audio/apollo17/descent-tenfeet.mp3',
+    length: 3.0,
+    get: '113:01:54',
+    lines: [{ from: 0.1, to: 3.0, who: 'lmp', key: 'feet10' }],
+  },
+  // 探り棒が月面に触れた（113:01:58）
+  contact: {
+    file: 'audio/apollo17/descent-contact.mp3',
+    length: 1.3,
+    get: '113:01:58',
+    lines: [{ from: 0.1, to: 1.3, who: 'lmp', key: 'contactCall' }],
   },
 }
 

@@ -49,6 +49,7 @@ export const saveDataEn: Translation<typeof saveDataJa> = {
     apollo17: 'Apollo 17 sites',
     firstThree: 'First three things',
     newsSeen: 'News you have read',
+    newContentSeen: 'New-content popups you have seen',
     photoNoteHidden: 'Photographic mode note',
   },
 }

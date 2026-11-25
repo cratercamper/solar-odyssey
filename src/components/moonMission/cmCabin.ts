@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import { loadSuit, makeSuitRig } from '../surface/suitModel'
+import { makeApolloAstronaut } from '../surface/apolloSuit'
 
 // 司令船（CM）の中：打ち上げのときの 3 人（左から船長サーナン・司令船操縦士エバンス・着陸船操縦士シュミット）。
 // 3 人は背中を下（熱よけの側）にして寝た姿勢で座席に収まり、顔の上に計器盤（主表示盤、MDC）がある。
 // 窓は打ち上げのあいだ白いカバー（BPC）でふさがれているので、明かりは計器盤の照明と表示だけ。
 //
 // 座標（CM の床の真ん中が原点、ロケットの局所の座標と同じ向き）：y が機首の向き、x が 3 人の並び、
-// z は 3 人の頭（-z）から足（+z）へ。宇宙服は public/models/astronaut.glb（地表の宇宙飛行士と同じ）を座らせる。
+// z は 3 人の頭（-z）から足（+z）へ。宇宙服は自作のアポロ 17 号の宇宙服（public/models/apollo-suit.glb）を座らせる。
 
 /** CM の床の、ロケットの中での高さ（m、ロケットの根元から） */
 export const CABIN_Y = 97.75
@@ -398,12 +398,10 @@ export function buildCabin(): Cabin {
   group.visible = false
 
   // 宇宙服の 3 人：寝た姿勢で、ひざを上げて座席に収まる
-  let alive = true
-  void loadSuit().then(async (src) => {
-    if (!src || !alive) return
+  // 打ち上げでは背中の装置も金色の日よけも着けない。左の席の船長だけ赤い帯
+  {
     for (const x of [-0.66, 0, 0.66]) {
-      const rig = await makeSuitRig(src, false)
-      if (!rig || !alive) return
+      const rig = makeApolloAstronaut({ back: 'none', leva: false, cdr: x < 0, rcu: false })
       for (let i = 0; i < 2; i++) {
         rig.hips[i].rotation.x = -1.45
         rig.knees[i].rotation.x = 1.5
@@ -412,7 +410,6 @@ export function buildCabin(): Cabin {
         rig.shoulders[i].rotation.z = (i === 0 ? 1 : -1) * 0.3
         rig.elbows[i].rotation.x = -0.5
       }
-      rig.update?.()
       // 立った姿から、頭を -z、顔を上（+y）へ
       const holder = new THREE.Group()
       holder.add(rig.root)
@@ -420,9 +417,10 @@ export function buildCabin(): Cabin {
       holder.rotation.x = -Math.PI / 2
       holder.position.set(x, 0.58, 0.06)
       group.add(holder)
-      for (const m of rig.materials) disposables.push(m)
+      // 部品はモデルが届いてから入れかわるので、材質は片づけるときに集める
+      disposables.push({ dispose: () => rig.materials.forEach((m) => m.dispose()) })
     }
-  })
+  }
 
   return {
     group: root,
@@ -431,7 +429,6 @@ export function buildCabin(): Cabin {
       for (const [l, k] of lights) l.intensity = on ? k : 0
     },
     dispose: () => {
-      alive = false
       for (const d of disposables) d.dispose()
     },
   }

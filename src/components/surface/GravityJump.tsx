@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { jumpOn, heightAt, type Jump } from '../../data/jump'
 import { CROUCH, LAND, jumpClock, useJump } from '../../state/jump'
 import type { Terrain } from './terrain'
-import { HIP_Y, SHIN, THIGH, makeAstronaut, type Rig } from './astronaut'
-import { loadSuit, makeSuitRig } from './suitModel'
+import { HIP_Y, SHIN, THIGH, type Rig } from './astronaut'
+import { loadApolloSuit, makeApolloAstronaut, type ApolloKit } from './apolloSuit'
 import { ui } from '../../i18n'
 import { useLang } from '../../i18n/lang'
 
@@ -82,10 +82,12 @@ const tmp = new THREE.Vector3()
 export const jumpFocus = { on: false, point: new THREE.Vector3(), lift: 0 }
 /** これより高く跳ぶ星（フォボスなど）では、カメラもいっしょに上がって、遠ざかる地面を見せる */
 const RIDE_FROM = 20
+/** 跳ぶ宇宙飛行士の服（アポロの場面ではないので、印と赤い帯は無し） */
+const SUIT: ApolloKit = { back: 'plss', leva: true, cdr: false, rcu: true, dust: true, patches: false }
 
 export function GravityJump({ terrain }: { terrain: Terrain }) {
   // 地表に降りたら、宇宙飛行士のモデルを先に読んでおく（跳ぶときに待たないように）
-  useEffect(() => void loadSuit(), [])
+  useEffect(() => void loadApolloSuit(), [])
   const id = useJump((s) => s.id)
   const at = useJump((s) => s.at)
   const j = id ? jumpOn(id) : null
@@ -96,18 +98,10 @@ export function GravityJump({ terrain }: { terrain: Terrain }) {
 function Pair({ j, terrain }: { j: Jump; terrain: Terrain }) {
   useLang()
   const { camera } = useThree()
-  const hand = useMemo(() => ({ me: makeAstronaut(false), earth: makeAstronaut(true) }), [])
-  const [model, setModel] = useState<{ me: Rig; earth: Rig } | null>(null)
-  useEffect(() => {
-    let dead = false
-    void loadSuit().then(async (src) => {
-      if (!src || dead) return
-      const [a, b] = await Promise.all([makeSuitRig(src, false), makeSuitRig(src, true)])
-      if (!dead && a && b) setModel({ me: a, earth: b })
-    })
-    return () => void (dead = true)
-  }, [])
-  const { me, earth } = model ?? hand
+  // 自作のアポロ型の宇宙服（印と赤い帯は外す）。地球の人は同じ服を、うすい青で透かす
+  const pair = useMemo(() => ({ me: makeApolloAstronaut(SUIT), earth: makeApolloAstronaut({ ...SUIT, ghost: true }) }), [])
+  useEffect(() => () => [...pair.me.materials, ...pair.earth.materials].forEach((m) => m.dispose()), [pair])
+  const { me, earth } = pair
   const meLabel = useRef<HTMLSpanElement>(null)
   const earthLabel = useRef<HTMLSpanElement>(null)
   const meTag = useRef<THREE.Group>(null)

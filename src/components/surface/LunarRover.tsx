@@ -11,11 +11,12 @@ import { useLanding } from '../../state/landing'
 import { roverRangeFor } from './wideGround'
 import { BOARD_SEC, LRV_TOP, ROVER_RANGE, driveInput, roverFocus, roverInput, roverNow, roverPose, setRoverPhase, useRover } from '../../state/rover'
 import { LRV_START, lrvTeleport, tickEva, useApolloEva } from '../../state/apolloEva'
+import { useSuitWalk } from '../../state/suitWalk'
 import { APOLLO17 } from '../../data/apollo17'
 import { WheelDust, meshHeight, drawnHeight, nearRocks, rockBodies } from './Rover'
 import { WheelTracks } from './wheelTracks'
 import { Sway } from './roverSway'
-import { loadSuit, makeSuitRig } from './suitModel'
+import { makeApolloAstronaut } from './apolloSuit'
 import type { Rig } from './astronaut'
 
 // アポロ15〜17号の月面車 LRV（全長 3.1 m、4 輪、乗員 2 人）。模型は tools/blender/build_lrv.py で作った lrv.glb。
@@ -149,25 +150,23 @@ export function LunarRover({
   }, [scene, prepare])
   useEffect(() => () => built.owned.forEach((m) => m.dispose()), [built])
 
-  // 座っている 2 人（宇宙服のモデルを読みこんでから）。船長は左、シュミット飛行士は右
+  // 座っている 2 人：アポロ 17 号の宇宙服（A7LB）。船長サーナン（左・赤い帯）と、シュミット飛行士（右）。
+  // 月面を歩いたあとなので、ひざから下に砂ぼこり
   const rigs = useRef<Rig[]>([])
   useEffect(() => {
-    let dead = false
-    void loadSuit().then(async (src) => {
-      if (!src || dead) return
-      for (let i = 0; i < 2; i++) {
-        const r = await makeSuitRig(src, false)
-        if (!r || dead) return
-        r.root.position.set(SEAT_X[i], 0, SEAT_Z)
-        r.root.rotation.y = Math.PI
-        seat(r, i === 0)
-        built.crew.add(r.root)
-        rigs.current.push(r)
-      }
-    })
+    for (let i = 0; i < 2; i++) {
+      const r = makeApolloAstronaut({ back: 'plss', leva: true, cdr: i === 0, rcu: true, dust: true })
+      r.root.position.set(SEAT_X[i], 0, SEAT_Z)
+      r.root.rotation.y = Math.PI
+      seat(r, i === 0)
+      built.crew.add(r.root)
+      rigs.current.push(r)
+    }
     return () => {
-      dead = true
-      for (const r of rigs.current) built.crew.remove(r.root)
+      for (const r of rigs.current) {
+        built.crew.remove(r.root)
+        for (const m of r.materials) m.dispose()
+      }
       rigs.current = []
     }
   }, [built])
@@ -416,7 +415,9 @@ export function LunarRover({
     lrvPose.matrix.copy(grp.matrixWorld)
     if (mine) roverFocus.set(s.x, s.y, s.z)
     if (mine) Object.assign(roverPose, { x: s.x, y: s.y, z: s.z, heading: s.heading, speed: s.speed, slip: 0, grounded: s.grounded, pitch: s.pitch, roll: s.roll })
-    if (mine) tickEva()
+    // 月面車を降りて歩いているときも、次の場所までの道のりを数える
+    const walking = useSuitWalk.getState().on
+    if (mine || walking) tickEva()
 
     // ---- 砂ぼこり・轍 ----
     const cam = state.camera as THREE.PerspectiveCamera
@@ -433,7 +434,8 @@ export function LunarRover({
     // 船長の目のときは、船長の体はかくす（ヘルメットの中から見ているので）
     // 離陸のときは 2 人とも着陸船の中（月面車には誰も乗っていない）
     const aboard = evaStep !== 'liftoff' && evaStep !== 'done'
-    if (rigs.current[0]) rigs.current[0].root.visible = !seatView && aboard
+    // 船長が降りて歩いているときは、船長の席は空
+    if (rigs.current[0]) rigs.current[0].root.visible = !seatView && aboard && !walking
     if (rigs.current[1]) rigs.current[1].root.visible = aboard
     if (!mine || useLanding.getState().phase !== 'surface' || evaStep === 'liftoff' || evaStep === 'done') return
     const camPos = P.cam

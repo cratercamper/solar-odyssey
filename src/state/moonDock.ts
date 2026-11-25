@@ -125,7 +125,7 @@ export function dockJourney() {
 /** 章3 を始める（第1弾の終わりのカード、章の一覧から） */
 export function startDock() {
   preloadMusic('blueDanube')
-  preloadMusic('neptune')
+  preloadMusic('valkyries')
   preloadRadio('capture')
   preloadRadio('hardDock')
   preloadRadio('ejection')
@@ -141,7 +141,7 @@ export function startDock() {
 
 /** 章4 を始める */
 export function startMarble() {
-  preloadMusic('neptune')
+  preloadMusic('valkyries')
   preloadRadio('earthView')
   stopRadio()
   Object.assign(dock, { t: 0, gap: -0.3, out: 30, aimYaw: -14, aimPitch: 9, shoot: false, drift: 0 })

@@ -17,20 +17,25 @@ export type SuitWalkState = {
   steps: number
   /** 与圧ローバーのそば（乗りこめる） */
   nearCrew: boolean
+  /** アポロの月面車（LRV）のそば（乗りこめる。章7 の船外活動で、降りて歩いているとき） */
+  nearLrv: boolean
 }
 
-export const useSuitWalk = create<SuitWalkState>(() => ({ on: false, since: 0, edge: false, run: false, steps: 0, nearCrew: false }))
+export const useSuitWalk = create<SuitWalkState>(() => ({ on: false, since: 0, edge: false, run: false, steps: 0, nearCrew: false, nearLrv: false }))
 
 export const suitNow = () => performance.now() / 1000
 
 export function startSuitWalk() {
   if (useSuitWalk.getState().on || useRover.getState().phase !== 'none') return
-  useSuitWalk.setState({ on: true, since: suitNow(), edge: false, run: false, steps: 0, nearCrew: false })
+  useSuitWalk.setState({ on: true, since: suitNow(), edge: false, run: false, steps: 0, nearCrew: false, nearLrv: false })
 }
+
+/** 次に外へ出るときの場所と向き（月面車から降りるとき。なければ着陸船の手前）。SuitWalk が読んで空にする */
+export const suitSpawn: { at: null | { x: number; z: number; heading: number } } = { at: null }
 
 export function endSuitWalk() {
   if (!useSuitWalk.getState().on) return
-  useSuitWalk.setState({ on: false, edge: false, nearCrew: false })
+  useSuitWalk.setState({ on: false, edge: false, nearCrew: false, nearLrv: false })
   suitInput.x = suitInput.z = 0
   keys.clear()
 }
@@ -41,6 +46,18 @@ export function boardCrewRover() {
   endSuitWalk()
   launchRover(false, 'crew')
 }
+
+/** アポロの月面車のそばで「乗る」：歩くのをやめて、月面車の運転へ（乗りこむところから） */
+export function boardLrv() {
+  if (!useSuitWalk.getState().nearLrv) return
+  endSuitWalk()
+  launchRover(false, 'lrv')
+}
+
+/** 月面車（LRV）の車体の大きさ（m。前後 ±、左右 ±）と、「乗る」が出る距離 */
+export const LRV_HALF_L = 1.6
+export const LRV_HALF_W = 1.05
+export const LRV_NEAR = 2.2
 
 /** 与圧ローバーの車体（車の向きで、前後 ±CREW_HALF_L・左右 ±CREW_HALF_W、高さ CREW_TOP_Y まで。m） */
 export const CREW_HALF_L = 3.3
@@ -61,7 +78,7 @@ export const suitPose = { x: 0, y: 0, z: 0, heading: 0, speed: 0, grounded: true
 export const suitDebug: { move: [number, number] | null; place: ((x: number, z: number, heading: number) => void) | null } = { move: null, place: null }
 
 const keys = new Set<string>()
-const KEYS = new Set(['KeyE', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'Space'])
+const KEYS = new Set(['KeyE', 'KeyF', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'Space'])
 
 function fromKeys() {
   const has = (...c: string[]) => c.some((k) => keys.has(k))
@@ -82,8 +99,11 @@ export function bindSuitKeys() {
       if (!e.repeat) suitInput.jump = true
       return
     }
-    if (e.code === 'KeyE') {
-      if (!e.repeat) boardCrewRover()
+    if (e.code === 'KeyE' || e.code === 'KeyF') {
+      if (!e.repeat) {
+        if (useSuitWalk.getState().nearLrv) boardLrv()
+        else if (e.code === 'KeyE') boardCrewRover()
+      }
       return
     }
     keys.add(e.code)

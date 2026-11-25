@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { playRadio, preloadRadio, stopRadio } from '../audio/radio'
+import { playRadio, preloadRadio, stopRadio, useRadio } from '../audio/radio'
+import type { RadioClipId } from '../data/apolloRadio'
 import { playMusic, preloadMusic, stopMusic } from '../audio/missionMusic'
 import { playStatic } from '../audio/sfx'
 import * as THREE from 'three'
@@ -109,6 +110,7 @@ export function startLunar() {
   preloadRadio('landed')
   preloadRadio('aos')
   preloadRadio('pdi')
+  for (const id of DESCENT_RADIO) preloadRadio(id)
   void loadLunarMaps().then(
     () => useMoonLunar.setState({ ready: true }),
     () => useMoonLunar.setState({ ready: true }),
@@ -117,6 +119,8 @@ export function startLunar() {
   lunar.desc = null
   lunar.sepAt = null
   lunar.legs = 0
+  heard.clear()
+  callNext = 0
   lunar.coast = 0
   lunar.los = false
   lunar.clocks = predictClocks(lunar.stack)
@@ -196,12 +200,14 @@ export function manual() {
   useMoonMission.setState({ auto: false })
   setCaption('manual')
   autoCam('window')
+  playRadio('p66')
 }
 
 /** 手動に切り替えた所（高さ約 300 m）から、もう一度 */
 export function retryManual() {
   if (!manualSnap) return
   lunar.desc = cloneDescent(manualSnap)
+  callNext = 0
   lunar.input = emptyInput()
   useMoonLunar.setState({ stars: 0 })
   useMoonMission.setState({ phase: 'descent', since: missionNow(), auto: false, cam: 'window', camLocked: false })
@@ -290,21 +296,25 @@ function warpFor(phase: string) {
   if (!d) return 1
   if (phase === 'undock') {
     const since = d.t + UNDOCK_BEFORE
-    if (since < 26) return 1
-    return d.t < PDI_EARLY - 60 ? 30 : 8
+    // 脚を出して離れるところ（約 18 秒）だけ等速。そのあと PDI の窓までは大きく早送り（2026-11-24 junji「着陸が長くて退屈」）
+    if (since < 18) return 1
+    return d.t < PDI_EARLY - 60 ? 60 : 10
   }
   if (phase === 'descent') {
     // 降下の窓：初めは少し早送りして、手本の時刻（0）が近づいたら等速（タイミングを合わせやすく）
     if (d.mode === 'coast') return d.t < PDI_IDEAL - 14 ? 2 : 1
     const pdi = d.t - (d.pdiAt ?? d.t)
     // 2026-11-23：着陸が退屈すぎた（junji）。制動は速く早送りし、接近・最後の降下も少し速く
+    // 2026-11-24：まだ長い（junji）。制動の早送りをさらに強め、最後の降下も高いところは 3〜4 倍
     if (d.mode === 'braking') {
-      if (pdi < 20) return 1
-      return d.tgo < 40 ? 4 : d.tgo < 90 ? 12 : 24
+      if (pdi < 14) return 1
+      // 本物の交信が聞こえているあいだは、早送りをゆるめる（声のあいだに場面が飛びすぎないように）
+      const w = d.tgo < 30 ? 4 : d.tgo < 70 ? 12 : 32
+      return useRadio.getState().playing ? Math.min(w, 8) : w
     }
     if (d.mode === 'approach') return 3
-    // 最後の降下：高さ 60 m までは 2 倍（おまかせは 2.5 倍）、20 m までは 1.5 倍。接地のまぎわだけ等速
-    if (d.mode === 'terminal') return d.alt > 60 ? (d.manual ? 2 : 2.5) : d.alt > 20 ? 1.5 : 1
+    // 最後の降下：高さ 100 m までは 3 倍（おまかせは 4 倍）、40 m までは 2 倍、15 m までは 1.5 倍。接地のまぎわだけ等速
+    if (d.mode === 'terminal') return d.alt > 100 ? (d.manual ? 3 : 4) : d.alt > 40 ? (d.manual ? 2 : 2.5) : d.alt > 15 ? 1.5 : 1
     return 1
   }
   return 1
@@ -433,13 +443,19 @@ export function tickLunar(dt: number) {
     lunar.events.push(e)
     const key = CAPTION_OF[e]
     if (key) setCaption(key)
-    if (e === 'highGate') autoCam('window')
+    if (e === 'highGate') {
+      autoCam('window')
+      playRadio('pitchover')
+    }
+    if (e === 'throttleDown') playRadio('throttle')
+    if (e === 'contact') playRadio('contact')
     if (e === 'lowGate' && !d.manual && !ms.auto) {
       // 自分で操縦するつもりなら、ここで手動へ
       manual()
     }
     if (e === 'contact') autoCam('chase')
   }
+  descentRadio(d)
   if (d.mode === 'landed' && ms.phase === 'descent') land()
   if (d.mode === 'abort' && ms.phase === 'descent') {
     useMoonMission.setState({ phase: 'landed', since: missionNow() })
@@ -448,6 +464,39 @@ export function tickLunar(dt: number) {
 }
 
 const _dir = new THREE.Vector3()
+
+/**
+ * 降下の本物の交信（アポロ17号、data/apolloRadio.ts）。制動のあいだは、ピッチオーバーまでの残り時間が本物と同じ所で流す
+ * （点火から 5 分の「窓の正面に地球」は残り約 250 秒、谷の目印と山は残り約 45 秒）。
+ * 最後の降下は、シュミット飛行士の高さの読み上げを、本物とだいたい同じ高さで（200 フィート ≈ 61 m など）。
+ * ピッチオーバー・推力を絞る・P66・接地は、その出来事のところで流す
+ */
+const DESCENT_RADIO: RadioClipId[] = ['earthWindow', 'throttle', 'massifs', 'pitchover', 'p66', 'at200', 'forward', 'touchdown', 'tenFeet', 'contact']
+const heard = new Set<RadioClipId>()
+/** 高さ（m）と流す切り抜き。上から順に */
+const CALLOUTS: [number, RadioClipId][] = [
+  [61, 'at200'],
+  [34, 'forward'],
+  [17, 'touchdown'],
+  [4.5, 'tenFeet'],
+]
+let callNext = 0
+function once(id: RadioClipId) {
+  if (heard.has(id)) return
+  heard.add(id)
+  playRadio(id)
+}
+function descentRadio(d: Descent) {
+  if (d.mode === 'braking') {
+    if (d.tgo <= 250 && d.tgo > 150) once('earthWindow')
+    if (d.tgo <= 45 && d.tgo > 15) once('massifs')
+  }
+  while (callNext < CALLOUTS.length && d.alt <= CALLOUTS[callNext][0]) {
+    const [h, id] = CALLOUTS[callNext++]
+    // 手動からやり直したときなど、もう通りすぎた高さのものは流さない
+    if (d.mode === 'terminal' && d.alt > h * 0.6) playRadio(id)
+  }
+}
 
 /** 12 周後：着陸船の物理を、PDI の少し前から始める */
 function beginUndock() {
@@ -510,7 +559,7 @@ function land() {
   useMoonLunar.setState({ stars })
   useMoonMission.setState({ phase: 'landed', since: missionNow() })
   // 無事に着いたときだけ、本物の「チャレンジャー号、着陸した」を流す
-  if (stars > 0) setTimeout(() => useMoonMission.getState().phase === 'landed' && playRadio('landed'), 900)
+  if (stars > 0) setTimeout(() => useMoonMission.getState().phase === 'landed' && playRadio('landed'), 1600)
   saveMissionRecord({ land: stars, reached: 2 })
 }
 

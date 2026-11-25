@@ -30,6 +30,8 @@ const moonVertex = /* glsl */ `
   #include <common>
   #include <logdepthbuf_pars_vertex>
   attribute vec3 dir;
+  // 世界の向き → 月の向き（月をまわして置くとき。ふだんは単位行列）
+  uniform mat3 uToMoon;
   varying vec3 vN;
   varying vec3 vDir;
   varying vec3 vRel;
@@ -38,7 +40,7 @@ const moonVertex = /* glsl */ `
     vDir = dir;
     // カメラからの向き（月の中心から測ると float では 10 cm ほどの粗さになるので、視点の座標から戻す）
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    vRel = (vec4(mv.xyz, 0.0) * viewMatrix).xyz;
+    vRel = uToMoon * (vec4(mv.xyz, 0.0) * viewMatrix).xyz;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     #include <logdepthbuf_vertex>
   }
@@ -130,6 +132,42 @@ const moonFragment = /* glsl */ `
     return mix(mix(mix(hp(i, per), hp(i + vec3(1,0,0), per), f.x), mix(hp(i + vec3(0,1,0), per), hp(i + vec3(1,1,0), per), f.x), f.y),
                mix(mix(hp(i + vec3(0,0,1), per), hp(i + vec3(1,0,1), per), f.x), mix(hp(i + vec3(0,1,1), per), hp(i + vec3(1,1,1), per), f.x), f.y), f.z);
   }
+  #ifdef MOON_CRATERS
+  // 高い所（軌道の 115 km）から見る月：地図（1 画素 5 km）より小さいクレーター（約 0.5〜16 km）を、作って足す。
+  // 3 次元の升ごとに 1 つ（ないこともある）。お椀の形（深さは直径の 2 割）と、少し盛り上がったふち。
+  // 返すのは、面の傾き（高さの勾配、3 次元）と、ふちの明るさ
+  vec3 crHash(vec3 p3) {
+    p3 = fract(p3 * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yxz + 33.33);
+    return fract((p3.xxy + p3.yxx) * p3.zyx);
+  }
+  vec4 craterOct(vec3 q, vec3 up, float seed) {
+    vec3 base = floor(q - 0.5);
+    vec3 g = vec3(0.0);
+    float al = 0.0;
+    for (int i = 0; i < 8; i++) {
+      vec3 c = base + vec3(float(i - (i / 2) * 2), float((i / 2) - (i / 4) * 2), float(i / 4));
+      vec3 h = crHash(c + seed);
+      if (h.x > 0.66) continue;
+      vec3 v = q - (c + 0.2 + 0.6 * crHash(c + seed + 17.0));
+      v -= up * dot(v, up);
+      // 大きさはばらばら（小さいものほど多い）。古いクレーターは、浅く、ふちが丸くなっている
+      float r = 0.1 + 0.38 * h.y * h.y;
+      float lv = length(v);
+      float x = lv / r;
+      if (x > 1.6) continue;
+      vec3 u = v / max(lv, 1e-5);
+      float fresh = h.z * h.z;
+      float deep = mix(0.3, 1.0, fresh);
+      // お椀（中）と、ふちの外の盛り上がり。新しいものほど、ふちがくっきり
+      float soft = mix(0.55, 0.9, fresh);
+      float dhdx = x < soft ? 0.8 * x : x < 1.0 ? 0.8 * soft * (1.0 - x) / (1.0 - soft) : -0.1 * exp(-4.0 * (x - 1.0));
+      g += u * dhdx * deep;
+      al += max(0.0, 1.0 - abs(x - 0.97) * 6.0) * fresh;
+    }
+    return vec4(g, al);
+  }
+  #endif
   void main() {
     #include <logdepthbuf_fragment>
     vec3 d = normalize(vDir);
@@ -156,6 +194,28 @@ const moonFragment = /* glsl */ `
       }
     }
     vec3 n = normalize(vN);
+    #ifdef MOON_CRATERS
+    {
+      vec3 P = d * ${MOON_R.toFixed(1)};
+      float fp = length(fwidth(P));
+      vec3 gs = vec3(0.0);
+      float asum = 0.0;
+      // 海（暗い所）はクレーターが少なく、高地（明るい所）は多い
+      float lum = dot(albedo, vec3(0.333));
+      float dens = mix(0.5, 1.0, smoothstep(0.04, 0.12, lum));
+      for (int o = 0; o < 4; o++) {
+        float S = 16000.0 / pow(3.1, float(o));
+        // 1 画素より小さいクレーターは描かない（ちらつき止め）
+        float w = 1.0 - smoothstep(0.07 * S, 0.25 * S, fp);
+        if (w <= 0.0) continue;
+        vec4 c = craterOct(P / S, d, float(o) * 41.7);
+        gs += c.xyz * w;
+        asum += c.w * w;
+      }
+      n = normalize(n - gs * dens * 0.75);
+      albedo *= 1.0 + asum * 0.12 * dens;
+    }
+    #endif
     // 細かいまだら（近いときだけ）と、急な斜面ほど明るい（新しい岩が出ている）
     vec3 p = d * ${MOON_R.toFixed(1)};
     float m = vnoise(p / 90.0) * 0.45 + vnoise(p / 23.0) * 0.35 + vnoise(p / 5.5) * 0.2;
@@ -225,12 +285,50 @@ function lodSettings() {
 const _hd = new THREE.Vector3()
 const height = (x: number, y: number, z: number, minWave: number) => groundAt(_hd.set(x, y, z), minWave)
 
-function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
-  const [tex, trackTex] = useTexture([`${base}textures/4k_moon.jpg`, `${base}terrain/moon_track_albedo.jpg`])
+type GlobeProps = {
+  maps: LunarMaps
+  /** 着陸船の影を落とすとき */
+  craft?: Craft
+  /** 月をまわして・動かして置く親（その中の向きが月の向き）。ないときは月の中心が原点 */
+  frame?: THREE.Object3D
+  /** 太陽の向き（月の向き）。ないときは着陸の日 */
+  sun?: THREE.Vector3
+  /** スマホ：月全体の絵を 2K に（地球の大きな絵と一緒に持つとき） */
+  lite?: boolean
+  /** 降下の道すじの細かい明るさの絵（1 画素 238 m）を使う。lite のときは、これを true にしたときだけ */
+  track?: boolean
+  /** 着陸の日の影（谷の影・帯の日なた）を使う。日がちがう場面では使わない */
+  landingShade?: boolean
+  /** 大きな絵が使えない端末で、帯のうち使う所（軌道の面の角度 θ の範囲）。1 画素 238 m のまま切り出す */
+  trackSpan?: readonly [number, number]
+  /** 高い所から見る場面：地図より小さいクレーターを作って足す（着陸の場面では使わない。本物の高さの地図があるので） */
+  craters?: boolean
+}
+
+/** 帯の明るさの絵から、θ の範囲 span を切り出す（横は size まで。帯の縦 1024 画素はそのまま） */
+function cropTrack(src: THREE.Texture, span: readonly [number, number], size: number) {
+  const img = src.image as CanvasImageSource & { width: number; height: number }
+  if (!img?.width) return null
+  const x0 = Math.max(0, Math.floor(((span[0] - TRACK.th0) / (TRACK.th1 - TRACK.th0)) * img.width))
+  const x1 = Math.min(img.width, Math.ceil(((span[1] - TRACK.th0) / (TRACK.th1 - TRACK.th0)) * img.width))
+  if (x1 <= x0) return null
+  const c = document.createElement('canvas')
+  c.width = Math.min(size, x1 - x0)
+  c.height = Math.min(size, img.height)
+  c.getContext('2d')!.drawImage(img, x0, 0, x1 - x0, img.height, 0, 0, c.width, c.height)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.NoColorSpace
+  t.anisotropy = 4
+  return t
+}
+
+export function LunarGlobe({ maps, craft, frame, sun = SUN_DIR, lite = false, track = !lite, landingShade = true, trackSpan, craters = false }: GlobeProps) {
+  const [tex, trackTex] = useTexture([`${base}textures/${lite ? '2k' : '4k'}_moon.jpg`, `${base}terrain/moon_track_albedo.jpg`])
   const camera = useThree((s) => s.camera)
   const gl = useThree((s) => s.gl)
   const [shadow, setShadow] = useState<{ far: ShadowMap; near: ShadowMap } | null>(null)
   useEffect(() => {
+    if (!landingShade) return
     let alive = true
     valleyShadows().then((s) => alive && setShadow(s), () => {})
     return () => {
@@ -245,17 +343,23 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
     const blank = new THREE.DataTexture(new Uint8Array([255]), 1, 1, THREE.RedFormat)
     blank.needsUpdate = true
     // 降下の道すじの帯（大きな絵が使えない端末では、高さだけ使う）
-    const trackOk = !!maps.track && gl.capabilities.maxTextureSize >= TRACK.w
+    const full = gl.capabilities.maxTextureSize >= TRACK.w
+    // スマホ（テクスチャは 1024 まで）：帯のうち trackSpan の所だけを切り出して、細かさを保つ
+    const crop = !full && trackSpan ? cropTrack(trackTex, trackSpan, gl.capabilities.maxTextureSize) : null
+    const trackOk = track && !!maps.track && (full || !!crop)
+    const span = crop ? trackSpan! : ([TRACK.th0, TRACK.th1] as const)
     let trackSun: THREE.Texture = blank
-    if (trackOk && maps.track) {
+    if (trackOk && !crop) {
       trackTex.colorSpace = THREE.NoColorSpace
       trackTex.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy())
       trackTex.needsUpdate = true
-      const sun = new THREE.DataTexture(maps.track.sun, TRACK.w, TRACK.h, THREE.RedFormat, THREE.UnsignedByteType)
-      sun.magFilter = THREE.LinearFilter
-      sun.minFilter = THREE.LinearFilter
-      sun.needsUpdate = true
-      trackSun = sun
+    }
+    if (trackOk && maps.track && landingShade && !crop) {
+      const sunTex = new THREE.DataTexture(maps.track.sun, TRACK.w, TRACK.h, THREE.RedFormat, THREE.UnsignedByteType)
+      sunTex.magFilter = THREE.LinearFilter
+      sunTex.minFilter = THREE.LinearFilter
+      sunTex.needsUpdate = true
+      trackSun = sunTex
     }
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -265,19 +369,20 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
         uFarHalf: { value: 50_000 },
         uNearHalf: { value: 8_000 },
         uShadowOn: { value: 0 },
-        uSun: { value: SUN_DIR },
+        uSun: { value: sun },
+        uToMoon: { value: new THREE.Matrix3() },
         uEarth: { value: EARTH_POS.clone().normalize() },
         uUp: { value: FRAME.up },
         uEast: { value: FRAME.east },
         uNorth: { value: FRAME.north },
         uDetail: { value: 0 },
-        uTrackAlb: { value: trackOk ? trackTex : blank },
+        uTrackAlb: { value: crop ?? (trackOk ? trackTex : blank) },
         uTrackSun: { value: trackSun },
         uTrackOn: { value: trackOk ? 1 : 0 },
         uTP: { value: TRACK_PLANE.P },
         uTQ: { value: TRACK_PLANE.Q },
         uTN: { value: TRACK_PLANE.N },
-        uTrack: { value: new THREE.Vector4(TRACK.th0, TRACK.th1, TRACK.ph, TRACK.albedoScale) },
+        uTrack: { value: new THREE.Vector4(span[0], span[1], TRACK.ph, TRACK.albedoScale) },
         uCamMod: { value: new THREE.Vector3() },
         uLmOn: { value: 0 },
         uLmPos: { value: new THREE.Vector3() },
@@ -285,10 +390,11 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
         uLmY: { value: new THREE.Vector3(0, 1, 0) },
         uLmZ: { value: new THREE.Vector3(0, 0, 1) },
       },
+      defines: craters ? { MOON_CRATERS: '' } : {},
       vertexShader: moonVertex,
       fragmentShader: moonFragment,
     })
-  }, [tex, trackTex, gl, maps])
+  }, [tex, trackTex, gl, maps, sun, track, landingShade, trackSpan, craters])
   useEffect(() => {
     if (!shadow) return
     const u = material.uniforms
@@ -305,6 +411,7 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
     const make = (k: ChunkKey) => {
       const { geometry, center } = buildChunk(maps.global, k, height)
       const mesh = new THREE.Mesh(geometry, material)
+      if (frame) mesh.onBeforeRender = syncFrame
       mesh.position.copy(center)
       mesh.visible = false
       mesh.name = 'lunar-chunk'
@@ -313,9 +420,14 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
       chunks.set(keyOf(k), c)
       return c
     }
+    // 月をまわして置くとき：描く直前に、世界の向き → 月の向きを渡す（親の行列は、描く前に計算ずみ）
+    const toMoon = material.uniforms.uToMoon.value as THREE.Matrix3
+    const syncFrame = () => {
+      if (frame) toMoon.setFromMatrix4(frame.matrixWorld).transpose()
+    }
     for (let f = 0; f < 6; f++) make({ face: f, level: 0, i: 0, j: 0 })
     return { chunks, queue, make, frame: 0, settings: lodSettings() }
-  }, [maps, material, group])
+  }, [maps, material, group, frame])
   useEffect(
     () => () => {
       for (const c of lod.chunks.values()) c.mesh.geometry.dispose()
@@ -325,10 +437,12 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
   )
   const cd = useMemo(() => new THREE.Vector3(), [])
   const camDir = useMemo(() => new THREE.Vector3(), [])
+  const camLocal = useMemo(() => new THREE.Vector3(), [])
   useFrame(() => {
     const { chunks, queue, make, settings } = lod
     const f = ++lod.frame
-    const cam = camera.position
+    // カメラの位置（月の向き・月の中心から）
+    const cam = frame ? frame.worldToLocal(camLocal.copy(camera.position)) : camera.position
     const camR = cam.length()
     camDir.copy(cam).normalize()
     const pm = (v: number) => v - Math.floor(v / 1000) * 1000
@@ -336,9 +450,9 @@ function LunarGlobe({ maps, craft }: { maps: LunarMaps; craft: Craft }) {
     u.uCamMod.value.set(pm(cam.x), pm(cam.y), pm(cam.z))
     // 着陸船の影（低いときだけ）。位置はカメラからの差で渡す（float の粗さをさける）
     const d = lunar.desc
-    const lm = craft.lm
-    u.uLmOn.value = d && d.alt < 400 && lm.visible ? 1 : 0
-    if (u.uLmOn.value) {
+    const lm = craft?.lm
+    u.uLmOn.value = lm && d && d.alt < 400 && lm.visible ? 1 : 0
+    if (lm && u.uLmOn.value) {
       u.uLmPos.value.copy(lm.position).sub(cam)
       u.uLmX.value.set(1, 0, 0).applyQuaternion(lm.quaternion)
       u.uLmY.value.set(0, 1, 0).applyQuaternion(lm.quaternion)
@@ -985,7 +1099,7 @@ export function LunarWorld() {
  * おまかせでは 7 秒ごとにカメラを切りかえる（8 秒ルール：同じ絵が長く続かないように）。
  * 月の裏でブレーキ（章6）：うしろから → 遠くから（月を背に小さく） → 船長の窓（月面が流れる）。エンジンに火が入った瞬間は、炎の見えるうしろから。
  * 章7：切り離し（等速のところ）と制動はうしろ ↔ 遠く（制動のあいだは窓が空を向いているので窓は使わない）。
- * 接近（ピッチオーバーから）は船長の窓を主に、ときどきうしろから。手動にしたら切りかえない。
+ * 接近（ピッチオーバーから）は船長の窓を主に、ときどきうしろから。最後の降下（おまかせ）は窓・うしろ・遠く。高さ 12 m からは切りかえない。手動にしたら切りかえない。
  * 自分でカメラを選んだら（camLocked）、切りかえない
  */
 const cuts = { t: 0, i: 0, burning: false, mode: '' }
@@ -994,6 +1108,8 @@ const CUTS: Record<string, MissionCam[]> = {
   undock: ['chase', 'wide'],
   brake: ['chase', 'wide'],
   approach: ['window', 'chase'],
+  // 最後の降下（おまかせのとき）：窓 → うしろ → 遠く（着陸船と谷が一緒に見える）
+  terminal: ['window', 'chase', 'wide'],
 }
 function cutMode() {
   const s = useMoonMission.getState()
@@ -1002,7 +1118,7 @@ function cutMode() {
   if (!d) return ''
   if (s.phase === 'undock') return 'undock'
   if (s.phase !== 'descent' || d.manual) return ''
-  return d.mode === 'braking' ? 'brake' : d.mode === 'approach' ? 'approach' : ''
+  return d.mode === 'braking' ? 'brake' : d.mode === 'approach' ? 'approach' : d.mode === 'terminal' && d.alt > 12 ? 'terminal' : ''
 }
 function loiCuts(dt: number) {
   const s = useMoonMission.getState()

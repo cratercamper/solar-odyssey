@@ -37,6 +37,7 @@ export type ReturnStep =
   | 'teiWait'
   | 'tei'
   | 'coast'
+  | 'eva'
   | 'cmSep'
   | 'corridor'
   | 'entry'
@@ -55,7 +56,13 @@ const TEI_WAIT = 14
 /** 本物の点火 143.7 秒を、12 倍で */
 export const TEI_BURN = 143.7
 export const TEI_WARP = 12
-export const COAST_TIME = 16
+/** 帰り道は 2 つに分ける：船外活動の前（月が遠ざかる）と後（地球が近づく） */
+export const COAST_A = 7
+export const COAST_B = 10
+/** エバンス飛行士の船外活動（本物は 1 時間 5 分 44 秒。ここでは約 160 倍の早送り） */
+export const EVA_TIME = 24
+/** 船外活動の中で、フィルムを取り出す時刻（秒） */
+export const EVA_FILM_AT = 9
 export const CMSEP_TIME = 8
 export const CORRIDOR_TIME = 15
 const SPLASH_TIME = 9
@@ -110,6 +117,16 @@ export const ret = {
   splashT: 0,
   /** 本物の経過時間（帯の時計） */
   get: GET.lunarDock - 600,
+  /** 帰り道の、船外活動の前（0）・後（1） */
+  coastLeg: 0,
+}
+
+/** 帰り道の進み具合（0：点火の直後 〜 1：機械船を切り離す時）。船外活動は本物の時刻の所 */
+const P_EVA = (GET.evaStart - GET.tei - TEI_BURN) / (GET.cmSep - GET.tei - TEI_BURN)
+export function coastK(step: ReturnStep, t: number) {
+  if (step === 'eva') return P_EVA
+  if (step !== 'coast') return 1
+  return ret.coastLeg === 0 ? P_EVA * Math.min(1, t / COAST_A) : P_EVA + (1 - P_EVA) * Math.min(1, t / COAST_B)
 }
 
 const set = (step: ReturnStep, more: Partial<ReturnState> = {}) => {
@@ -123,7 +140,7 @@ const inHome = () => useMoonMission.getState().phase === 'home'
 export function startReturn() {
   stopRadio()
   stopMusic(1)
-  Object.assign(ret, { t: 0, gap: RDV_GAP, angle: EI_ANGLE, drift: 0, input: 0, auto: false, e: null, want: 1, heat: 0, char: 0, h: DROGUE_ALT, drogueAt: -1, mainAt: -1, splashT: 0, get: GET.lunarDock - 600 })
+  Object.assign(ret, { t: 0, gap: RDV_GAP, angle: EI_ANGLE, drift: 0, input: 0, auto: false, e: null, want: 1, heat: 0, char: 0, h: DROGUE_ALT, drogueAt: -1, mainAt: -1, splashT: 0, get: GET.lunarDock - 600, coastLeg: 0 })
   useMoonReturn.setState({ step: 'rdv', since: missionNow(), angle: null, fail: null, peakG: 0, stars: 0, mains: false })
   useMoonMission.setState({ phase: 'home', since: missionNow(), cam: 'chase', camLocked: false, auto: false, caption: null })
   setCaption('rvApproach')
@@ -173,7 +190,7 @@ export function returnJourney() {
     return { get: ret.get, fromEarth: far, toMoon: 115_000 + (step === 'tei' ? t * t * 60 : 0), speed: 1630 + dv, near: 'moon' as const }
   }
   let r: number
-  if (step === 'coast') r = coastDistance(1 - Math.min(1, t / COAST_TIME))
+  if (step === 'coast' || step === 'eva') r = coastDistance(1 - coastK(step, t))
   else if (step === 'cmSep') r = R_EARTH + 36_000_000 - (27_000_000 * Math.min(1, t / CMSEP_TIME))
   else if (step === 'corridor') r = R_EARTH + EI_ALT + (9_000_000 - EI_ALT) * Math.pow(1 - Math.min(1, t / CORRIDOR_TIME), 1.5)
   else if (step === 'entry' || step === 'fail') {
@@ -221,6 +238,8 @@ export function tickReturn(dt: number) {
       if (t >= LMGONE_TIME) {
         set('teiWait')
         preloadMusic('newWorld')
+        preloadMusic('newWorldFinale')
+        preloadMusic('venus')
         setCaption('teiWait')
       }
       break
@@ -231,15 +250,28 @@ export function tickReturn(dt: number) {
     case 'tei':
       ret.get = GET.tei + Math.min(TEI_BURN, t * TEI_WARP)
       if (t * TEI_WARP >= TEI_BURN + 18) {
+        ret.coastLeg = 0
         set('coast')
         setCaption('coastHome')
       }
       break
     case 'coast':
-      ret.get = GET.tei + TEI_BURN + (GET.cmSep - GET.tei - TEI_BURN) * Math.min(1, t / COAST_TIME)
-      if (t >= COAST_TIME) {
+      ret.get = GET.tei + TEI_BURN + (GET.cmSep - GET.tei - TEI_BURN) * coastK('coast', t)
+      if (ret.coastLeg === 0 && t >= COAST_A) {
+        set('eva')
+        setCaption('evaOut')
+      } else if (ret.coastLeg === 1 && t >= COAST_B) {
         set('cmSep')
         setCaption('cmSep')
+      }
+      break
+    case 'eva':
+      ret.get = GET.evaStart + (GET.evaEnd - GET.evaStart) * Math.min(1, t / EVA_TIME)
+      if (t >= EVA_FILM_AT && t - dt < EVA_FILM_AT) setCaption('evaFilm')
+      if (t >= EVA_TIME) {
+        ret.coastLeg = 1
+        set('coast')
+        setCaption('coastEarth')
       }
       break
     case 'cmSep':
@@ -359,7 +391,7 @@ export function bindReturnKeys() {
 /** 確かめる用：その段階まで飛ばす（再突入はおまかせで） */
 export function returnSkip(to: ReturnStep) {
   if (!inHome()) startReturn()
-  const order: ReturnStep[] = ['rdv', 'docked', 'lmGone', 'teiWait', 'tei', 'coast', 'cmSep', 'corridor', 'entry', 'chutes', 'splash', 'recovery', 'end']
+  const order: ReturnStep[] = ['rdv', 'docked', 'lmGone', 'teiWait', 'tei', 'coast', 'eva', 'cmSep', 'corridor', 'entry', 'chutes', 'splash', 'recovery', 'end']
   let guard = 0
   while (order.indexOf(useMoonReturn.getState().step) < order.indexOf(to) && guard++ < 40000) {
     const st = useMoonReturn.getState().step

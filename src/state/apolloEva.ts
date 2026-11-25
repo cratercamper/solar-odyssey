@@ -5,6 +5,7 @@ import { preloadRadio, playRadio, stopRadio } from '../audio/radio'
 import { playMusic, preloadMusic, stopMusic } from '../audio/missionMusic'
 import { holdBgm } from '../audio/music'
 import { leaveSurface, skipDescent, startLanding, useLanding } from './landing'
+import { endSuitWalk, startSuitWalk, suitPose, suitSpawn, useSuitWalk } from './suitWalk'
 
 // アポロ17号の追体験・章7「月面の探検」と、月からの離陸。地表の場面（タウルス・リトロー谷）の上で動く。
 // 実際の 3 回の船外活動から 1 か所ずつ：観測点1（1 回目）・ショーティ・クレーターのオレンジの土（2 回目・観測点4）・
@@ -81,6 +82,7 @@ export function startApolloEva() {
 /** 船外活動の場面を終える（地表の場面を出るとき） */
 export function endApolloEva() {
   if (!evaOn()) return
+  endSuitWalk()
   stopRadio()
   stopMusic(1)
   holdBgm('eva', false)
@@ -95,21 +97,25 @@ export function evaTarget(leg = useApolloEva.getState().leg) {
   return { x: h.x, z: h.z }
 }
 
-/** 毎フレーム（LunarRover から）：目的地までの距離・向きと、着いたか */
+/** 毎フレーム（LunarRover から）：目的地までの距離・向きと、着いたか。月面車を降りて歩いているときは、宇宙飛行士から */
 export function tickEva() {
   const s = useApolloEva.getState()
   if (s.step === 'board' && useRover.getState().phase === 'drive') set('drive')
   if (s.step !== 'drive' && s.step !== 'back') return
+  const walking = useSuitWalk.getState().on
+  const p = walking ? suitPose : roverPose
   const t = evaTarget()
-  const dx = t.x - roverPose.x
-  const dz = t.z - roverPose.z
+  const dx = t.x - p.x
+  const dz = t.z - p.z
   const dist = Math.hypot(dx, dz)
   // 月面車の前は (-sin h, -cos h)。右が +
   const want = Math.atan2(-dx, -dz)
-  let turn = roverPose.heading - want
+  let turn = p.heading - want
   turn = Math.atan2(Math.sin(turn), Math.cos(turn))
   if (Math.abs(dist - s.dist) > 2 || Math.abs(turn - s.turn) > 0.05) useApolloEva.setState({ dist, turn })
-  if (dist < ARRIVE_R && Math.abs(roverPose.speed) < 1.6) {
+  // 観測点には歩いて着いてもよい。着陸船へは月面車で（離陸を月面車のテレビカメラで見るので）
+  if (walking && s.step === 'back') return
+  if (dist < ARRIVE_R && Math.abs(p.speed) < 1.6) {
     if (s.step === 'drive') {
       set('stop')
       const clip = EVA_STOPS[s.leg].clip
@@ -167,6 +173,7 @@ export function nextLeg() {
 /** 月を去る言葉のあと：離陸へ（月面車のテレビカメラから） */
 export function watchLiftoff() {
   if (useApolloEva.getState().step !== 'closeout') return
+  endSuitWalk()
   stopRadio()
   set('liftoff', { liftAt: evaNow() })
   // 月面車はテレビカメラ（前）を着陸船へ向けて停めてある
@@ -190,6 +197,22 @@ export function restartEva() {
   stopMusic(0.5)
   set('drive', { leg: 0, got: [] })
   lrvTeleport.to = { ...LRV_START }
+  if (useSuitWalk.getState().on) {
+    endSuitWalk()
+    launchRover(false, 'lrv')
+  }
+}
+
+/** 月面車を降りて歩く：船長の席（左）の横に立って、月面車と同じ向き。月面車はそこに停めておく。pose は月面車のいまの場所 */
+export function leaveLrv(pose: { x: number; z: number; heading: number }) {
+  const s = useApolloEva.getState()
+  if (s.step !== 'drive' && s.step !== 'back' && s.step !== 'stop' && s.step !== 'sample') return
+  const r = useRover.getState()
+  if (r.phase !== 'drive' || r.vehicle !== 'lrv' || Math.abs(roverPose.speed) > 1.5) return
+  // 月面車の右は (cos h, -sin h)。左の席の外へ 1.9 m
+  suitSpawn.at = { x: pose.x - Math.cos(pose.heading) * 1.9, z: pose.z + Math.sin(pose.heading) * 1.9, heading: pose.heading }
+  recallRover()
+  startSuitWalk()
 }
 
 /** 章7 を始める：月面（タウルス・リトロー谷）に降りて、地表の場面の用意ができたら船外活動を始める */

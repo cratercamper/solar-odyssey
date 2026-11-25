@@ -151,6 +151,9 @@ export type CaptionKey =
   | 'splash'
   | 'recoveryHeli'
   | 'recoveryCollar'
+  | 'evaOut'
+  | 'evaFilm'
+  | 'coastEarth'
   // 第2弾
   | 'coast'
   | 'coastMoon'
@@ -407,14 +410,22 @@ const MUSIC_AT: Partial<Record<CaptionKey, MusicCue | 'stop'>> = {
   orbit: 'jupiterHymn',
   // 章3：第3段から離れて向きを変え、着陸船を迎えに行く（宇宙のワルツ）。章4：青い地球と 3 日の旅
   tdSep: 'blueDanube',
-  marble: 'neptune',
-  lowGate: 'mars',
+  // 章4：青い地球をはなれて 3 日の旅（海王星は地味だった。junji 2026-11-25「壮大で緊張感ある曲」→ ワルキューレの騎行）
+  marble: 'valkyries',
+  // 章7：ピッチオーバー（窓から谷が見えた瞬間）から接地まで、火星（約 64 秒。接近と最後の降下にちょうど合う）。
+  // 前は最後の降下（lowGate）からだったが、手動に切り替えると lowGate が出ないので、曲が鳴らなかった
+  highGate: 'mars',
   contact: 'stop',
   touchdown: 'stop',
   outOfFuel: 'stop',
-  // 章8：火の玉のあいだは音楽を止める（パラシュートの曲は、新しい曲を取りこむときに決める）
   // 主旋律（賛歌）は軌道の日の出の 1 回だけ（junji 2026-11-22「主旋律を使うのは一回でいい」）
-  entryInterface: 'stop',
+  // 章9：大気圏突入の火の玉は「新世界より」第4楽章（帰りの点火の第2楽章「家路」と同じ交響曲）。
+  // 主パラシュートが開いたら、海までホルスト「金星（平和をもたらす者）」
+  entryInterface: 'newWorldFinale',
+  mains: 'venus',
+  // 突入に失敗したら止める（やり直すと、また曲の頭から）
+  skipOut: 'stop',
+  tooSteep: 'stop',
 }
 
 export function setCaption(key: CaptionKey) {

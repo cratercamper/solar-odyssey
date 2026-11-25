@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { ui } from '../i18n'
 import { useLang } from '../i18n/lang'
 import { CAMPAIGN_STAGES } from '../data/campaign'
-import { aimAtGoal, closeCampaignCard, closeCampaignScreen, goalLine, resetCampaign, startCampaign, startFree, useCampaign } from '../state/campaign'
+import { aimAtGoal, closeCampaignCard, closeCampaignScreen, currentGoal, goalLine, resetCampaign, startCampaign, startFree, useCampaign } from '../state/campaign'
 import { useStore } from '../state/store'
-import { useLanding } from '../state/landing'
+import { landableBody, startLanding, startTakeoff, useLanding } from '../state/landing'
+import { launchRover, useRover } from '../state/rover'
+import { engage } from '../state/flight'
 import { useRally } from '../state/rally'
 
 // キャンペーン「博士の探査隊」の画面：はじめの画面（キャンペーンを大きく、自由探検をその下に）、
@@ -112,35 +114,108 @@ function ProfessorCard() {
   )
 }
 
-/** 画面の上の目標の札：何を、あといくつ。押すと、その星を行き先にする */
+/** 集中モードの次の一歩：ことばと、それをするボタン（なければ null） */
+type Step = { text: string; label?: string; run?: () => void }
+
+function nextStep(): Step | null {
+  const t = ui().campaign
+  const goal = currentGoal()
+  const name = (id: string) => ui().bodies[id]?.name ?? id
+  const l = useLanding.getState()
+  if (l.phase === 'surface') {
+    if (!goal || l.bodyId !== goal.body) return { text: goal ? t.stepTakeOff(name(goal.body)) : t.stepLeave, label: t.doTakeOff, run: startTakeoff }
+    if (useRover.getState().phase === 'none') return { text: t.stepRover, label: t.doRover, run: () => launchRover() }
+    return { text: t.stepCollect }
+  }
+  if (l.phase !== 'idle' || !goal) return null
+  const s = useStore.getState()
+  if (s.warpPhase !== 'idle') return { text: t.stepWarping(name(goal.body)) }
+  if (landableBody() === goal.body) return { text: t.stepLand(name(goal.body)), label: t.doLand, run: () => startLanding(goal.body) }
+  const aim = () => {
+    if (useStore.getState().targetId !== goal.body) useStore.getState().setTarget(goal.body)
+  }
+  if (s.telemetry.near?.id === goal.body)
+    return {
+      text: t.stepApproach(name(goal.body)),
+      label: t.doApproach,
+      run: () => {
+        aim()
+        useStore.getState().setAutopilot(true)
+      },
+    }
+  return {
+    text: t.stepWarp(name(goal.body)),
+    label: t.doWarp,
+    run: () => {
+      aim()
+      engage()
+    },
+  }
+}
+
+/**
+ * 画面の上の目標の札：何を、あといくつ。
+ * 集中モード（キャンペーン中のふだん。cratercamper さんの案 2026-11-23）では、次にすることを一つだけと、それをするボタンを出し、
+ * ほかのメニューや表示はかくす（body.campaign-focus。styles/campaign.css）。「メニューを全部出す」でいつもの画面にもどせる
+ */
 function GoalTag() {
   const active = useCampaign((c) => c.active)
+  const focus = useCampaign((c) => c.focus)
   const stage = useCampaign((c) => c.stage)
   const counts = useCampaign((c) => c.counts)
   const card = useCampaign((c) => c.card)
   const target = useStore((s) => s.targetId)
   const landed = useLanding((l) => l.phase !== 'idle')
   const racing = useRally((r) => r.phase !== 'off')
+  // 次の一歩は、船の位置・ワープ・ローバーで変わるので、ときどき見直す
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (!active || !focus) return
+    const iv = window.setInterval(() => tick((n) => n + 1), 500)
+    return () => window.clearInterval(iv)
+  }, [active, focus])
+  const on = active && focus && !racing
+  useEffect(() => {
+    document.body.classList.toggle('campaign-focus', on)
+    return () => document.body.classList.remove('campaign-focus')
+  }, [on])
   const st = CAMPAIGN_STAGES[stage]
   if (!active || !st || card || racing) return null
   const t = ui().campaign
   const left = st.goals.find((g) => (counts[g.body] ?? 0) < g.count)
   const aimed = !left || target === left.body
+  const step = focus ? nextStep() : null
   return (
-    <div className="campaign-goal">
-      <span className="cg-label">🎯 {t.goalLabel}</span>
-      {st.goals.map((g) => {
-        const have = Math.min(g.count, counts[g.body] ?? 0)
-        return (
-          <span key={g.body} className={`cg-item${have >= g.count ? ' done' : ''}`}>
-            {t.goalShort(ui().bodies[g.body]?.name ?? g.body)} <b>{t.progress(have, g.count)}</b>
-          </span>
-        )
-      })}
-      {!aimed && !landed && (
-        <button className="secondary cg-go" onClick={aimAtGoal}>
-          {t.goTo}
+    <div className={`campaign-goal${focus ? ' focus' : ''}`}>
+      <div className="cg-row">
+        <span className="cg-label">🎯 {t.goalLabel}</span>
+        {st.goals.map((g) => {
+          const have = Math.min(g.count, counts[g.body] ?? 0)
+          return (
+            <span key={g.body} className={`cg-item${have >= g.count ? ' done' : ''}`}>
+              {t.goalShort(ui().bodies[g.body]?.name ?? g.body)} <b>{t.progress(have, g.count)}</b>
+            </span>
+          )
+        })}
+        {!focus && !aimed && !landed && (
+          <button className="secondary cg-go" onClick={aimAtGoal}>
+            {t.goTo}
+          </button>
+        )}
+        <button className="cg-menus" onClick={() => useCampaign.setState({ focus: !focus })}>
+          {focus ? t.allMenus : t.focusMenus}
         </button>
+      </div>
+      {step && (
+        <div className="cg-step">
+          <span className="cg-next">{t.nextStep}</span>
+          <span className="cg-text">{step.text}</span>
+          {step.run && (
+            <button className="primary cg-do" onClick={step.run}>
+              {step.label}
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

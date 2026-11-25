@@ -7,6 +7,12 @@ export const suitWalkJa = {
   /** 与圧ローバーのそばで出るボタン（PC は E キーでも） */
   boardCrew: '🚐 ミチカケに乗る',
   boardCrewKey: 'E キーでも乗れます',
+  /** アポロ17号の章7：月面車を降りて歩いているとき */
+  boardLrv: '月面車に乗る',
+  boardLrvKey: 'E か F キーでも乗れます',
+  lrvFar: '月面車のそばへ行くと乗れます',
+  lrvHintPc: 'WASD で歩く・Shift で走る・Space で跳ぶ・ドラッグで見回す・月面車のそばで E 乗る',
+  lrvHintTouch: '左のスティックで歩く・ドラッグで見回す・月面車のそばで「乗る」',
   run: '走る',
   jump: '跳ぶ',
   hintPc: 'WASD で歩く・Shift で走る・Space で跳ぶ・ドラッグで見回す',

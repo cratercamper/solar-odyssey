@@ -48,6 +48,7 @@ export const saveDataJa = {
     apollo17: 'アポロ17号の跡地',
     firstThree: 'はじめての3つ',
     newsSeen: '読んだお知らせ',
+    newContentSeen: '見た新しい遊びのお知らせ',
     photoNoteHidden: '写真モードの説明',
   },
 }

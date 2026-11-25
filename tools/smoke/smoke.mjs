@@ -874,6 +874,8 @@ for (const name of names) {
   await ctx.addInitScript(() => {
     try {
       localStorage.setItem('solar-voyager:settings', JSON.stringify({ lang: 'ja', music: false, muted: true }))
+      // 起動時の「新しい遊び」のお知らせ（ui/NewContent.tsx）は見たことにする（画面の前をふさがないように）
+      localStorage.setItem('solar-voyager:new-content-seen', JSON.stringify(['apollo17']))
     } catch {}
   })
   const page = await ctx.newPage()

@@ -19,6 +19,8 @@ type CampaignState = {
   stage: number
   counts: Record<string, number>
   card: CampaignCard
+  /** 集中モード：キャンペーン中は、次にすることに関係のない表示とメニューをかくす（「メニューを全部出す」で切る） */
+  focus: boolean
 }
 
 const KEY = 'campaign'
@@ -47,10 +49,25 @@ function save() {
 /** ふだんは自由探検ではじまる（junji 2026-11-17）。#campaign のリンクのときだけ、はじめにキャンペーンの画面を出す */
 const askAtStart = /[?&#]campaign\b/.test(location.search + location.hash)
 
-export const useCampaign = create<CampaignState>(() => ({ active: false, picking: askAtStart, card: null, ...load() }))
+export const useCampaign = create<CampaignState>(() => ({ active: false, picking: askAtStart, card: null, focus: true, ...load() }))
 
 /** いまの段階（クリア後は null） */
 export const currentStage = () => CAMPAIGN_STAGES[useCampaign.getState().stage] ?? null
+
+/** 集中モードで遊んでいるか（キャンペーン中で、メニューを全部出していない） */
+export const campaignFocus = () => {
+  const c = useCampaign.getState()
+  return c.active && c.focus
+}
+
+/** いまの目標の天体（まだそろっていない最初のもの。クリア後は null）と、集めた数・いる数 */
+export function currentGoal() {
+  const st = currentStage()
+  if (!st) return null
+  const { counts } = useCampaign.getState()
+  const g = st.goals.find((x) => (counts[x.body] ?? 0) < x.count) ?? null
+  return g ? { body: g.body, have: counts[g.body] ?? 0, need: g.count } : null
+}
 
 /** キャンペーンで、その天体にまだ行けないか（キャンペーンで遊んでいないときは、いつも行ける） */
 export function campaignLocked(id: string | null | undefined): boolean {
@@ -74,7 +91,7 @@ export const goalLine = (body: string, count: number) => ui().campaign.goal(ui()
 
 /** キャンペーンをはじめる（つづきから）。本物の太陽系にして、目標の天体を行き先にする */
 export function startCampaign() {
-  useCampaign.setState({ active: true, picking: false })
+  useCampaign.setState({ active: true, picking: false, focus: true })
   const st = currentStage()
   useCampaign.setState({ card: st ? { kind: 'intro', stage: useCampaign.getState().stage } : { kind: 'end', stage: CAMPAIGN_STAGES.length } })
   aimAtGoal()

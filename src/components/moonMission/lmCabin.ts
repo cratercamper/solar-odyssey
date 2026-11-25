@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { loadSuit, makeSuitRig } from '../surface/suitModel'
+import { makeApolloAstronaut } from '../surface/apolloSuit'
 import { liningTexture, panelTextures, ballTexture } from './cmCabin'
 
 // 着陸船（LM）の乗員室の中：降りていくあいだ、船長サーナン（左）と着陸船操縦士シュミット（右）は立ったまま、
@@ -19,41 +19,6 @@ const WIN_LEN = Math.hypot(WIN_DY, WIN_DZ)
 /** 船長の目（船長のからだは描かない）：左の三角の窓から月面を見下ろす。右に計器盤と着陸船操縦士 */
 export const LM_EYE = new THREE.Vector3(-0.6, 4.95, -1.12)
 export const LM_LOOK = new THREE.Vector3(-0.62, 4.45, -3.0)
-
-/**
- * 骨で曲げた宇宙服を、ふつうの（骨の無い）形に焼きこむ。
- * 月のまわりの座標は 1,700 km もあるので、骨の計算（32 ビットの小数）だと形がくずれる。ポーズは動かさないので、一度だけ CPU で曲げておく
- */
-export function bakePose(root: THREE.Object3D) {
-  root.updateMatrixWorld(true)
-  const out = new THREE.Group()
-  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert()
-  const v = new THREE.Vector3()
-  root.traverse((o) => {
-    const sm = o as THREE.SkinnedMesh
-    if (!sm.isMesh) return
-    const src = sm.geometry
-    const pos = src.attributes.position as THREE.BufferAttribute
-    const arr = new Float32Array(pos.count * 3)
-    const toRoot = new THREE.Matrix4().multiplyMatrices(inv, sm.matrixWorld)
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i)
-      if (sm.isSkinnedMesh) sm.applyBoneTransform(i, v)
-      v.applyMatrix4(toRoot)
-      arr[i * 3] = v.x
-      arr[i * 3 + 1] = v.y
-      arr[i * 3 + 2] = v.z
-    }
-    const g = new THREE.BufferGeometry()
-    g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
-    if (src.attributes.uv) g.setAttribute('uv', src.attributes.uv)
-    if (src.index) g.setIndex(src.index)
-    for (const grp of src.groups) g.addGroup(grp.start, grp.count, grp.materialIndex)
-    g.computeVertexNormals()
-    out.add(new THREE.Mesh(g, sm.material))
-  })
-  return out
-}
 
 export type LmCabin = { group: THREE.Group; show: (on: boolean) => void; dispose: () => void }
 
@@ -205,13 +170,11 @@ export function buildLmCabin(): LmCabin {
   }
 
   // 立った 2 人（前を向く）
-  let alive = true
-  void loadSuit().then(async (src) => {
-    if (!src || !alive) return
-    // 船長（左）は、カメラが船長の目なので描かない。着陸船操縦士（右）だけ
+  // 船長（左）は、カメラが船長の目なので描かない。着陸船操縦士（右）だけ。
+  // 自作のアポロ 17 号の宇宙服（降りるあいだは背中の生命維持装置を着けない）。骨の無い部品なので、そのまま置ける
+  {
     for (const x of [0.55]) {
-      const rig = await makeSuitRig(src, false)
-      if (!rig || !alive) return
+      const rig = makeApolloAstronaut({ back: 'none', leva: false, cdr: false, rcu: false })
       for (let i = 0; i < 2; i++) {
         // 腕を前へ：操縦かんと、計器盤のスイッチ
         rig.shoulders[i].rotation.x = -0.75
@@ -220,15 +183,13 @@ export function buildLmCabin(): LmCabin {
         rig.knees[i].rotation.x = 0.12
         rig.hips[i].rotation.x = -0.06
       }
-      rig.update?.()
-      const suit = bakePose(rig.root)
+      const suit = rig.root
       suit.rotation.y = Math.PI
       suit.position.set(x, FLOOR, -0.78)
       body.add(suit)
-      suit.traverse((o) => (o as THREE.Mesh).geometry && disposables.push((o as THREE.Mesh).geometry))
-      for (const m of rig.materials) disposables.push(m)
+      disposables.push({ dispose: () => rig.materials.forEach((m) => m.dispose()) })
     }
-  })
+  }
 
   return {
     group,
@@ -237,7 +198,6 @@ export function buildLmCabin(): LmCabin {
       for (const [l, k] of lights) l.intensity = on ? k : 0
     },
     dispose: () => {
-      alive = false
       for (const d of disposables) d.dispose()
     },
   }

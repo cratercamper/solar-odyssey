@@ -1,23 +1,25 @@
 // 月ミッションの音楽：ホルスト「惑星」と、宇宙の気分のクラシック（どれも著作権は切れている）。同じ曲は 2 度使わない。
-// 録音と使用許可は public/audio/README.md（パブリックドメイン・CC0。ツァラトゥストラだけ CC BY 3.0 で、名前を出す）。
+// 録音と使用許可は public/audio/README.md（パブリックドメイン・CC0。ツァラトゥストラとワルキューレだけ CC BY 3.0 で、名前を出す）。
 // 場面のきっかけ（画面の見出し）で曲を始め、本物の交信音声が流れている間は小さくする。
 
 import { useStore } from '../state/store'
 import { audio, output, volume } from './sfx'
 import { useRadio } from './radio'
 
-export type MusicCue = 'jupiterOpening' | 'jupiterHymn' | 'mars' | 'saturn' | 'neptune' | 'blueDanube' | 'zarathustra' | 'clairDeLune' | 'newWorld'
+export type MusicCue = 'jupiterOpening' | 'jupiterHymn' | 'mars' | 'saturn' | 'venus' | 'valkyries' | 'blueDanube' | 'zarathustra' | 'clairDeLune' | 'newWorld' | 'newWorldFinale'
 
 const FILES: Record<MusicCue, string> = {
   jupiterOpening: 'audio/planets/jupiter-opening.mp3',
   jupiterHymn: 'audio/planets/jupiter-hymn.mp3',
   mars: 'audio/planets/mars.mp3',
   saturn: 'audio/planets/saturn.mp3',
-  neptune: 'audio/planets/neptune.mp3',
+  venus: 'audio/planets/venus.mp3',
+  valkyries: 'audio/classics/valkyries.mp3',
   blueDanube: 'audio/classics/blue-danube.mp3',
   zarathustra: 'audio/classics/zarathustra.mp3',
   clairDeLune: 'audio/classics/clair-de-lune.mp3',
   newWorld: 'audio/classics/new-world-largo.mp3',
+  newWorldFinale: 'audio/classics/new-world-finale.mp3',
 }
 
 /** 効果音とのつりあい（設定の音の大きさに掛ける） */
